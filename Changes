@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.2403 Tue Jul 24 7:30:00 2001
+    - Mod FmtUnicode, FmtJapan, FmtJapan2 : Fix NL
+                        (Thank you, Jeremy Smartt)
+
 0.2402 Thu Jul 12 20:30:00 2001
     - Mod Utility, FmtDefault :Fix format error
                         (Thank you, Kevin Ko)
