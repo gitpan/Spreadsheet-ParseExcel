@@ -1,8 +1,19 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
-0.22 Tue May 5 19:00:00 2001
+0.22.1 Wed May 15 6:35:00 2001
+    - Mod ParseExcel : Fix Continue (COTINUE with no header)
+                       (Thank you, Steve Sapovits)
+                     : Fix Hidden RowHeight, ColWidht 
+                       (Thank you, Maxim Ovchinnikov)
+                     : Fix ignore Graph sheet
+                       (Thank you, Joel Defarge )
+    - Mod Utility : Fix eval at Conditiona-Format 
+                       (Thank you, Alok K. Dhir)
+    - Add sample/dumpHTHML.pl
+                       (Thank you, Jean-Marc Vanel)
+
+0.22 Sat May 5 19:00:00 2001
     - Add SaveParser : For DBD::Excel
-                      Just Experimental
 
 0.21.2 Tue May 1 7:00:00 2001
     - Fix ParseExcel : MergedArea

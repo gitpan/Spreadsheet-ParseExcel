@@ -76,7 +76,7 @@ sub ExcelFmt($$;$) {
 #Get FmtString
     if(scalar(@sFmtWk)>1) {
         if($sCond) {
-            $sFmtObj = $sFmtWk[((eval("$iData $sCond"))? 0: 1)];
+            $sFmtObj = $sFmtWk[((eval(qq/"$iData" $sCond/))? 0: 1)];
         }
         else {
             my $iWk = ($iData =~/$sNUMEXP/)? $iData: 0;

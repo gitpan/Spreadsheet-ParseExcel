@@ -171,7 +171,7 @@ my %NameTbl = (
 sub subDUMP($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
-    printf "%02X:%-22s (Len:%3d) : %s\n", 
+    printf "%04X:%-23s (Len:%3d) : %s\n", 
             $bOp, OpName($bOp), $bLen, unpack("H40",$sWk);
 }
 #------------------------------------------------------------------------------

@@ -102,7 +102,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.22'; # 
+$VERSION = '0.22.1'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -392,36 +392,49 @@ sub _subGetContent($)
 #------------------------------------------------------------------------------
 # _subBOF (for Spreadsheet::ParseExcel) Developers' Kit : P303
 #------------------------------------------------------------------------------
-sub _subBOF($$$$)
-{
+sub _subBOF($$$$){
     my($oBook, $bOp, $bLen, $sWk) = @_;
 
-    if(defined $oBook->{_CurSheet}) {
-        $oBook->{_CurSheet}++; 
-        ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetVersion},
-         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetType},) 
-                = unpack("v2", $sWk) if(length($sWk) > 4);
+    my ($iVer, $iDt) = unpack("v2", $sWk);
+
+    #Workbook Global
+    if($iDt==0x0005) {
+        $oBook->{Version} = unpack("v", $sWk);
+        $oBook->{BIFFVersion} = 
+                ($oBook->{Version}==verExcel95)? verBIFF5:verBIFF8;
+        $oBook->{_CurSheet} = undef;
+        $oBook->{_CurSheet_} = -1; 
     }
-    else {
-        $oBook->{BIFFVersion} = int($bOp / 0x100);
-        if (($oBook->{BIFFVersion} == verBIFF2) ||
-            ($oBook->{BIFFVersion} == verBIFF3) ||
-            ($oBook->{BIFFVersion} == verBIFF4)) {
-            $oBook->{Version} = $oBook->{BIFFVersion};
-            $oBook->{_CurSheet} = 0;
-            $oBook->{Worksheet}[$oBook->{SheetCount}] =
-                    new Spreadsheet::ParseExcel::Worksheet(
-                         _Name => '',
-                          Name => '',
-            );
-            $oBook->{SheetCount}++;
+    #Worksheeet or Dialogsheet
+    elsif($iDt != 0x0020) {  #if($iDt == 0x0010) {
+        if(defined $oBook->{_CurSheet_}) {
+            $oBook->{_CurSheet} = $oBook->{_CurSheet_} + 1;
+            $oBook->{_CurSheet_}++; 
+
+            ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetVersion},
+             $oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetType},) 
+                    = unpack("v2", $sWk) if(length($sWk) > 4);
         }
         else {
-            $oBook->{Version} = unpack("v", $sWk);
-            $oBook->{BIFFVersion} = 
-                ($oBook->{Version}==verExcel95)? verBIFF5:verBIFF8;
-            $oBook->{_CurSheet} = -1;
+            $oBook->{BIFFVersion} = int($bOp / 0x100);
+            if (($oBook->{BIFFVersion} == verBIFF2) ||
+                ($oBook->{BIFFVersion} == verBIFF3) ||
+                ($oBook->{BIFFVersion} == verBIFF4)) {
+                $oBook->{Version} = $oBook->{BIFFVersion};
+                $oBook->{_CurSheet} = 0;
+                $oBook->{Worksheet}[$oBook->{SheetCount}] =
+                        new Spreadsheet::ParseExcel::Worksheet(
+                             _Name => '',
+                              Name => '',
+                );
+                $oBook->{SheetCount}++;
+            }
         }
+    }
+    else {
+        ($oBook->{_CurSheet_}, $oBook->{_CurSheet}) =
+            (((defined $oBook->{_CurSheet})? $oBook->{_CurSheet}: -1), 
+                undef);
     }
 }
 #------------------------------------------------------------------------------
@@ -814,12 +827,20 @@ sub _subFlg1904($$$$)
 sub _subRow($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
 #0. Get Worksheet info (MaxRow, MaxCol, MinRow, MinCol)
-    my($iR, $iSc, $iEc, $iHght, $iXf) = unpack("v5", $sWk);
+    my($iR, $iSc, $iEc, $iHght, undef, undef, $iGr, $iXf) = unpack("v8", $sWk);
     $iEc--;
 
 #1. RowHeight
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{RowHeight}[$iR] = $iHght/20.0;
+    if($iGr & 0x20) {   #Height = 0
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{RowHeight}[$iR] = undef;
+    }
+    else {
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{RowHeight}[$iR] = $iHght/20.0;
+    }
+
 #2.MaxRow, MaxCol, MinRow, MinCol
     _SetDimension($oBook, $iR, $iSc, $iEc);
 }
@@ -829,6 +850,8 @@ sub _subRow($$$$)
 sub _SetDimension(($$$$))
 {
     my($oBook, $iR, $iSc, $iEc)=@_;
+    return undef unless(defined $oBook->{_CurSheet});
+
 #2.MaxRow, MaxCol, MinRow, MinCol
 #2.1 MinRow
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinRow} = $iR 
@@ -855,6 +878,7 @@ sub _SetDimension(($$$$))
 sub _subDefaultRowHeight($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
 #1. RowHeight
     my($iDum, $iHght) = unpack("v2", $sWk);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{DefRowHeight} = $iHght/20;
@@ -875,6 +899,7 @@ sub _subStandardWidth($$$$)
 sub _subDefColWidth($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
     my $iW = unpack("v", $sWk);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{DefColWidth}= _adjustColWidth($oBook, $iW);
 }
@@ -893,9 +918,12 @@ sub _adjustColWidth($$) {
 sub _subColInfo($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
     my($iSc, $iEc, $iW, $iXF, $iGr) = unpack("v5", $sWk);
     for(my $i= $iSc; $i<=$iEc; $i++) {
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = _adjustColWidth($oBook, $iW);
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = 
+                        ($iGr & 0x01)? undef: _adjustColWidth($oBook, $iW);
+                    #0x01 means HIDDEN
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColFmtNo}[$i] = $iXF;
         # $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColCr}[$i]    = $iGr; #Not Implemented
     }
@@ -1208,8 +1236,10 @@ sub _subFont($$$$)
 sub _subBoundSheet($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
-    my($iPos, $iGr) = unpack("v2", $sWk);
-    my $iKind = $iGr & 0x0F;
+    my($iPos, $iGr, $iKind) = unpack("Lc2", $sWk);
+    $iKind &= 0x0F;
+    return if(($iKind != 0x00) && ($iKind != 0x01));
+
     if($oBook->{BIFFVersion} >= verBIFF8) {
         my($iSize, $iUni) = unpack("cc", substr($sWk, 6, 2));
         my $sWsName = substr($sWk, 8);
@@ -1240,6 +1270,7 @@ sub _subBoundSheet($$$$)
 sub _subHeader($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} = 
@@ -1258,6 +1289,7 @@ sub _subHeader($$$$)
 sub _subFooter($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
@@ -1279,6 +1311,7 @@ sub _subHPageBreak($$$$)
     my @aBreak;
     my $iCnt = unpack("v", $sWk);
 
+    return undef unless(defined $oBook->{_CurSheet});
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         for(my $i=0;$i<$iCnt;$i++) {
@@ -1306,6 +1339,8 @@ sub _subHPageBreak($$$$)
 sub _subVPageBreak($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my @aBreak;
     my $iCnt = unpack("v", $sWk);
     #BIFF8
@@ -1335,6 +1370,8 @@ sub _subVPageBreak($$$$)
 sub _subMergin($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my $dWk = _convDval(substr($sWk, 0, 8)) * 127 / 50;
     if($bOp == 0x26) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{LeftMergin} = $dWk;
@@ -1355,6 +1392,8 @@ sub _subMergin($$$$)
 sub _subHcenter($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my $iWk = unpack("v", $sWk);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{HCenter} = $iWk;
 
@@ -1365,6 +1404,8 @@ sub _subHcenter($$$$)
 sub _subVcenter($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my $iWk = unpack("v", $sWk);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{VCenter} = $iWk;
 }
@@ -1374,6 +1415,8 @@ sub _subVcenter($$$$)
 sub _subPrintGridlines($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my $iWk = unpack("v", $sWk);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{PrintGrid} = $iWk;
 
@@ -1384,6 +1427,8 @@ sub _subPrintGridlines($$$$)
 sub _subPrintHeaders($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my $iWk = unpack("v", $sWk);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{PrintHeaders} = $iWk;
 }
@@ -1393,6 +1438,7 @@ sub _subPrintHeaders($$$$)
 sub _subSETUP($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
 
     my $oWkS = $oBook->{Worksheet}[$oBook->{_CurSheet}];
 
@@ -1555,6 +1601,8 @@ sub _ParseNameArea95($) {
 sub _subWSBOOL($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{PageFit} = 
                                 ((unpack('v', $sWk) & 0x100)? 1: 0);
 }
@@ -1564,6 +1612,8 @@ sub _subWSBOOL($$$$)
 sub _subMergeArea($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
+    return undef unless(defined $oBook->{_CurSheet});
+
     my $iCnt = unpack("v", $sWk);
     my $oWkS = $oBook->{Worksheet}[$oBook->{_CurSheet}];
     $oWkS->{MergedArea} = [] unless(defined $oWkS->{MergedArea});
@@ -1658,8 +1708,15 @@ sub _subStrWk($$;$)
     #1. Continue
     if(defined($fCnt)) {
     #1.1 Before No Data No
-        if(($oBook->{StrBuff} eq '') || (!(defined($oBook->{_PrevCond})))){
+        if($oBook->{StrBuff} eq '') { #
+#print "CONT NO DATA\n";
+#print "DATA:", unpack('H30', $oBook->{StrBuff}), " PRE:$oBook->{_PrevCond}\n";
             $oBook->{StrBuff} .= $sWk;
+        }
+        #1.1 No PrevCond 
+        elsif(!(defined($oBook->{_PrevCond}))) {
+#print "NO PREVCOND\n";
+                $oBook->{StrBuff} .= substr($sWk, 1);
         }
         else {
 #print "CONT\n";
@@ -1670,7 +1727,8 @@ sub _subStrWk($$;$)
         #1.1 Not in String
             if($iLenB >= ($iStP + $iLenS)) {
 #print "NOT STR\n";
-                $oBook->{StrBuff} .= $sWk;
+#                $oBook->{StrBuff} .= $sWk;
+                $oBook->{StrBuff} .= substr($sWk, 1);
             }
         #1.2 Same code (Unicode or ASCII)
             elsif(($oBook->{_PrevCond} & 0x01) == ($iCnt1st & 0x01)) {
@@ -1704,7 +1762,7 @@ sub _subStrWk($$;$)
     #2. Saisho
         $oBook->{StrBuff} .= $sWk;
     }
-#print " AFT:", unpack("H60", $oBook->{StrBuff}), "\n";
+#print " AFT2:", unpack("H60", $oBook->{StrBuff}), "\n";
 
     $oBook->{_PrevCond} = undef;
     $oBook->{_PrevInfo} = undef;
@@ -1735,7 +1793,6 @@ sub _subStrWk($$;$)
 sub _SwapForUnicode(\$) 
 {
     my($sObj) = @_;
-
     for(my $i = 0; $i<length($$sObj); $i+=2){
             my $sIt = substr($$sObj, $i, 1);
             substr($$sObj, $i, 1) = substr($$sObj, $i+1, 1);
@@ -1749,6 +1806,7 @@ sub _NewCell($$$%)
 {
     my($oBook, $iR, $iC, %rhKey)=@_;
     my($sWk, $iLen);
+    return undef unless(defined $oBook->{_CurSheet});
 
     my $oCell = 
         Spreadsheet::ParseExcel::Cell->new(

@@ -25,3 +25,5 @@ res_oem     : result of samplOEM.pl
 
 dmpExR.pl    : Sample Script for get information about each characters.
 res_rich     : result of dmpExR.pl with Excel/Rich.xls
+
+dumpHTML.pl  : Convert into HTML (by Jean-Marc Vanel)

@@ -17,8 +17,9 @@ print "=========================================\n";
 print "FILE  :", $oBook->{File} , "\n";
 print "COUNT :", $oBook->{SheetCount} , "\n";
 print "AUTHOR:", $oBook->{Author} , "\n";
-for(my $iSheet=0; $iSheet < $oBook->{SheetCount} ; $iSheet++) {
-    $oWkS = $oBook->{Worksheet}[$iSheet];
+#for(my $iSheet=0; $iSheet < $oBook->{SheetCount} ; $iSheet++) {
+#    $oWkS = $oBook->{Worksheet}[$iSheet];
+for my $oWkS (@{$oBook->{Worksheet}}) {
     print "--------- SHEET:", $oWkS->{Name}, "\n";
     for(my $iR = $oWkS->{MinRow} ; 
             defined $oWkS->{MaxRow} && $iR <= $oWkS->{MaxRow} ; $iR++) {
