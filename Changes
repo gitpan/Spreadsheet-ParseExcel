@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.2301 Tue Jun 26  8:00:00 2001
+    - Mod FmtDefault
+                    :Fix not convert undefined or '' string
+
 0.23 Thu Jun 21  21:00:00 2001
     - Mod ParseExcel, FmtUnicode, FmtJapan, FmtJapan2 :
                     :Fix Unicode Latin1 adapt
