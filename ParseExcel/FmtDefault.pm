@@ -82,7 +82,6 @@ sub ValFmt($$$;$) {
     }
     $iFmtIdx  = $oCell->{Format}->{FmtIdx};
     $Flg1904  = $oBook->{Flg1904};
-
     my $sFmtStr = $oBook->{FormatStr}->{$iFmtIdx};
 
     if(!($sFmtStr) && defined($rhFmt)) {

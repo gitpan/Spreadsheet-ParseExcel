@@ -1,5 +1,10 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.16  Wed Mar 7  22:00:00 2001
+    - Fix Format String
+    - Avoding warnings
+            (Thank you Jimmy Sieben and Daniel Berger) 
+
 0.15  Wed Mar 6  10:00:00 2001
     - Fix RK number
             (Thank you Jimmy Sieben)

@@ -123,7 +123,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.15'; # 
+$VERSION = '0.16'; # 
 my $oFmtClass;
 my @aColor =
 (
@@ -978,8 +978,17 @@ sub _subXF($$$$)
 sub _subFormat($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
-    $oBook->{FormatStr}->{unpack('v', substr($sWk, 0, 2))}
-        = substr($sWk, 3, unpack('c', substr($sWk, 2, 1)));
+    my $sFmt;
+    if (($oBook->{BIFFVersion} == verBIFF2) ||
+        ($oBook->{BIFFVersion} == verBIFF3) ||
+        ($oBook->{BIFFVersion} == verBIFF4) ||
+        ($oBook->{BIFFVersion} == verBIFF5) ) {
+        $sFmt = substr($sWk, 3, unpack('c', substr($sWk, 2, 1)));
+    }
+    else {
+        $sFmt = _convBIFF8String(substr($sWk, 2));
+    }
+    $oBook->{FormatStr}->{unpack('v', substr($sWk, 0, 2))} = $sFmt;
 }
 #------------------------------------------------------------------------------
 # _subPalette (for Spreadsheet::ParseExcel) DK: P393
@@ -1138,8 +1147,8 @@ sub _UnpackRKRec($) {
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk));
     }
     elsif($iPtn == 1) {
-        substr($sWk, 3, 1) &=  0xFC;
-        substr($lWk, 0, 1) &=  0xFC;
+        substr($sWk, 3, 1) &=  pack('c', unpack("c",substr($sWk, 3, 1)) & 0xFC);
+        substr($lWk, 0, 1) &=  pack('c', unpack("c",substr($lWk, 0, 1)) & 0xFC);
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk)/ 100);
     }
     elsif($iPtn == 2) {
@@ -1150,7 +1159,6 @@ sub _UnpackRKRec($) {
     else {
         my $sWkLB = pack("B32", "00" . substr(unpack("B32", $sWk), 0, 30));
         my $sWkL  = ($BIGENDIAN)? $sWkLB: pack("c4", reverse(unpack("c4", $sWkLB)));
-print "VAL:", unpack("i", $sWkL), "\n";
         return ($iF, unpack("i", $sWkL) / 100);
     }
 }

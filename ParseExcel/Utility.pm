@@ -90,7 +90,7 @@ sub ExcelFmt($$;$) {
 #print "FMT:$sFmtObj Co:$sColor\n";
 
 #3.Build Data
-    my $iFmtMode;   #1:Number, 2:Date
+    my $iFmtMode=0;   #1:Number, 2:Date
     my $i=0;
     my $ir=0;
     my $sFmtWk;
@@ -128,7 +128,8 @@ sub ExcelFmt($$;$) {
             $i++;
             next;
         }
-        if($iDblQ or $iQ) {
+#print STDERR "DEF1: $iDblQ DEF2: $iQ\n";
+        if((defined($iDblQ) and ($iDblQ)) or (defined($iQ) and ($iQ))) {
             $iQ = 0;
             $i++;
         }
@@ -417,7 +418,7 @@ sub ExcelFmt($$;$) {
             substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
         }
     }
-    else{
+    elsif($iFmtMode==1) {
         if($#aRep>=0) {
             while($aRep[$#aRep]->[0] eq ',') {
                 $iCmmCnt--;
@@ -455,7 +456,7 @@ sub ExcelFmt($$;$) {
             }
     #print "DATA:$iData\n";
             $iData *= 100.0 if($iPer);
-            my $iDData = ($iFugouFlg)? abs($iData) : $iData;
+            my $iDData = ($iFugouFlg)? abs($iData) : $iData+0;
             if($iBunFlg) {
                 $sNumRes = sprintf("%0${iTtl}d", int($iDData));
             }
@@ -464,6 +465,7 @@ sub ExcelFmt($$;$) {
                     $sNumRes = sprintf("%0${iTtl}.${iAftP}f", $iDData);
                 }
                 else {
+    #print "DATA:", $iDData, "\n";
                     $sNumRes = sprintf("%0${iTtl}.0f", $iDData);
                 }
             }
@@ -520,8 +522,19 @@ sub ExcelFmt($$;$) {
                             $sRep = '';
                     }
     #print "REP:$sRep ", $rItem->[1], ":" ,$rItem->[2], "\n";
-                substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
+                    substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
                 }
+            }
+        }
+    }
+    else {
+        for(my $iIt=$#aRep; $iIt>=0;$iIt--) {
+            my $rItem = $aRep[$iIt];
+            if($rItem->[0] eq '@') {
+                substr($sFmtRes, $rItem->[1], $rItem->[2]) = $iData;
+            }
+            else {
+                substr($sFmtRes, $rItem->[1], $rItem->[2]) = '';
             }
         }
     }

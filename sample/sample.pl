@@ -2,6 +2,7 @@ use lib qw(../);
 use strict;
 use Spreadsheet::ParseExcel;
 my $oExcel = new Spreadsheet::ParseExcel;
+sub PrnBook($);
 
 #1.1 Normal Excel97
 my $oBook = $oExcel->Parse('Excel/Test97.xls');
@@ -19,7 +20,7 @@ PrnBook($oBook);
 $oBook = $oExcel->Parse('Excel/Test1904_95.xls');
 PrnBook($oBook);
 
-sub PrnBook($$)
+sub PrnBook($)
 {
     my($oBook) = @_;
     my($iR, $iC, $oWkS, $oWkC);
