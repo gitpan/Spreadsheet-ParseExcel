@@ -89,6 +89,7 @@ sub ValFmt($$$;$) {
     }
 
     $sFmtStr = $hFmtDefault{$iFmtIdx} unless($sFmtStr);
+    $sFmtStr = '@' if($oCell->{_Kind} eq 'String');
 
     unless($sFmtStr) {
         if ($oCell->{Type} eq 'Numeric') {

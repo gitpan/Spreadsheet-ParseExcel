@@ -1,5 +1,10 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.201 Sun Apr 3  10:00:00 2001
+    - Fix FmtJapan, FmtJapan2 : TxtFmt
+    - Fix FmtDefault : ValFmt (for 'String' format')
+                       (Thank you, Fukusima, Tuneyosi)
+
 0.20  Mon Mar 30  20:00:00 2001
     - Fix ParseExcel.pm : RK int minus 
                        (Thank you, Morten Sickel)

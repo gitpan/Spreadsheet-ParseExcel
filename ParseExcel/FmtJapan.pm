@@ -68,7 +68,8 @@ sub new($%) {
 #------------------------------------------------------------------------------
 sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
-    $sCode = 'sjis' if(defined($sCode) && ($sCode eq '_native_'));
+#    $sCode = 'sjis' if(defined($sCode) && ($sCode eq '_native_'));
+    $sCode = 'sjis' if((! defined($sCode)) || ($sCode eq '_native_'));
     if($oThis->{Code}) {
         return Jcode::convert($sTxt, $oThis->{Code}, $sCode);
     }
