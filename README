@@ -1,0 +1,36 @@
+NAME
+    Spreadsheet::ParseExcel - Get information from Excel file
+
+DESCRIPTION
+    This module allows you to get information from Excel file.
+
+    This module can handle files of Excel95, 97 and 2000.
+
+    The module will work on the majority of Windows, UNIX and
+    Macintosh platforms. 
+
+REQUIREMENT
+	This module requires these modules:
+		OLE::Storage
+		Startup
+		Jcode.pm	(if you are using FmtJapanese)
+
+INSTALLATION
+    The module can be installed using the standard Perl procedure:
+
+        perl Makefile.PL
+        make
+        make test
+        make install    # You may need to be root
+        make clean      # or make realclean
+
+    Windows users without a working "make" can get nmake from:
+        ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
+
+VERSION
+    This document refers to version 0.05 of Spreadsheet::ParseExcel,
+    released Oct 2, 2000.
+
+AUTHOR
+    Kawai Takanori (GCD00051@nifty.ne.jp)
+
