@@ -123,7 +123,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.18'; # 
+$VERSION = '0.19'; # 
 my $oFmtClass;
 my @aColor =
 (

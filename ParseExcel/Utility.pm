@@ -26,7 +26,6 @@ sub LeapYear($);
 #------------------------------------------------------------------------------
 sub ExcelFmt($$;$) {
     my($sFmt, $iData, $i1904) =@_;
-
     my $sCond;
     my $sWkF ='';
     my $sRes='';
@@ -323,7 +322,7 @@ sub ExcelFmt($$;$) {
             qw (dum January February March April May June July 
                 August September October November December );
         my @aMonNm =
-            qw (dum Jan Feb Mar May Jun Jul Aug Sep Oct Nov Dec);
+            qw (dum Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
         my @aWeekNm = 
             qw (Mon Tue Wed Thu Fri Sat Sun);
         my @aWeekL = 
@@ -480,16 +479,16 @@ sub ExcelFmt($$;$) {
                     $sNumRes = sprintf("%0${iTtl}.0f", $iDData);
                 }
             }
-    #print "sNum:$sNumRes\n";
+#print "sNum:$sNumRes\n";
             $sNumRes = AddComma($sNumRes) if($iCmmCnt > 0);
-    #print "RES:$sNumRes\n";
+#print "RES:$sNumRes\n";
             my $iLen = length($sNumRes);
             my $iPPos = -1;
             my $sRep;
 
             for(my $iIt=$#aRep; $iIt>=0;$iIt--) {
                 my $rItem = $aRep[$iIt];
-    #print "Rep:", $rItem->[0], "\n";
+#print "Rep:", $rItem->[0], "\n";
                 if($rItem->[0] =~/([#0]*)([\.]?)([0#]*)([eE])([\+\-])([0#]+)/) {
                     substr($sFmtRes, $rItem->[1], $rItem->[2]) = 
                             MakeE($rItem->[0], $iData);
@@ -520,21 +519,29 @@ sub ExcelFmt($$;$) {
                         }
                         else {
                             my $iReal = length($rItem->[0]);
+#print "PPOS:$iPPos REAL:$iReal\n";
                             if($iPPos >= 0) {
                                 my $sWkF = $rItem->[0];
                                 $sWkF=~s/^#+//;
                                 $iReal = length($sWkF);
+#print "LEN:$iLen $iReal\n";
                                 $iReal = ($iLen <=$iReal)? $iLen:$iReal;
                             }
+			    else {
+                                $iReal = ($iLen <=$iReal)? $iLen:$iReal;
+                            }
+#print "RES:$sFmtRes<< $sNumRes<< $iReal $iLen\n";
                             $sRep = substr($sNumRes, $iLen - $iReal, $iReal);
+#print "REP:$sRep\n";
                             $iLen -=$iReal;
                         }
                     }
                     else {
                             $sRep = '';
                     }
-    #print "REP:$sRep ", $rItem->[1], ":" ,$rItem->[2], "\n";
+#print "REP:$sRep ", $rItem->[1], ":" ,$rItem->[2], "\n";
                     substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
+#print "RES:$sFmtRes\n";
                 }
             }
         }

@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.19  Mon Mar 26  12:00:00 2001
+    - Fix Utility.pm :Month short name 
+                       (Thank you, Morten Sickel)
+    - Fix Utility.pm :Formatting Error
+                       (Thank you, yusuf_najuddin)
+    - Fix FmtJapan2.pm: CP932Excel.map readable check
+                       (Thank you, Kawasaki)
+
 0.18  Sat Mar 18  16:00:00 2001
     - Fix Excel4 file support
     - Fix subLabel (Unicode)

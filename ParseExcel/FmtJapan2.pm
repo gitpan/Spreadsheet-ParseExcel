@@ -18,6 +18,8 @@ $VERSION = '0.02'; #
 sub new($%) {
     my($sPkg, %hKey) = @_;
     my $oMap = Unicode::Map->new('CP932Excel');
+    die "NO MAP FILE CP932Excel!!" 
+		unless(-r Unicode::Map->mapping("CP932Excel"));
     my $oThis={ 
         Code => $hKey{Code},
         _UniMap => $oMap,
