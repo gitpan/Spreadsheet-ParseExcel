@@ -46,4 +46,5 @@ sample/smpFile.pl
 sample/xls2csv.pl
 sample/iftest.pl
 sample/iftestj.pl
+sample/dmpEx_2xml.pl
 test.pl

@@ -14,11 +14,10 @@ require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-my $_oEx=undef;
 sub new($) {
+  my ($sClass) = @_;
   my $oThis = {};
-  bless $oThis;
-  return $oThis;
+  bless $oThis, $sClass;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Workbook->ParseAbort
@@ -32,8 +31,10 @@ sub ParseAbort($$) {
 #------------------------------------------------------------------------------
 sub Parse($$;$) {
     my($sClass, $sFile, $oFmt) =@_;
-    $_oEx = new Spreadsheet::ParseExcel unless($_oEx);
+    my $_oEx = new Spreadsheet::ParseExcel;
     my $oBook = $_oEx->Parse($sFile, $oFmt);
+    $oBook->{_Excel} = $_oEx;
+    $oBook;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Workbook Worksheet
@@ -66,10 +67,9 @@ sub new($%) {
   my ($sClass, %rhIni) = @_;
   my $oThis = \%rhIni;
 
-  bless $oThis;
   $oThis->{Cells}=undef;
   $oThis->{DefColWidth}=8.38;
-  return $oThis;
+  bless $oThis, $sClass;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Worksheet->sheetNo
@@ -78,6 +78,46 @@ sub sheetNo($){
     my($oSelf) = @_;
     return $oSelf->{_SheetNo};
 }
+#------------------------------------------------------------------------------
+# Spreadsheet::ParseExcel::Worksheet->Cell
+#------------------------------------------------------------------------------
+sub Cell($$$){
+    my($oSelf, $iR, $iC) = @_;
+
+    # return undef if no arguments are given or if no cells are defined
+    return  if ((!defined($iR)) || (!defined($iC)) ||
+                (!defined($oSelf->{MaxRow})) || (!defined($oSelf->{MaxCol})));
+    
+    # return undef if outside defined rectangle
+    return  if (($iR < $oSelf->{MinRow}) || ($iR > $oSelf->{MaxRow}) ||
+                ($iC < $oSelf->{MinCol}) || ($iC > $oSelf->{MaxCol}));
+    
+    # return the Cell object
+    return $oSelf->{Cells}[$iR][$iC];
+}
+#------------------------------------------------------------------------------
+# Spreadsheet::ParseExcel::Worksheet->RowRange
+#------------------------------------------------------------------------------
+sub RowRange($){
+    my($oSelf) = @_;
+    my $iMin = $oSelf->{MinRow} || 0;
+    my $iMax = defined($oSelf->{MaxRow}) ? $oSelf->{MaxRow} : ($iMin-1);
+
+    # return the range
+    return($iMin, $iMax);
+}
+#------------------------------------------------------------------------------
+# Spreadsheet::ParseExcel::Worksheet->ColRange
+#------------------------------------------------------------------------------
+sub ColRange($){
+    my($oSelf) = @_;
+    my $iMin = $oSelf->{MinCol} || 0;
+    my $iMax = defined($oSelf->{MaxCol}) ? $oSelf->{MaxCol} : ($iMin-1);
+
+    # return the range
+    return($iMin, $iMax);
+}
+
 #==============================================================================
 # Spreadsheet::ParseExcel::Font
 #==============================================================================
@@ -90,8 +130,7 @@ sub new($%) {
   my($sClass, %rhIni) = @_;
   my $oThis = \%rhIni;
 
-  bless $oThis;
-  return $oThis;
+  bless $oThis, $sClass;
 }
 #==============================================================================
 # Spreadsheet::ParseExcel::Format
@@ -105,8 +144,7 @@ sub new($%) {
   my($sClass, %rhIni) = @_;
   my $oThis = \%rhIni;
 
-  bless $oThis;
-  return $oThis;
+  bless $oThis, $sClass;
 }
 #==============================================================================
 # Spreadsheet::ParseExcel::Cell
@@ -122,9 +160,9 @@ sub new($%) {
     my($sWk, $iLen);
     my $oThis = \%rhKey;
 
-    bless $oThis;
-    return $oThis;
+    bless $oThis, $sPkg;
 }
+
 sub Value($){
     my($oThis)=@_;
     return $oThis->{_Value};
@@ -138,7 +176,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.26'; # 
+$VERSION = '0.2601'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -248,8 +286,8 @@ sub new($;%) {
 #0. Check ENDIAN(Little: Interl etc. BIG: Sparc etc)
     $BIGENDIAN = (defined $hParam{Endian})? $hParam{Endian} :
                     (unpack("H08", pack("L", 2)) eq '02000000')? 0: 1;
-    my $oThis = { };
-    bless $oThis;
+    my $oThis = {};
+    bless $oThis, $sPkg;
 
 #1. Set Parameter
 #1.1 Get Content
@@ -1330,16 +1368,19 @@ sub _subHeader($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     return undef unless(defined $oBook->{_CurSheet});
+    my $sW;
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
+	$sW = _convBIFF8String($oBook, $sWk);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} = 
-            _convBIFF8String($oBook, $sWk);
+		($sW eq "\x00")? undef : $sW;
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} 
-            = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
+	$sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} =
+		($sW eq "\x00\x00\x00")? undef : $sW;
     }
 }
 #------------------------------------------------------------------------------
@@ -1349,16 +1390,19 @@ sub _subFooter($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     return undef unless(defined $oBook->{_CurSheet});
+    my $sW;
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
+	$sW = _convBIFF8String($oBook, $sWk);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
-            _convBIFF8String($oBook, $sWk);
+		($sW eq "\x00")? undef : $sW;
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer}
-            = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
+	$sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
+		($sW eq "\x00\x00\x00")? undef : $sW;
     }
 }
 #------------------------------------------------------------------------------
@@ -2108,6 +2152,29 @@ Each PrintTitle is :
 =head2 Worksheet
 
 I<Spreadsheet::ParseExcel::Worksheet>
+
+Worksheet class has these methods:
+
+=over 4
+
+=item Cell ( ROW, COL )
+
+Return the Cell iobject at row ROW and column COL if
+it is defined. Otherwise return undef.
+
+=item RowRange ()
+
+Return a two-element list (MIN, MAX) containing the
+minimum and maximum of defined rows in the worksheet
+If there is no row defined MAX is smaller than MIN.
+
+=item ColRange ()
+
+Return a two-element list (MIN, MAX) containing the
+minimum and maximum of defined columns in the worksheet
+If there is no row defined MAX is smaller than MIN.
+
+=back
 
 Worksheet class has these properties:
 

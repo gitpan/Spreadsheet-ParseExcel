@@ -1,13 +1,9 @@
 # Spreadsheet::ParseExcel::SaveParser
 #  by Kawai, Takanori (Hippo2000) 2001.5.1
 # This Program is ALPHA version.
-#==============================================================================
-package Spreadsheet::ParseExcel::SaveParser::Workbook;
-require Exporter;
-use strict;
-use vars qw($VERSION @ISA);
-@ISA = qw(Spreadsheet::ParseExcel::Workbook Exporter);
-$VERSION = '0.03'; # 
+#//////////////////////////////////////////////////////////////////////////////
+# Spreadsheet::ParseExcel:.SaveParser Objects
+#//////////////////////////////////////////////////////////////////////////////
 #==============================================================================
 # Spreadsheet::ParseExcel::SaveParser::Workbook
 #==============================================================================
@@ -16,31 +12,37 @@ require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::Workbook Exporter);
+$VERSION = '0.04'; # 
 sub new($$) {
     my($sPkg, $oBook) = @_;
     return undef unless(defined $oBook);
     my %oThis = %$oBook;
     bless \%oThis, $sPkg;
     
-    my $oWk;
-    my $sWkP = $sPkg;
+    # re-bless worksheets (and set their _Book properties !!!)
+    my $sWkP = ref($sPkg) || "$sPkg";
     $sWkP =~ s/Workbook$/Worksheet/;
-    foreach $oWk (@{$oThis{Worksheets}}) {
-        bless $oWk, $sWkP;
-    }
+    map { bless($_, $sWkP); } @{$oThis{Worksheet}};
+    map { $_->{_Book} = \%oThis; } @{$oThis{Worksheet}};
     return \%oThis;
 }
 #------------------------------------------------------------------------------
-# Parse (for Spreadsheet::ParseExcel::SaveParser)
+# Parse (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
 sub Parse($$;$) {
     my($sClass, $sFile, $oWkFmt)=@_;
-  my $oBook = Spreadsheet::ParseExcel::Workbook->Parse($sFile, $oWkFmt);
-  bless $oBook, $sClass;
-  return $oBook;
+    my $oBook = Spreadsheet::ParseExcel::Workbook->Parse($sFile, $oWkFmt);
+    bless $oBook, $sClass;
+
+    # re-bless worksheets (and set their _Book properties !!!)
+    my $sWkP = ref($sClass) || "$sClass";
+    $sWkP =~ s/Workbook$/Worksheet/;
+    map { bless($_, $sWkP); } @{$oBook->{Worksheet}};
+    map { $_->{_Book} = $oBook; } @{$oBook->{Worksheet}};
+    return $oBook;
 }
 #------------------------------------------------------------------------------
-# SaveAs (for Spreadsheet::ParseExcel::SaveParser)
+# SaveAs (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
 sub SaveAs($$){
     my ($oBook, $sName)=@_;
@@ -49,7 +51,7 @@ sub SaveAs($$){
     my %hFmt;
 
     my $iNo = 0;
-    my @aAlH = (undef, 'left', 'center', 'right', 'fill', 'justify', 'merge', 'equal_space');
+    my @aAlH = ('left', 'left', 'center', 'right', 'fill', 'justify', 'merge', 'equal_space');
     my @aAlV = ('top' , 'vcenter', 'bottom', 'vjustify', 'vequal_space');
 
     foreach my $pFmt (@{$oBook->{Format}}) {
@@ -66,6 +68,8 @@ sub SaveAs($$){
             $oFmt->set_underline($rFont->{Underline});
             $oFmt->set_font_strikeout($rFont->{Strikeout});
             $oFmt->set_font_script($rFont->{Super});
+
+            $oFmt->set_hidden($rFont->{Hidden});        #Add
 
             $oFmt->set_align($aAlH[$pFmt->{AlignH}]);
             $oFmt->set_align($aAlV[$pFmt->{AlignV}]);
@@ -108,7 +112,7 @@ sub SaveAs($$){
         my $oWkS = $oBook->{Worksheet}[$iSheet];
         my $oWrS = $oWrEx->addworksheet($oWkS->{Name});
         #Landscape
-        if($oWkS->{Landscape}==0) { # Landscape (0:Horizontal, 1:Vertical)
+        if(!$oWkS->{Landscape}) { # Landscape (0:Horizontal, 1:Vertical)
             $oWrS->set_landscape();
         }
         else {
@@ -213,12 +217,21 @@ sub SaveAs($$){
     return $oWrEx
 }
 #------------------------------------------------------------------------------
-# AddWorksheet (for Spreadsheet::ParseExcel::SaveParser)
+# AddWorksheet (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
 sub AddWorksheet($$%) {
     my($oBook, $sName, %hAttr) = @_;
     $oBook->AddFormat if($#{$oBook->{Format}}<0);
     $hAttr{Name} ||= $sName;
+    $hAttr{LeftMergin} ||= 0;
+    $hAttr{RightMergin} ||= 0;
+    $hAttr{TopMergin} ||= 0;
+    $hAttr{BottomMergin} ||= 0;
+    $hAttr{HeaderMergin} ||= 0;
+    $hAttr{FooterMergin} ||= 0;
+    $hAttr{FitWidth} ||= 0;
+    $hAttr{FitHeight} ||= 0;
+    $hAttr{PrintGrid} ||= 0;
     my $oWkS = Spreadsheet::ParseExcel::SaveParser::Worksheet->new(%hAttr);
     $oWkS->{_Book} = $oBook;
     $oWkS->{_SheetNo} = $oBook->{SheetCount};
@@ -227,7 +240,7 @@ sub AddWorksheet($$%) {
     return $oWkS; #$oBook->{SheetCount} - 1;
 }
 #------------------------------------------------------------------------------
-# AddFont (for Spreadsheet::ParseExcel::SaveParser)
+# AddFont (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
 sub AddFont($%){
     my ($oBook, %hAttr) = @_;
@@ -243,13 +256,18 @@ sub AddFont($%){
     return $#{$oBook->{Font}};
 }
 #------------------------------------------------------------------------------
-# AddFormat (for Spreadsheet::ParseExcel::SaveParser)
+# AddFormat (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
 sub AddFormat($%){
     my ($oBook, %hAttr) = @_;
     $hAttr{Fill}     ||= [0, 0, 0];
     $hAttr{BdrStyle} ||= [0, 0, 0, 0];
     $hAttr{BdrColor} ||= [0, 0, 0, 0];
+    $hAttr{AlignH} ||= 0;
+    $hAttr{AlignV} ||= 0;
+    $hAttr{Rotate} ||= 0;
+    $hAttr{Landscape} ||= 0;
+    $hAttr{FmtIdx} ||= 0;
     if(!defined($hAttr{Font})) {
         my $oFont;
         if(defined $hAttr{FontNo}) {
@@ -271,7 +289,7 @@ sub AddFormat($%){
     return $#{$oBook->{Format}};
 }
 #------------------------------------------------------------------------------
-# AddCell (for Spreadsheet::ParseExcel::SaveParser)
+# AddCell (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
 sub AddCell($$$$$$;$) {
     my($oBook, $iSheet, $iR, $iC, $sVal, $oCell, $sCode)=@_;
@@ -280,11 +298,13 @@ sub AddCell($$$$$$;$) {
     my $iFmt = (UNIVERSAL::isa($oCell, 'Spreadsheet::ParseExcel::Cell'))?
                 $oCell->{FormatNo} : (ref($oCell))? 0: $oCell+0;
     $rhKey{FormatNo} = $iFmt;
+    $rhKey{Format}   = $oBook->{Format}[$iFmt];
     $rhKey{Val}      = $sVal;
     $rhKey{Code}     = $sCode || '_native_';
     $oBook->{_CurSheet} = $iSheet;
-    Spreadsheet::ParseExcel::_NewCell($oBook, $iR, $iC, %rhKey);
+    my $oNewCell = Spreadsheet::ParseExcel::_NewCell($oBook, $iR, $iC, %rhKey);
     Spreadsheet::ParseExcel::_SetDimension($oBook, $iR, $iC, $iC);
+    return $oNewCell;
 }
 1;
 #==============================================================================
@@ -297,9 +317,7 @@ use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::Worksheet Exporter);
 sub new($%) {
   my ($sClass, %rhIni) = @_;
-  my $oThis = $sClass->SUPER::new(%rhIni);
-  bless $oThis, $sClass;
-  return $oThis;
+  $sClass->SUPER::new(%rhIni);	# returns object
 }
 #------------------------------------------------------------------------------
 # AddCell (for Spreadsheet::ParseExcel::SaveParser::Worksheet)
@@ -326,9 +344,7 @@ use constant MagicCol => 1.14;
 #------------------------------------------------------------------------------
 sub new($%) {
     my($sPkg, %hKey) = @_;
-    my $oThis = new Spreadsheet::ParseExcel(%hKey);
-    bless $oThis, $sPkg;
-    return $oThis;
+    $sPkg->SUPER::new(%hKey);
 }
 #------------------------------------------------------------------------------
 # Create
