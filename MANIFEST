@@ -8,6 +8,7 @@ ParseExcel/FmtDefault.pm
 ParseExcel/FmtJapan.pm
 ParseExcel/FmtJapan2.pm
 ParseExcel/FmtUnicode.pm
+ParseExcel/SaveParser.pm
 ParseExcel/Utility.pm
 README
 README_Japan.htm

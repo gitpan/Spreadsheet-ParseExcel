@@ -102,7 +102,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.21.2'; # 
+$VERSION = '0.22'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -867,7 +867,7 @@ sub _subStandardWidth($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     my $iW = unpack("v", $sWk);
-    $oBook->{StandardWidth}= _adjustColWidth($iW);
+    $oBook->{StandardWidth}= _adjustColWidth($oBook, $iW);
 }
 #------------------------------------------------------------------------------
 # _subDefColWidth(for Spreadsheet::ParseExcel)      DK:P319
@@ -876,14 +876,16 @@ sub _subDefColWidth($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     my $iW = unpack("v", $sWk);
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{DefColWidth}= _adjustColWidth($iW);
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{DefColWidth}= _adjustColWidth($oBook, $iW);
 }
 #------------------------------------------------------------------------------
 # _adjustColWidth (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
-sub _adjustColWidth($) {
-    my($iW)=@_;
-    return ($iW -0xA0)/256;
+sub _adjustColWidth($$) {
+    my($oBook, $iW)=@_;
+    return (($iW -0xA0)/256);
+#    ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetVersion} == verExcel97)?
+#        (($iW -0xA0)/256) : $iW;
 }
 #------------------------------------------------------------------------------
 # _subColInfo (for Spreadsheet::ParseExcel) DK:P309
@@ -893,7 +895,7 @@ sub _subColInfo($$$$)
     my($oBook, $bOp, $bLen, $sWk) = @_;
     my($iSc, $iEc, $iW, $iXF, $iGr) = unpack("v5", $sWk);
     for(my $i= $iSc; $i<=$iEc; $i++) {
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = _adjustColWidth($iW);
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = _adjustColWidth($oBook, $iW);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColFmtNo}[$i] = $iXF;
         # $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColCr}[$i]    = $iGr; #Not Implemented
     }

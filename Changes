@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.22 Tue May 5 19:00:00 2001
+    - Add SaveParser : For DBD::Excel
+                      Just Experimental
+
 0.21.2 Tue May 1 7:00:00 2001
     - Fix ParseExcel : MergedArea
                        (Thank you, Bradley M. Handy )
