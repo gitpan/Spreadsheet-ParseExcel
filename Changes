@@ -7,3 +7,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 	- Change to use OLE::Storage_Lite
 	- Fix RString, PackedString BUGS (Thank you, Hirofumi Morisada)
 	- Fix and Add Formula String     (Thank you, Michael Edwards)
+
+0.08  Sat Nov 25 12:00:00 2000
+    - Fix RString, PackedString BUGS (Thank you, Kim Namsuk)
+    - Fix undefined function _subDefColW (Thank you, Hirofumi Morisada)

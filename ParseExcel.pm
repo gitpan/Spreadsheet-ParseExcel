@@ -117,7 +117,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.07'; # 
+$VERSION = '0.08'; # 
 
 my $oFmtClass;
 my @aColor =
@@ -202,7 +202,7 @@ my %ProcTbl =(
     0x7D => \&_subColW,      # Col Width (?)
     0x7E => \&_subRKNumber,  # RK Number
     0x85 => \&_subBoundSheet,# BoundSheet
-    0x99 => \&_subColDefW,   # Default Col
+    0x99 => \&_subColWDef,   # Default Col
 #    0xBC => undef,          # Shared Fomula (Skip)
     0xBD => \&_subMulRK,     # MULRK
     0xBE => \&_subMulBlank,  # MULBLANK
@@ -842,19 +842,8 @@ sub _subDefRowHeight($$$$$)
 sub _subColWDef($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
-    my($cSubW, $iCharW) = unpack("cc", $sWk);
-    my %_hColSub= (
-           0 => -0.62,  #0x00
-          32 => -0.5,   #0x20
-          64 => -0.32,  #0x40
-          96 => -0.25,  #0x60
-        -128 => -0.12,  #0x80
-         -96 =>  0,     #0xA0
-         -64 =>  0.13,  #0xC0
-         -32 =>  0.25,  #0xE0
-    );
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{DefColWidth}= 
-                    $iCharW + $_hColSub{$cSubW};
+    my $iW = unpack("v", $sWk);
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{DefColWidth}= ($iW -0xA0)/256;
 }
 #------------------------------------------------------------------------------
 # _subColW (for Spreadsheet::ParseExcel)
@@ -862,20 +851,9 @@ sub _subColWDef($$$$$)
 sub _subColW($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
-    my($iSc, $iEc, $cSubW, $iCharW) = unpack("v2cc", $sWk);
-    my %_hColSub= (
-           0 => -0.62,  #0x00
-          32 => -0.5,   #0x20
-          64 => -0.32,  #0x40
-          96 => -0.25,  #0x60
-        -128 => -0.12,  #0x80
-         -96 =>  0,     #0xA0
-         -64 =>  0.13,  #0xC0
-         -32 =>  0.25,  #0xE0
-    );
+    my($iSc, $iEc, $iW) = unpack("v3", $sWk);
     for(my $i= $iSc; $i<=$iEc; $i++) {
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = 
-            $iCharW + $_hColSub{$cSubW};
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = ($iW -0xA0)/256;
     }
 }
 #------------------------------------------------------------------------------
@@ -1110,46 +1088,53 @@ sub _subStrWk($$;$)
 {
     my($oBook, $sWk, $fCnt) = @_;
 
+#print "NEW LEN:", length($oBook->{StrBuff}), "  CONT:", defined($fCnt), "\n";
+#print " DUMP:", unpack("H10", $sWk), "\n";
     if(defined($fCnt)) {
- 		$oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && 
-                              (substr($sWk, 0, 1) ne "\x00"))? substr($sWk, 1): $sWk;
+		if(defined($oBook->{_PrevCond}) && ($oBook->{_PrevCond} & 0x01)) {
+ 		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) != 0))? 
+								substr($sWk, 1): $sWk;
+		}
+		else {
+ 		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) == 0))? 
+								substr($sWk, 1): $sWk;
+		}
     }
     else {
         $oBook->{StrBuff} .= $sWk;
     }
+	$oBook->{_PrevCond} = undef;
     my($iLen, $iLenS);
     my($iCrun, $iExrst);
     my($iStP);
+
     while(length($oBook->{StrBuff}) >= 4) {
         my($iChrs, $iGr) = unpack("v2", $oBook->{StrBuff});
         $iLenS = $iChrs;
         $iLenS *= 2 if($iGr & 0x01);
         $iLen = $iLenS;
         $iStP = 3;
-        if(($iGr & 0x0C) == 0x0C) {
-            ($iCrun, $iExrst) = unpack("v2", substr($oBook->{StrBuff}, 3, 4));
+        if(($iGr & 0x0C) == 0x0C) {	#FarEast + RichText
+            ($iCrun, $iExrst) = unpack("vV", substr($oBook->{StrBuff}, 3, 6));
             $iLen += $iCrun * 4 + $iExrst;
             $iStP = 9;
         }
-        elsif(($iGr & 0x08) == 0x08) {
+        elsif(($iGr & 0x08) == 0x08) { #RichText
             $iCrun = unpack("v", substr($oBook->{StrBuff}, 3, 2));
             $iLen += $iCrun * 4;
             $iStP = 5;
         }
-        elsif(($iGr & 0x04) == 0x04) {
-            $iExrst = unpack("v", substr($oBook->{StrBuff}, 3, 2));
+        elsif(($iGr & 0x04) == 0x04) { #FarEast
+            $iExrst = unpack("V", substr($oBook->{StrBuff}, 3, 4));
             $iLen += $iExrst;
             $iStP = 7;
         }
         if(length($oBook->{StrBuff}) >= $iLen + $iStP) {
             my $sTxt = substr($oBook->{StrBuff}, $iStP, $iLenS);
             if($iGr & 0x01) {
-                for(my $i = 0; $i<$iLenS; $i+=2){
-                    my $sIt = substr($sTxt, $i, 1);
-                    substr($sTxt, $i, 1) = substr($sTxt, $i+1, 1);
-                    substr($sTxt, $i+1, 1) = $sIt;
-                }
+				_SwapForUnicode(\$sTxt);
             }
+#print "ADD ARRY:", $#{$oBook->{PkgStr}}, " LEN:", length($sTxt), " ST:", $iStP, "\n";
             push @{$oBook->{PkgStr}}, {
                 Text => $sTxt,
                 Unicode => $iGr & 0x01,
@@ -1157,6 +1142,7 @@ sub _subStrWk($$;$)
             $oBook->{StrBuff} = substr($oBook->{StrBuff}, $iStP+$iLen);
         }
         else {
+			$oBook->{_PrevCond} = $iGr;
             last;
         }
     }
@@ -1532,6 +1518,7 @@ First of all, I would like to acknowledge valuable program and modules :
 XHTML, OLE::Storage and Spreadsheet::WriteExcel.
 
 In no particular order: Simamoto Takesi, Noguchi Harumi, Ikezawa Kazuhiro, 
-Suwazono Shugo, Hirofumi Morisada, Michael Edwards and many many people + Kawai Mikako.
+Suwazono Shugo, Hirofumi Morisada, Michael Edwards, Kim Namusk 
+and many many people + Kawai Mikako.
 
 =cut

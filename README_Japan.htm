@@ -8,14 +8,18 @@ content="text/html; charset=x-euc-jp">
 
 <body bgcolor="#00FFFF">
 
-<pre>Speadsheet::ParseExcel.pm - 0.07   
+<pre>Speadsheet::ParseExcel.pm - 0.08   
 
                                                 by 川合孝典 (Hippo2000)
 
   まだまだの状態のままですが、リリースしちゃってます。
 
 履歴
-  0.07  2000/11/18
+<pre>  0.08  2000/11/25
+　　　　 文字列関連のバグを修正しました(Thank you for your report Kim Namusk)</pre>
+　　　　 未定義の関数を使っていた箇所を修正しました(Thank you for your report Hirofumi Morisada)</pre>
+
+<pre>  0.07  2000/11/18
 　　　　　OLE::Storage_Liteを使うように変更しました。
          文字列関連のバグを修正しました(Thank you for your report Hirofumi Morisada)</pre>
 
@@ -119,6 +123,9 @@ content="text/html; charset=x-euc-jp">
 
 問題点・バグ</pre>
 
+  最大の問題点であった「Exce97 デベロッパーズ キット」が手に入りました。
+  ただただHirofumi Morisadaさんに感謝、感謝です。
+
 <pre>  Excel97/2000で保存した場合、機種依存文字（(株)やローマ数字のIなど）が〓になってしまいます。
   ＃マッピングを考えないとまずいです。（今後対応予定）</pre>
 
@@ -127,15 +134,9 @@ content="text/html; charset=x-euc-jp">
   なります。
   Solarisでは動作確認をしてもらいました。（まだ不具合がありそうですが）
 
-  最大の問題点は「Exce97 デベロッパーズ キット」が手に入っていないので、
-  BIFFのフォーマットがわからないことです。(^^;;;;
-
   コメント、バグレポートをお待ちしています 川合孝典：GCD00051@nifty.ne.jp
 
 やらなきゃいけないこと：
-  なにより「Exce97 デベロッパーズ キット」を手に入れること
-    #注文したら出版社で「品切れ」ということで注文が断られてしまって。
-
   テスト！
   ドキュメントの整備
   出力への対応 (^_^) Spreadsheet::WriteExcelを使っていただくのが一番
@@ -153,7 +154,11 @@ content="text/html; charset=x-euc-jp">
 
    Solarisのデバッグは島本武氏がいなければ、成立しませんでした。
 　 埜口晴美さんにはExcel2000のファイルをいただきました。
-   Hirofumi Morisada<font face="ＭＳ ゴシック">さんからの情報で文字列のバグを発見、修正することができました。</font></pre>
+   Hirofumi Morisadaさんからの情報で文字列のバグを発見、修正することができました。
+   そして「Excel97デベロッパーズキット」をどうもありがとうございました。
+
+  その他、たくさんの方からの動作報告やバグレポートをいただき感謝、感謝です。<(__)>
+</pre>
 
 <p>　</p>
 </body>
