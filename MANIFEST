@@ -23,7 +23,8 @@ sample/Excel/oem.xls
 sample/README
 sample/chkFmt.pl
 sample/dmpEx.pl
-sample/dmpExj.pl
+sample/dmpExU.pl
+sample/dmpExJ.pl
 sample/res_oem
 sample/res_sample
 sample/res_samplej

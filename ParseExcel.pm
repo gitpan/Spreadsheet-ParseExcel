@@ -123,7 +123,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.20'; # 
+$VERSION = '0.20.1'; # 
 my $oFmtClass;
 my @aColor =
 (
@@ -268,10 +268,10 @@ sub Parse($$;$) {
         $sBIFF = $$sFile;
         $iLen  = length($sBIFF);
     }
-    elsif(ref($sFile)) {
 #1.2 Specified by Other Things(HASH reference etc)
-        return undef;
-    }
+#    elsif(ref($sFile)) {
+#        return undef;
+#    }
     else {
 #1.3 Specified by File name
         $oBook->{File} = $sFile;
