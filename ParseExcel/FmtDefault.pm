@@ -8,7 +8,7 @@ use strict;
 use Spreadsheet::ParseExcel::Utility qw(ExcelFmt);
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.04'; # 
+$VERSION = '0.05'; # 
 
 my %hFmtDefault = (
     0x00 => '@',
@@ -121,7 +121,7 @@ sub ValFmt($$$) {
     my($Dt, $iFmtIdx, $iNumeric, $Flg1904);
 
     if ($oCell->{Type} eq 'Text') {
-        $Dt = ((defined $oCell->{Val}) && ($oCell->{Val}))? 
+        $Dt = ((defined $oCell->{Val}) && ($oCell->{Val} ne ''))? 
             $oThis->TextFmt($oCell->{Val}, $oCell->{Code}):''; 
     }
     else {      

@@ -10,8 +10,8 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime 
-				col2int int2col sheetRef xls2csv);
-$VERSION=0.05;
+                col2int int2col sheetRef xls2csv);
+$VERSION=0.06;
 #my $sNUMEXP = '^[+-]?\d+(\.\d+)?$';
 #my $sNUMEXP = '(^[+-]?\d+(\.\d+)?$)|(^[+-]?\d\.*(\d+)[eE][+-](\d+))$';
 my $sNUMEXP = '(^[+-]?\d+(\.\d+)?$)|(^[+-]?\d+\.?(\d*)[eE][+-](\d+))$';
@@ -21,7 +21,7 @@ sub ExcelFmt($$;$$);
 sub LocaltimeExcel($$$$$$;$$);
 sub ExcelLocaltime($;$);
 sub AddComma($);
-sub MakeBun($$);
+sub MakeBun($$;$);
 sub MakeE($$);
 sub LeapYear($);
 
@@ -153,8 +153,8 @@ sub ExcelFmt($$;$$) {
         }
         elsif($sWk eq '\\') {
             if($iQ == 1) {
-	    }
-	    else {
+        }
+        else {
                 $iQ = 1;
                 $i++;
                 next;
@@ -503,6 +503,7 @@ sub ExcelFmt($$;$$) {
             my $iTtl=0;
             my $iE=0;
             my $iP=0;
+            my $iInt = 0;
             my $iAftP=undef;
             foreach my $sItem (split //, $sNumFmt) {
                 if($sItem eq '.') {
@@ -515,10 +516,12 @@ sub ExcelFmt($$;$$) {
                 elsif($sItem eq '0') {
                     $iTtl++;
                     $iAftP++ if($iP);
+                    $iInt = 1;
                 }
                 elsif($sItem eq '#') {
                     #$iTtl++;
                     $iAftP++ if($iP);
+                    $iInt = 1;
                 }
                 elsif($sItem eq '?') {
                     #$iTtl++;
@@ -559,7 +562,7 @@ sub ExcelFmt($$;$$) {
                 }
                 elsif($rItem->[0] =~ /\//) {
                     substr($sFmtRes, $rItem->[1], $rItem->[2]) = 
-                        MakeBun($rItem->[0], $iData);
+                        MakeBun($rItem->[0], $iData, $iInt);
                 }
                 elsif($rItem->[0] eq '.') {
                     $iLen--;
@@ -656,14 +659,21 @@ sub AddComma($) {
 #------------------------------------------------------------------------------
 # MakeBun (for Spreadsheet::ParseExcel::Utility)
 #------------------------------------------------------------------------------
-sub MakeBun($$) {
-    my($sFmt, $iData) = @_;
+sub MakeBun($$;$) {
+    my($sFmt, $iData, $iFlg) = @_;
     my $iBunbo;
     my $iShou;
 
 #1. Init
-    $iShou = $iData - int($iData);
-    return '' if($iShou == 0);
+#print "FLG: $iFlg\n";
+    if($iFlg) {
+        $iShou = $iData - int($iData);
+        return '' if($iShou == 0);
+    }
+    else {
+        $iShou = $iData;
+    }
+    $iShou = abs($iShou);
     my $sSWk;
 
 #2.Calc BUNBO
@@ -839,21 +849,21 @@ sub ExcelLocaltime($;$)
 #------------------------------------------------------------------------------
 # converts a excel row letter into an int for use in an array
 sub col2int {
-	my $result = 0 ;
-	my $str = shift ;
+    my $result = 0 ;
+    my $str = shift ;
    my $incr = 0 ;
 
-	for(my $i = length($str) ; $i > 0 ; $i--) {
-		my $char = substr( $str, $i-1) ;
-		my $curr += ord(lc($char)) - ord('a') + 1;
-		$curr *= $incr if( $incr) ;
-		$result += $curr ;
-		$incr += 26 ;
-	}
-	# this is one out as we range 0..x-1 not 1..x
-	$result-- ;
+    for(my $i = length($str) ; $i > 0 ; $i--) {
+        my $char = substr( $str, $i-1) ;
+        my $curr += ord(lc($char)) - ord('a') + 1;
+        $curr *= $incr if( $incr) ;
+        $result += $curr ;
+        $incr += 26 ;
+    }
+    # this is one out as we range 0..x-1 not 1..x
+    $result-- ;
 
-	return $result ;
+    return $result ;
 }
 # -----------------------------------------------------------------------------
 # int2col (for Spreadsheet::ParseExcel::Utility)
@@ -887,19 +897,19 @@ sub int2col {
 # @returns an array - 2 elements - column, row, or undefined
 #
 sub sheetRef {
-	my $str = shift ;
-	my @ret ;
+    my $str = shift ;
+    my @ret ;
 
-	$str =~ m/^(\D+)(\d+)$/ ;
+    $str =~ m/^(\D+)(\d+)$/ ;
 
-	if( $1 && $2) {
-		push( @ret, $2 -1, col2int($1)) ;
-	}
-	if( $ret[0] < 0) {
-		undef @ret ;
-	}
+    if( $1 && $2) {
+        push( @ret, $2 -1, col2int($1)) ;
+    }
+    if( $ret[0] < 0) {
+        undef @ret ;
+    }
 
-	return @ret ;
+    return @ret ;
 }
 # -----------------------------------------------------------------------------
 # xls2csv (for Spreadsheet::ParseExcel::Utility)
@@ -921,38 +931,38 @@ sub xls2csv {
    if( $2) {
       $sheet = $1 - 1 ;
       $regions = $2 ;
-	}
+    }
 
-	# now extract the start and end regions
-	$regions =~ m/(.*):(.*)/ ;
+    # now extract the start and end regions
+    $regions =~ m/(.*):(.*)/ ;
 
-	if( !$1 || !$2) {
-		print STDERR "Bad Params";
-		return "" ;
-	}
+    if( !$1 || !$2) {
+        print STDERR "Bad Params";
+        return "" ;
+    }
 
    my @start = sheetRef( $1) ;
    my @end = sheetRef( $2) ;
    if( !@start) {
-		print STDERR "Bad coorinates - $1";
-		return "" ;
+        print STDERR "Bad coorinates - $1";
+        return "" ;
    }
    if( !@end) {
-		print STDERR "Bad coorinates - $2";
-		return "" ;
+        print STDERR "Bad coorinates - $2";
+        return "" ;
    }
    
    if( $start[1] > $end[1]) {
-		print STDERR "Bad COLUMN ordering\n";
-		print STDERR "Start column " . int2col($start[1]);
-		print STDERR " after end column " . int2col($end[1]) . "\n";
-		return "" ;
+        print STDERR "Bad COLUMN ordering\n";
+        print STDERR "Start column " . int2col($start[1]);
+        print STDERR " after end column " . int2col($end[1]) . "\n";
+        return "" ;
    }
    if( $start[0] > $end[0]) {
-		print STDERR "Bad ROW ordering\n";
-		print STDERR "Start row " . ($start[0] + 1);
-		print STDERR " after end row " . ($end[0] + 1) . "\n";
-		exit ;
+        print STDERR "Bad ROW ordering\n";
+        print STDERR "Start row " . ($start[0] + 1);
+        print STDERR " after end row " . ($end[0] + 1) . "\n";
+        exit ;
    }
    
    # start the excel object now
@@ -965,20 +975,20 @@ sub xls2csv {
    # if not trucate to the possible region
    # output a warning msg
    if( $start[1] < $oWkS->{MinCol}) {
-		print STDERR int2col( $start[1]) . " < min col " . int2col( $oWkS->{MinCol}) . " Reseting\n";
-		$start[1] = $oWkS->{MinCol} ;
+        print STDERR int2col( $start[1]) . " < min col " . int2col( $oWkS->{MinCol}) . " Reseting\n";
+        $start[1] = $oWkS->{MinCol} ;
    }
    if( $end[1] > $oWkS->{MaxCol}) {
-		print STDERR int2col( $end[1]) . " > max col " . int2col( $oWkS->{MaxCol}) . " Reseting\n" ;
-		$end[1] = $oWkS->{MaxCol} ;
+        print STDERR int2col( $end[1]) . " > max col " . int2col( $oWkS->{MaxCol}) . " Reseting\n" ;
+        $end[1] = $oWkS->{MaxCol} ;
    }
    if( $start[0] < $oWkS->{MinRow}) {
-		print STDERR "" . ($start[0] + 1) . " < min row " . ($oWkS->{MinRow} + 1) . " Reseting\n";
-		$start[0] = $oWkS->{MinCol} ;
+        print STDERR "" . ($start[0] + 1) . " < min row " . ($oWkS->{MinRow} + 1) . " Reseting\n";
+        $start[0] = $oWkS->{MinCol} ;
    }
    if( $end[0] > $oWkS->{MaxRow}) {
-		print STDERR "" . ($end[0] + 1) . " > max row " . ($oWkS->{MaxRow} + 1) . " Reseting\n";
-		$end[0] = $oWkS->{MaxRow} ;
+        print STDERR "" . ($end[0] + 1) . " > max row " . ($oWkS->{MaxRow} + 1) . " Reseting\n";
+        $end[0] = $oWkS->{MaxRow} ;
    
    }
 
@@ -987,25 +997,25 @@ sub xls2csv {
    my $x2 = $end[1] ;
    my $y2 = $end[0] ;
 
-	if( !$rotate) {       
-   	for( my $y = $y1 ; $y <= $y2 ; $y++) {
-   	   for( my $x = $x1 ; $x <= $x2 ; $x++) {
-   	      my $cell = $oWkS->{Cells}[$y][$x] ;
-   	      $output .=  $cell->Value ;
-   	      $output .= "," if( $x != $x2) ;
-   	   }
-   	   $output .= "\n" ;
-   	}
-	 } else {
-   	for( my $x = $x1 ; $x <= $x2 ; $x++) {
-   	   for( my $y = $y1 ; $y <= $y2 ; $y++) {
-   	      my $cell = $oWkS->{Cells}[$y][$x] ;
-   	      $output .=  $cell->Value ;
-   	      $output .= "," if( $y != $y2) ;
-   	   }
-   	   $output .= "\n" ;
-   	}
-	 }
+    if( !$rotate) {       
+    for( my $y = $y1 ; $y <= $y2 ; $y++) {
+       for( my $x = $x1 ; $x <= $x2 ; $x++) {
+          my $cell = $oWkS->{Cells}[$y][$x] ;
+          $output .=  $cell->Value ;
+          $output .= "," if( $x != $x2) ;
+       }
+       $output .= "\n" ;
+    }
+     } else {
+    for( my $x = $x1 ; $x <= $x2 ; $x++) {
+       for( my $y = $y1 ; $y <= $y2 ; $y++) {
+          my $cell = $oWkS->{Cells}[$y][$x] ;
+          $output .=  $cell->Value ;
+          $output .= "," if( $y != $y2) ;
+       }
+       $output .= "\n" ;
+    }
+     }
    
    return $output ;
 }

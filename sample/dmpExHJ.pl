@@ -21,7 +21,7 @@ sub subCellHandler($$$$$) {
             $oBook->{Worksheet}[$iSheet]->{Name}, "\n" ;
         $iPreSheet = $iSheet;
     }
-#    print "( $iRow , $iCol ) =>", $oCell->Value, "\n";
+    print "( $iRow , $iCol ) =>", $oCell->Value, "\n";
 #    $oBook->ParseAbort('Exceed Data') if($iRow >= 1);
 }
 my $oExcel = new Spreadsheet::ParseExcel

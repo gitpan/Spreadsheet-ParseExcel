@@ -103,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2406'; # 
+$VERSION = '0.2407'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -293,7 +293,7 @@ sub Parse($$;$) {
     elsif(ref($sFile) eq 'ARRAY') {
 #1.3 Specified by File content
         $oBook->{File} = undef;
-		my $sData = join('', @$sFile);
+        my $sData = join('', @$sFile);
         ($sBIFF, $iLen) = $oThis->{GetContent}->(\$sData);
         return undef unless($sBIFF);
     }
@@ -1746,8 +1746,8 @@ sub _subStrWk($$;$)
         #1.1 Not in String
             if($iLenB >= ($iStP + $iLenS)) {
 #print "NOT STR\n";
-#                $oBook->{StrBuff} .= $sWk;
-                $oBook->{StrBuff} .= substr($sWk, 1);
+                $oBook->{StrBuff} .= $sWk;
+#                $oBook->{StrBuff} .= substr($sWk, 1);
             }
         #1.2 Same code (Unicode or ASCII)
             elsif(($oBook->{_PrevCond} & 0x01) == ($iCnt1st & 0x01)) {
@@ -1901,7 +1901,8 @@ Spreadsheet::ParseExcel - Get information from Excel file
             for(my $iC = $oWkS->{MinCol} ;
                             defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
                 $oWkC = $oWkS->{Cells}[$iR][$iC];
-                print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);
+                print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);  # Formatted Value
+                print "( $iR , $iC ) =>", $oWkC->{Val}, "\n" if($oWkC);  # Original Value
             }
         }
     }

@@ -1,10 +1,19 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.2407 Mon Apr  24, 2002
+    - Mod Utility    : Fix Numeric format
+                        (Thank you, Jeff Shaffer for report)
+                       Fix MakeBun
+    - Mod ParseExcel : Fix Continue (COTINUE with no header)
+                        (Thank you, Tuneyosi Fukusima for report)
+                     : Add {Val} in sample :-)
+                        (Thank you, Ernst Kloppenburg for suggestion)
+
 0.2406 Mon Apr  8, 2002
     - Mod Utility    : Fix $sNUMEXP
-							(Thank you for Xavier Catteau for patch)
+                            (Thank you for Xavier Catteau for patch)
                        Add col2int int2col sheetRef xls2csv
-						(Thank you for Xavier Catteau for patch)
+                        (Thank you for Xavier Catteau for patch)
     - Mod ParseExcel : Add file contents
     - Mod SaveParser : Mod AddCell
 

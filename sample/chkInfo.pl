@@ -1,27 +1,21 @@
 use strict;
-if(!(defined $ARGV[0])) {
-    print<<EOF;
-Usage: $0 Excel_File
-EOF
-    exit;
-}
 use Spreadsheet::ParseExcel;
 my $oExcel = new Spreadsheet::ParseExcel;
 
 #=Default
 use Spreadsheet::ParseExcel::FmtDefault;
 my $oFmt = Spreadsheet::ParseExcel::FmtDefault->new;
-my $oBook = $oExcel->Parse($ARGV[0]);
+my $oBook = $oExcel->Parse('Excel/FmtTest.xls');
 #=cut
 =Japan
 use Spreadsheet::ParseExcel::FmtJapan2;
 my $oFmt = Spreadsheet::ParseExcel::FmtJapan2->new(Code=>'sjis');
-my $oBook = $oExcel->Parse($ARGV[0], $oFmt);
+my $oBook = $oExcel->Parse('Excel/FmtTest.xls', $oFmt);
 =cut
 =Other Countries (ex. Russia (CP1251))
 use Spreadsheet::ParseExcel::FmtUnicode;
 my $oFmt = Spreadsheet::ParseExcel::FmtUnicode->new(Unicode_Map => 'CP1251');
-my $oBook = $oExcel->Parse($ARGV[0], $oFmt);
+my $oBook = $oExcel->Parse('Excel/FmtTest.xls', $oFmt);
 =cut
 
 
