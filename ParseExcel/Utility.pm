@@ -1001,7 +1001,7 @@ sub xls2csv {
     for( my $y = $y1 ; $y <= $y2 ; $y++) {
        for( my $x = $x1 ; $x <= $x2 ; $x++) {
           my $cell = $oWkS->{Cells}[$y][$x] ;
-          $output .=  $cell->Value ;
+          $output .=  $cell->Value if(defined $cell);
           $output .= "," if( $x != $x2) ;
        }
        $output .= "\n" ;
@@ -1010,7 +1010,7 @@ sub xls2csv {
     for( my $x = $x1 ; $x <= $x2 ; $x++) {
        for( my $y = $y1 ; $y <= $y2 ; $y++) {
           my $cell = $oWkS->{Cells}[$y][$x] ;
-          $output .=  $cell->Value ;
+          $output .=  $cell->Value if(defined $cell);
           $output .= "," if( $y != $y2) ;
        }
        $output .= "\n" ;

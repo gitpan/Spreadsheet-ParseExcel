@@ -103,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2407'; # 
+$VERSION = '0.25'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -1460,7 +1460,6 @@ sub _subSETUP($$$$)
     return undef unless(defined $oBook->{_CurSheet});
 
     my $oWkS = $oBook->{Worksheet}[$oBook->{_CurSheet}];
-
     my $iGrBit;
 
     ($oWkS->{PaperSize},
@@ -1502,7 +1501,7 @@ sub _subName($$$$)
             my $iSheet = unpack('v', substr($sWk, 8 )) - 1;
             if($iName == 6) {       #PrintArea
                 my($iSheetW, $raArea) = _ParseNameArea(substr($sWk, 16));
-                $oBook->{PrintArea}[$iSheetW] =  $raArea;
+                $oBook->{PrintArea}[$iSheet] =  $raArea;
             }
             elsif($iName == 7) {    #Title
                 my($iSheetW, $raArea) = _ParseNameArea(substr($sWk, 16));
@@ -1516,7 +1515,7 @@ sub _subName($$$$)
                         push @aTtlC, [$raI->[1], $raI->[3] ];
                     }
                 }
-                $oBook->{PrintTitle}[$iSheetW] =  {Row => \@aTtlR, Column => \@aTtlC};
+                $oBook->{PrintTitle}[$iSheet] =  {Row => \@aTtlR, Column => \@aTtlC};
             }
         }
         else {
