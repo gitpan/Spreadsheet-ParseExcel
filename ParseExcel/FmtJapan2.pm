@@ -7,7 +7,7 @@ require Exporter;
 use strict;
 use Jcode;
 use Unicode::Map;
-use Spreadsheet::ParseExcel::FmtDefault;
+use Spreadsheet::ParseExcel::FmtJapan;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtJapan Exporter);
 $VERSION = '0.02'; # 

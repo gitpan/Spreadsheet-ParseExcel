@@ -9,7 +9,7 @@ require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-
+$VERSION=0.01;
 sub subDUMP($$$$);
 sub OpName($);
 my %NameTbl = (

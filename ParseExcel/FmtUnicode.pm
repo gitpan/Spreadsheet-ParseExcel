@@ -9,7 +9,7 @@ use strict;
 use Spreadsheet::ParseExcel::FmtDefault;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtDefault Exporter);
-$VERSION = '0.01'; # 
+$VERSION = '0.02'; # 
 use Unicode::Map;
 #------------------------------------------------------------------------------
 # new (for Spreadsheet::ParseExcel::FmtJapan2)

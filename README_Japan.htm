@@ -3,23 +3,32 @@
 <head>
 <meta http-equiv="Content-Type"
 content="text/html; charset=x-euc-jp">
-<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
 <title></title>
 </head>
 
 <body bgcolor="#00FFFF">
 
-<pre>Speadsheet::ParseExcel.pm - 0.16
+<pre>Speadsheet::ParseExcel.pm - 0.17
 
                                                 by 川合孝典 (Hippo2000)
 
 履歴
 </pre>
 
+<pre>
+0.17  2001/3/13
+    - 数値フォーマットの修正 Utility.pm
+    - FmtJapan2.pm を use FmtJapan するよう変更
+            (Thank you, Kawasaki)
+    - 数値フォーマットのさらに修正 Utility.pm
+      文字列に対して数値が適用されている場合の対応
+            (Thank you, John Dawson )
+</pre>
 <pre> 0.16  2001/3/7
     - 書式文字列の取得の修正
     - ワーニングを押さえました
             (Thank you Jimmy Sieben and Daniel Berger)   
+</pre>
 <pre>  0.15  2001/3/6
 　　　　 内部処理を大幅に変更しました
          書式設定をSpreadsheet::ParseExcel::Utilityでサポートしました。

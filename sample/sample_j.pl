@@ -53,7 +53,7 @@ sub PrnBook($$)
             for(my $iC = $oWkS->{MinCol} ;
                             defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
                 $oWkC = $oWkS->{Cells}[$iR][$iC];
-                print "( $iR , $iC ) =>", $oWkC->Value, "\n";
+                print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);
             }
         }
     }

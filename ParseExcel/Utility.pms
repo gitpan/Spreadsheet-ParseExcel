@@ -10,7 +10,6 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime);
-$VERSION=0.02;
 
 #ProtoTypes
 sub ExcelFmt($$;$);
@@ -60,16 +59,6 @@ sub ExcelFmt($$;$) {
         }
         elsif($sWk eq '!') {
             $iQ = 1;
-        }
-        elsif($sWk eq '\\') {
-            $iQ = 1;
-            next;
-        }
-        elsif($sWk eq '(') { #Skip?
-            next;
-        }
-        elsif($sWk eq ')') { #Skip?
-            next;
         }
         $sFmtWk[$iFmtPos] .=$sWk;
     }
@@ -314,7 +303,7 @@ sub ExcelFmt($$;$) {
         $iFflg= 0;
     }
 #For Date format
-    if(($iFmtMode==2)&& ($iData =~/\d+(\.\d+)?/)) {
+    if($iFmtMode==2) {
         my @aTime = ExcelLocaltime($iData, $i1904);
         $aTime[4]++;
         $aTime[5] += 1900;
@@ -429,7 +418,7 @@ sub ExcelFmt($$;$) {
             substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
         }
     }
-    elsif(($iFmtMode==1)&& ($iData =~/\d+(\.\d+)?/)) {
+    elsif($iFmtMode==1) {
         if($#aRep>=0) {
             while($aRep[$#aRep]->[0] eq ',') {
                 $iCmmCnt--;
@@ -480,7 +469,6 @@ sub ExcelFmt($$;$) {
                     $sNumRes = sprintf("%0${iTtl}.0f", $iDData);
                 }
             }
-    #print "sNum:$sNumRes\n";
             $sNumRes = AddComma($sNumRes) if($iCmmCnt > 0);
     #print "RES:$sNumRes\n";
             my $iLen = length($sNumRes);
@@ -540,18 +528,15 @@ sub ExcelFmt($$;$) {
         }
     }
     else {
-	my $iAtMk = 0;
         for(my $iIt=$#aRep; $iIt>=0;$iIt--) {
             my $rItem = $aRep[$iIt];
             if($rItem->[0] eq '@') {
                 substr($sFmtRes, $rItem->[1], $rItem->[2]) = $iData;
-		$iAtMk++;
             }
             else {
                 substr($sFmtRes, $rItem->[1], $rItem->[2]) = '';
             }
         }
-	$sFmtRes = $iData unless($iAtMk);
     }
     return wantarray()? ($sFmtRes, $sColor) : $sFmtRes;
 }

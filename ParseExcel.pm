@@ -123,7 +123,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.16'; # 
+$VERSION = '0.17'; # 
 my $oFmtClass;
 my @aColor =
 (
@@ -984,10 +984,12 @@ sub _subFormat($$$$)
         ($oBook->{BIFFVersion} == verBIFF4) ||
         ($oBook->{BIFFVersion} == verBIFF5) ) {
         $sFmt = substr($sWk, 3, unpack('c', substr($sWk, 2, 1)));
+        $sFmt = $oFmtClass->TextFmt($sFmt, '_native_');
     }
     else {
         $sFmt = _convBIFF8String(substr($sWk, 2));
     }
+#print "FMT:$sFmt\n";
     $oBook->{FormatStr}->{unpack('v', substr($sWk, 0, 2))} = $sFmt;
 }
 #------------------------------------------------------------------------------

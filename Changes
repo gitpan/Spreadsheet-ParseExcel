@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.17  Wed Mar 12  9:00:00 2001
+    - Fix Utility.pm for Number format
+    - Fix FmtJapan2.pm to use FmtJapan
+            (Thank you, Kawasaki) 
+    - Fix Utility.pm for Number format (not Numeric)
+            (Thank you, John Dawson)
+    - Fix Format string with Chinese Character (in Excel95)
+
 0.16  Wed Mar 7  22:00:00 2001
     - Fix Format String
     - Avoding warnings
