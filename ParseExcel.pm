@@ -102,7 +102,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.22.1'; # 
+$VERSION = '0.22.2'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -835,7 +835,7 @@ sub _subRow($$$$)
 
 #1. RowHeight
     if($iGr & 0x20) {   #Height = 0
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{RowHeight}[$iR] = undef;
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{RowHeight}[$iR] = 0;
     }
     else {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{RowHeight}[$iR] = $iHght/20.0;
@@ -922,7 +922,7 @@ sub _subColInfo($$$$)
     my($iSc, $iEc, $iW, $iXF, $iGr) = unpack("v5", $sWk);
     for(my $i= $iSc; $i<=$iEc; $i++) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = 
-                        ($iGr & 0x01)? undef: _adjustColWidth($oBook, $iW);
+                        ($iGr & 0x01)? 0: _adjustColWidth($oBook, $iW);
                     #0x01 means HIDDEN
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColFmtNo}[$i] = $iXF;
         # $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColCr}[$i]    = $iGr; #Not Implemented
