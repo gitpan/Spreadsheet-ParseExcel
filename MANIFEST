@@ -14,6 +14,7 @@ README_Japan.htm
 sample/Excel/AuthorK.xls
 sample/Excel/AuthorK95.xls
 sample/Excel/FmtTest.xls
+sample/Excel/Rich.xls
 sample/Excel/Test1904.xls
 sample/Excel/Test1904_95.xls
 sample/Excel/Test95.xls
@@ -29,9 +30,11 @@ sample/dmpExU.pl
 sample/dmpExH.pl
 sample/dmpExHJ.pl
 sample/dmpExJ.pl
+sample/dmpExR.pl
 sample/res_fmt
 sample/res_info
 sample/res_oem
+sample/res_rich
 sample/res_sample
 sample/res_samplej
 sample/sample.pl

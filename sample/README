@@ -23,4 +23,5 @@ dmpExH.pl   : print out content of Excel file
 sampleOEM.pl: Displys difference between FmtJapan and FmtJapan2
 res_oem     : result of samplOEM.pl
 
-cpExp.pl    : Copy Excel file with Spreadsheet::WriteExcel
+dmpExR.pl    : Sample Script for get information about each characters.
+res_rich     : result of dmpExR.pl with Excel/Rich.xls

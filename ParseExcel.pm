@@ -102,7 +102,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.21'; # 
+$VERSION = '0.21.1'; # 
 my $oFmtClass;
 my @aColor =
 (
@@ -290,7 +290,7 @@ sub Parse($$;$) {
         require Spreadsheet::ParseExcel::FmtDefault;
         $oFmtClass = new Spreadsheet::ParseExcel::FmtDefault;
     }
-    $oThis->{FmtClass} = $oWkFmt;
+    $oThis->{FmtClass} = $oFmtClass;
 
 #3. Parse content
     my $lPos = 0;
@@ -519,7 +519,7 @@ sub _subRString($$$$)
             Numeric => 0,
             Code    => undef,
             Book    => $oBook,
-            STRUN   => substr($sWk, (8+$iL)+1),
+            Rich    => substr($sWk, (8+$iL)+1),
         );
     }
     else {
@@ -796,6 +796,7 @@ sub _subLabelSST($$$$)
             Numeric => 0,
             Code    => ($oBook->{PkgStr}[$iIdx]->{Unicode})? 'ucs2': undef,
             Book    => $oBook,
+            Rich   => $oBook->{PkgStr}[$iIdx]->{Rich},
         );
 
 #2.MaxRow, MaxCol, MinRow, MinCol
@@ -1759,9 +1760,18 @@ sub _NewCell($$$%)
                             $rhKey{Numeric}, 
                             $rhKey{Format}->{FmtIdx}),
         );
-    $oCell->{_Kind} = $rhKey{Kind};
+    $oCell->{_Kind}  = $rhKey{Kind};
     $oCell->{_Value} = $oFmtClass->ValFmt($oCell, $rhKey{Book});
-    $oCell->{STRUN} = $rhKey{STRUN};
+
+    if($rhKey{Rich}) {
+        my @aRich = ();
+        my $sRich = $rhKey{Rich};
+        for(my $iWk=0;$iWk<length($sRich); $iWk+=4) {
+            my($iPos, $iFnt) = unpack('v2', substr($sRich, $iWk));
+            push @aRich, [$iPos, $oBook->{Font}[$iFnt]];
+        }
+        $oCell->{Rich}   =  \@aRich;
+    }
 
     if(defined $_CellHandler) {
         $_CellHandler->($oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell);
@@ -2098,6 +2108,14 @@ L<"Format"> for that cell.
 =item Merged
 
 That cells is merged (or not).
+
+=item Rich
+
+Array ref of font informations about each characters.
+
+Each entry has : [ I<Start Position>, I<Font Object>]
+
+For more information please refer sample/dmpExR.pl
 
 =back
 
