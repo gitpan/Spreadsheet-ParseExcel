@@ -27,3 +27,7 @@ dmpExR.pl   : Sample Script for get information about each characters.
 res_rich    : result of dmpExR.pl with Excel/Rich.xls
 
 Ilya.pl     : Sample script for Object Oriented callback
+
+smpFile.pl  : Sample scripr for parsing perl variable
+
+xls2csv.pl  : Sample script for xls2csv

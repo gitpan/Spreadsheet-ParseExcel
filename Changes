@@ -1,6 +1,14 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
-0.2405 Tue Jan 29
+0.2406 Mon Apr  8, 2002
+    - Mod Utility    : Fix $sNUMEXP
+							(Thank you for Xavier Catteau for patch)
+                       Add col2int int2col sheetRef xls2csv
+						(Thank you for Xavier Catteau for patch)
+    - Mod ParseExcel : Add file contents
+    - Mod SaveParser : Mod AddCell
+
+0.2405 Tue Jan 29, 2002
     - Mod FmtDefault : Fix 0x01 (='0') format
                         (Thank you Marc Pohl for report)
     - Mod ParseExcel : Mod Parse Fh of CGI.pm and GLOB ref.

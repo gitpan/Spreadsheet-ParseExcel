@@ -47,8 +47,8 @@ map:     (which you copied directry)/CP932Excel.map
 
 
 VERSION
-    This document refers to version 0.2405 of Spreadsheet::ParseExcel,
-    released Jan 24, 2002.
+    This document refers to version 0.2406 of Spreadsheet::ParseExcel,
+    released Apr 8, 2002.
 
 AUTHOR
     Kawai Takanori (kwitknr@cpan.org)
@@ -59,5 +59,5 @@ SUPPORT
     please let me know with Wiki.
 
   KbWiki
-    http://www.hippo2000.net/cgi-bin/KbWikiE/KbWiki.pl (English)
-    http://www.hippo2000.net/cgi-bin/KbWiki/KbWiki.pl  (Japanese)
+    http://www.hippo2000.info/cgi-bin/KbWikiE/KbWiki.pl (English)
+    http://www.hippo2000.info/cgi-bin/KbWiki/KbWiki.pl  (Japanese)

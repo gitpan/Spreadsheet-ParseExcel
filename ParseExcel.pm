@@ -103,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2405'; # 
+$VERSION = '0.2406'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -290,6 +290,13 @@ sub Parse($$;$) {
         ($sBIFF, $iLen) = $oThis->{GetContent}->(\$sBuff);
         return undef unless($sBIFF);
      }
+    elsif(ref($sFile) eq 'ARRAY') {
+#1.3 Specified by File content
+        $oBook->{File} = undef;
+		my $sData = join('', @$sFile);
+        ($sBIFF, $iLen) = $oThis->{GetContent}->(\$sData);
+        return undef unless($sBIFF);
+    }
     else {
 #1.4 Specified by File name
         $oBook->{File} = $sFile;

@@ -55,14 +55,15 @@ sub AddFont($%){
 #------------------------------------------------------------------------------
 # AddCell (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
-sub AddCell($$$$$$) {
-    my($oBook, $iSheet, $iR, $iC, $sVal, $oCell)=@_;
+sub AddCell($$$$$$;$) {
+    my($oBook, $iSheet, $iR, $iC, $sVal, $oCell, $sCode)=@_;
     my %rhKey;
 
     my $iFmt = (UNIVERSAL::isa($oCell, 'Spreadsheet::ParseExcel::Cell'))?
                 $oCell->{FormatNo} : $oCell;
     $rhKey{FormatNo} = $iFmt;
     $rhKey{Val}      = $sVal;
+    $rhKey{Code}     = $sCode;
     $oBook->{_CurSheet} = $iSheet;
     Spreadsheet::ParseExcel::_NewCell($oBook, $iR, $iC, %rhKey);
     Spreadsheet::ParseExcel::_SetDimension($oBook, $iR, $iC, $iC);
