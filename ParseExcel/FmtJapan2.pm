@@ -10,7 +10,7 @@ use Unicode::Map;
 use Spreadsheet::ParseExcel::FmtJapan;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtJapan Exporter);
-$VERSION = '0.02'; # 
+$VERSION = '0.03'; # 
 
 #------------------------------------------------------------------------------
 # new (for Spreadsheet::ParseExcel::FmtJapan2)
@@ -19,12 +19,14 @@ sub new($%) {
     my($sPkg, %hKey) = @_;
     my $oMap = Unicode::Map->new('CP932Excel');
     die "NO MAP FILE CP932Excel!!" 
-		unless(-r Unicode::Map->mapping("CP932Excel"));
+        unless(-r Unicode::Map->mapping("CP932Excel"));
+
     my $oThis={ 
         Code => $hKey{Code},
         _UniMap => $oMap,
     };
     bless $oThis;
+    $oThis->SUPER::new(%hKey);
     return $oThis;
 }
 #------------------------------------------------------------------------------

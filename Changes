@@ -1,5 +1,16 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.21 Sat Apr 24 18:00:00 2001
+    - Mod ParseExcel : Add New Feature for CellHandler
+                       (Thank you, Jeff Clark)
+    - Mod ParseExcel, FmtDefault, FmtJapan, Utility:
+                     : Expanding format information to support
+                       (Supported by Nippon-RAD OP Division)
+
+0.20.2 Wed Apr 18 9:00:00 2001
+    - Fix Utility : ExcelFmt (For Number format)
+                       (Thank you, Jeff Clark)
+
 0.20.1 Sun Apr 11 9:00:00 2001
     - Fix FmtJapan, FmtJapan2 : TxtFmt
     - Fix FmtDefault : ValFmt (for 'String' format')
@@ -82,10 +93,10 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
     - Fix undefined function _subDefColW (Thank you, Hirofumi Morisada)
 
 0.07  Sat Nov 18 12:00:00 2000
-	- Change to use OLE::Storage_Lite
-	- Fix RString, PackedString BUGS (Thank you, Hirofumi Morisada)
-	- Fix and Add Formula String     (Thank you, Michael Edwards)
+    - Change to use OLE::Storage_Lite
+    - Fix RString, PackedString BUGS (Thank you, Hirofumi Morisada)
+    - Fix and Add Formula String     (Thank you, Michael Edwards)
 
 0.05  Mon Oct  2 03:14:04 2000
-	- original version
+    - original version
 

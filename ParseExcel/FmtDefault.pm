@@ -8,7 +8,7 @@ use strict;
 use Spreadsheet::ParseExcel::Utility qw(ExcelFmt);
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.02'; # 
+$VERSION = '0.03'; # 
 
 my %hFmtDefault = (
     0x00 => '@',
@@ -63,37 +63,34 @@ sub new($;%) {
 # TextFmt (for Spreadsheet::ParseExcel::FmtDefault)
 #------------------------------------------------------------------------------
 sub TextFmt($$;$) {
-    my($oThis, $sTxt) =@_;
-    return $sTxt;
+    my($oThis, $sTxt, $sCode) =@_;
+    return $sTxt if((! defined($sCode)) || ($sCode eq '_native_'));
+    return pack('C*', unpack('n*', $sTxt));
 }
 #------------------------------------------------------------------------------
-# ValFmt (for Spreadsheet::ParseExcel::FmtDefault)
+# FmtStringDef (for Spreadsheet::ParseExcel::FmtDefault)
 #------------------------------------------------------------------------------
-sub ValFmt($$$;$) {
-    my($oThis, $oCell, $oBook, $rhFmt) =@_;
-
-    my($Dt, $iFmtIdx, $iNumeric, $Flg1904);
-
-    if ($oCell->{Type} eq 'Text') {
-            $Dt = $oThis->TextFmt($oCell->{Val}, $oCell->{Code});
-    }
-    else {      
-        $Dt       = $oCell->{Val};
-    }
-    $iFmtIdx  = $oCell->{Format}->{FmtIdx};
-    $Flg1904  = $oBook->{Flg1904};
+sub FmtStringDef($$$;$) {
+    my($oThis, $iFmtIdx, $oBook, $rhFmt) =@_;
     my $sFmtStr = $oBook->{FormatStr}->{$iFmtIdx};
 
     if(!($sFmtStr) && defined($rhFmt)) {
         $sFmtStr = $rhFmt->{$iFmtIdx};
     }
-
     $sFmtStr = $hFmtDefault{$iFmtIdx} unless($sFmtStr);
-    $sFmtStr = '@' if($oCell->{_Kind} eq 'String');
+    return $sFmtStr;
+}
+#------------------------------------------------------------------------------
+# FmtString (for Spreadsheet::ParseExcel::FmtDefault)
+#------------------------------------------------------------------------------
+sub FmtString($$$) {
+    my($oThis, $oCell, $oBook) =@_;
+
+    my $sFmtStr = $oThis->FmtStringDef($oCell->{Format}->{FmtIdx}, $oBook);
 
     unless($sFmtStr) {
         if ($oCell->{Type} eq 'Numeric') {
-            if(int($Dt) != $Dt) {
+            if(int($oCell->{Val}) != $oCell->{Val}) {
                 $sFmtStr = '0.00';
             }
             else {
@@ -101,7 +98,7 @@ sub ValFmt($$$;$) {
             }
         }
         elsif($oCell->{Type} eq 'Date') {
-            if(int($Dt) <= 0) {
+            if(int($oCell->{Val}) <= 0) {
                 $sFmtStr = 'h:mm:ss';
             }
             else {
@@ -112,6 +109,25 @@ sub ValFmt($$$;$) {
             $sFmtStr = '@';
         }
     }
+    return $sFmtStr;
+}
+#------------------------------------------------------------------------------
+# ValFmt (for Spreadsheet::ParseExcel::FmtDefault)
+#------------------------------------------------------------------------------
+sub ValFmt($$$) {
+    my($oThis, $oCell, $oBook) =@_;
+
+    my($Dt, $iFmtIdx, $iNumeric, $Flg1904);
+
+    if ($oCell->{Type} eq 'Text') {
+        $Dt = $oThis->TextFmt($oCell->{Val}, $oCell->{Code});
+    }
+    else {      
+        $Dt = $oCell->{Val};
+    }
+    $Flg1904  = $oBook->{Flg1904};
+    my $sFmtStr = $oThis->FmtString($oCell, $oBook);
+
     return ExcelFmt($sFmtStr, $Dt, $Flg1904);
 }
 #------------------------------------------------------------------------------

@@ -11,10 +11,10 @@ DESCRIPTION
     Macintosh platforms. 
 
 REQUIREMENT
-	This module requires these modules:
-		OLE::Storage_Lite
-		Jcode.pm	(if you are using FmtJapan, or FmtJapan2)
-		Unicode::Map	(if you are using FmtJapan2 or FmtUnicode)
+    This module requires these modules:
+        OLE::Storage_Lite
+        Jcode.pm    (if you are using FmtJapan, or FmtJapan2)
+        Unicode::Map    (if you are using FmtJapan2 or FmtUnicode)
 
 INSTALLATION
     The module can be installed using the standard Perl procedure:
@@ -35,7 +35,7 @@ For FmtJapan2
       applicatable directry.
 
   (2) To add "CP932Excel" as map name, append following lines to 
-	  REGISTRY in the Unicode::Map hierarchy 
+      REGISTRY in the Unicode::Map hierarchy 
       (changing map directy to applicatable directry):
 
 name:    CP932Excel
@@ -46,8 +46,8 @@ map:     (which you copied directry)/CP932Excel.map
 
 
 VERSION
-    This document refers to version 0.17 of Spreadsheet::ParseExcel,
-    released Mar 13, 2001.
+    This document refers to version 0.21 of Spreadsheet::ParseExcel,
+    released Mar 24, 2001.
 
 AUTHOR
     Kawai Takanori (kwitknr@cpan.org)

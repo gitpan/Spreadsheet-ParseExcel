@@ -10,7 +10,8 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime);
-$VERSION=0.02;
+$VERSION=0.03;
+my $sNUMEXP = '^[+-]?\d+(\.\d+)?$';
 
 #ProtoTypes
 sub ExcelFmt($$;$);
@@ -78,11 +79,21 @@ sub ExcelFmt($$;$) {
             $sFmtObj = $sFmtWk[((eval("$iData $sCond"))? 0: 1)];
         }
         else {
+            my $iWk = ($iData =~/$sNUMEXP/)? $iData: 0;
+            $iData = abs($iData) if($iWk !=0);
             if(scalar(@sFmtWk)==2) {
-                $sFmtObj = $sFmtWk[(($iData>=0)? 0: 1)];
+                $sFmtObj = $sFmtWk[(($iWk>=0)? 0: 1)];
+            }
+            elsif(scalar(@sFmtWk)==3) {
+                $sFmtObj = $sFmtWk[(($iWk>0)? 0: (($iWk<0)? 1:  2))];
             }
             else {
-                $sFmtObj = $sFmtWk[(($iData>0)? 0: (($iData<0)? 1:  2))];
+                if($iData =~/$sNUMEXP/) {
+                    $sFmtObj = $sFmtWk[(($iWk>0)? 0: (($iWk<0)? 1:  2))];
+                }
+                else {
+                    $sFmtObj = $sFmtWk[ 3];
+                }
             }
         }
     }
@@ -219,7 +230,7 @@ sub ExcelFmt($$;$) {
             }
             $i++;
         }
-        elsif($sWk =~ /[ymdhsap]/) {
+        elsif($sWk =~ /[ymdhsapg]/) {
             $iFmtMode = 2 unless($iFmtMode);
             if(substr($sFmtObj, $i, 5) =~ /am\/pm/i) {
                 push @aRep, ['am/pm', length($sFmtRes), 5];
@@ -237,7 +248,9 @@ sub ExcelFmt($$;$) {
             }
             elsif((substr($sFmtObj, $i, 4) eq 'mmmm')  ||
                   (substr($sFmtObj, $i, 4) eq 'dddd')  ||
-                  (substr($sFmtObj, $i, 4) eq 'yyyy')) {
+                  (substr($sFmtObj, $i, 4) eq 'yyyy')  ||
+                  (substr($sFmtObj, $i, 4) eq 'ggge') 
+                ) {
                 push @aRep, [substr($sFmtObj, $i, 4), length($sFmtRes), 4];
                 $i+=4;
             }
@@ -250,7 +263,8 @@ sub ExcelFmt($$;$) {
               (substr($sFmtObj, $i, 2) eq 'mm')  ||
               (substr($sFmtObj, $i, 2) eq 'dd')  ||
               (substr($sFmtObj, $i, 2) eq 'hh')  ||
-              (substr($sFmtObj, $i, 2) eq 'ss')) {
+              (substr($sFmtObj, $i, 2) eq 'ss')  ||
+              (substr($sFmtObj, $i, 2) eq 'ge')) {
                 if((substr($sFmtObj, $i, 2) eq 'mm') &&
                    ($#aRep>=0) && 
                     (($aRep[$#aRep]->[0] eq 'h') or ($aRep[$#aRep]->[0] eq 'hh'))) {
@@ -313,7 +327,7 @@ sub ExcelFmt($$;$) {
         $iFflg= 0;
     }
 #For Date format
-    if(($iFmtMode==2)&& ($iData =~/\d+(\.\d+)?/)) {
+    if(($iFmtMode==2)&& ($iData =~/$sNUMEXP/)) {
         my @aTime = ExcelLocaltime($iData, $i1904);
         $aTime[4]++;
         $aTime[5] += 1900;
@@ -420,6 +434,13 @@ sub ExcelFmt($$;$) {
             elsif($rItem->[0] eq '[mm]') {
                 $sRep = sprintf('%d', (int($iData) * 24 + $aTime[2])*60 + $aTime[1]);
             }
+#NENGO(Japanese)
+            elsif($rItem->[0] eq 'ge') {
+                $sRep = Spreadsheet::ParseExcel::FmtJapan::CnvNengo(1, @aTime);
+            }
+            elsif($rItem->[0] eq 'ggge') {
+                $sRep = Spreadsheet::ParseExcel::FmtJapan::CnvNengo(2, @aTime);
+            }
             elsif($rItem->[0] eq '@') {
                 $sRep = $iData;
             }
@@ -428,7 +449,7 @@ sub ExcelFmt($$;$) {
             substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
         }
     }
-    elsif(($iFmtMode==1)&& ($iData =~/\d+(\.\d+)?/)) {
+    elsif(($iFmtMode==1)&& ($iData =~/$sNUMEXP/)) {
         if($#aRep>=0) {
             while($aRep[$#aRep]->[0] eq ',') {
                 $iCmmCnt--;
@@ -527,7 +548,7 @@ sub ExcelFmt($$;$) {
 #print "LEN:$iLen $iReal\n";
                                 $iReal = ($iLen <=$iReal)? $iLen:$iReal;
                             }
-			    else {
+                else {
                                 $iReal = ($iLen <=$iReal)? $iLen:$iReal;
                             }
 #print "RES:$sFmtRes<< $sNumRes<< $iReal $iLen\n";
@@ -547,18 +568,18 @@ sub ExcelFmt($$;$) {
         }
     }
     else {
-	my $iAtMk = 0;
+    my $iAtMk = 0;
         for(my $iIt=$#aRep; $iIt>=0;$iIt--) {
             my $rItem = $aRep[$iIt];
             if($rItem->[0] eq '@') {
                 substr($sFmtRes, $rItem->[1], $rItem->[2]) = $iData;
-		$iAtMk++;
+        $iAtMk++;
             }
             else {
                 substr($sFmtRes, $rItem->[1], $rItem->[2]) = '';
             }
         }
-	$sFmtRes = $iData unless($iAtMk);
+    $sFmtRes = $iData unless($iAtMk);
     }
     return wantarray()? ($sFmtRes, $sColor) : $sFmtRes;
 }
