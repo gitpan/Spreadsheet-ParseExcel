@@ -31,3 +31,6 @@ Ilya.pl     : Sample script for Object Oriented callback
 smpFile.pl  : Sample scripr for parsing perl variable
 
 xls2csv.pl  : Sample script for xls2csv
+
+iftest.pl   : Sample script for new interface
+iftestj.pl  : Sample script for new interface with FmtJapan

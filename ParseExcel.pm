@@ -14,6 +14,7 @@ require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
+my $_oEx=undef;
 sub new($) {
   my $oThis = {};
   bless $oThis;
@@ -26,12 +27,39 @@ sub ParseAbort($$) {
     my($oThis, $sVal) =@_;
     $oThis->{_ParseAbort} = $sVal;
 }
+#------------------------------------------------------------------------------
+# Spreadsheet::ParseExcel::Workbook->Parse
+#------------------------------------------------------------------------------
+sub Parse($$;$) {
+    my($sClass, $sFile, $oFmt) =@_;
+    $_oEx = new Spreadsheet::ParseExcel unless($_oEx);
+    my $oBook = $_oEx->Parse($sFile, $oFmt);
+}
+#------------------------------------------------------------------------------
+# Spreadsheet::ParseExcel::Workbook Worksheet
+#------------------------------------------------------------------------------
+sub Worksheet($$) {
+    my($oBook, $sName) =@_;
+    my $oWkS;
+    foreach $oWkS (@{$oBook->{Worksheet}}) {
+        return $oWkS if($oWkS->{Name} eq $sName);
+    }
+    if($sName =~ /^\d+$/) {
+        return $oBook->{Worksheet}->[$sName];
+    }
+    return undef;
+}
 #==============================================================================
 # Spreadsheet::ParseExcel::Worksheet
 #==============================================================================
 package Spreadsheet::ParseExcel::Worksheet;
 require Exporter;
 use strict;
+sub sheetNo($);
+use overload 
+    '0+'        => \&sheetNo,
+    'fallback'  => 1,
+;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
 sub new($%) {
@@ -42,6 +70,13 @@ sub new($%) {
   $oThis->{Cells}=undef;
   $oThis->{DefColWidth}=8.38;
   return $oThis;
+}
+#------------------------------------------------------------------------------
+# Spreadsheet::ParseExcel::Worksheet->sheetNo
+#------------------------------------------------------------------------------
+sub sheetNo($){
+    my($oSelf) = @_;
+    return $oSelf->{_SheetNo};
 }
 #==============================================================================
 # Spreadsheet::ParseExcel::Font
@@ -103,7 +138,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.25'; # 
+$VERSION = '0.26'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -418,7 +453,6 @@ sub _subGetContent($)
 #------------------------------------------------------------------------------
 sub _subBOF($$$$){
     my($oBook, $bOp, $bLen, $sWk) = @_;
-
     my ($iVer, $iDt) = unpack("v2", $sWk);
 
     #Workbook Global
@@ -447,10 +481,12 @@ sub _subBOF($$$$){
                 $oBook->{Version} = $oBook->{BIFFVersion};
                 $oBook->{_CurSheet} = 0;
                 $oBook->{Worksheet}[$oBook->{SheetCount}] =
-                        new Spreadsheet::ParseExcel::Worksheet(
+                    new Spreadsheet::ParseExcel::Worksheet(
                              _Name => '',
                               Name => '',
-                );
+                             _Book => $oBook,
+                            _SheetNo => $oBook->{SheetCount},
+                        );
                 $oBook->{SheetCount}++;
             }
         }
@@ -1271,6 +1307,8 @@ sub _subBoundSheet($$$$)
                     Name => $sWsName,
                     Kind => $iKind,
                     _Pos => $iPos,
+                    _Book => $oBook,
+                    _SheetNo => $oBook->{SheetCount},
                 );
     }
     else {
@@ -1279,6 +1317,8 @@ sub _subBoundSheet($$$$)
                     Name => $oBook->{FmtClass}->TextFmt(substr($sWk, 7), '_native_'),
                     Kind => $iKind,
                     _Pos => $iPos,
+                    _Book => $oBook,
+                    _SheetNo => $oBook->{SheetCount},
                 );
     }
     $oBook->{SheetCount}++;
@@ -1906,6 +1946,25 @@ Spreadsheet::ParseExcel - Get information from Excel file
         }
     }
 
+I<new interface>
+
+    use strict;
+    use Spreadsheet::ParseExcel;
+    my $oBook = 
+        Spreadsheet::ParseExcel::Workbook->Parse('Excel/Test97.xls');
+    my($iR, $iC, $oWkS, $oWkC);
+    foreach my $oWkS (@{$oBook->{Worksheet}}) {
+        print "--------- SHEET:", $oWkS->{Name}, "\n";
+        for(my $iR = $oWkS->{MinRow} ; 
+                defined $oWkS->{MaxRow} && $iR <= $oWkS->{MaxRow} ; $iR++) {
+            for(my $iC = $oWkS->{MinCol} ;
+                            defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
+                $oWkC = $oWkS->{Cells}[$iR][$iC];
+                print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);
+            }
+        }
+    }
+
 =head1 DESCRIPTION
 
 Spreadsheet::ParseExcel makes you to get information from Excel95, Excel97, Excel2000 file.
@@ -1979,6 +2038,28 @@ RGB string has 6 charcters, representing RGB hex value. (ex. red = 'FF0000')
 =head2 Workbook
 
 I<Spreadsheet::ParseExcel::Workbook>
+
+Workbook class has these methods :
+
+=over 4
+
+=item Parse
+
+(class method) : same as Spreadsheet::ParseExcel
+
+=back
+
+=over 4
+
+=item Worksheet
+
+I<$oWorksheet> = $oBook->Worksheet(I<$sName>);
+
+I<Worksheet> returns a Worksheet object with I<$sName> or undef.
+If there is no worksheet with I<$sName> and I<$sName> contains only digits,
+it returns a Worksheet object at that position.
+
+=back
 
 Workbook class has these properties :
 

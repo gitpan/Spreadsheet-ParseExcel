@@ -44,4 +44,6 @@ sample/sampleOEM.pl
 sample/sample_j.pl
 sample/smpFile.pl
 sample/xls2csv.pl
+sample/iftest.pl
+sample/iftestj.pl
 test.pl

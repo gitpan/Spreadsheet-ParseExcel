@@ -1,5 +1,10 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.25  Sat Jun 1, 2002
+    Thank you for Peter Marschall.
+    - Mod ParseExcel : Add new interface
+    - Mod SaveParser : Add new interface
+
 0.25  Fri May  10, 2002
     - Mod ParseExcel : Fix For SaveParser
     - Mod SaveParser : Add Create
