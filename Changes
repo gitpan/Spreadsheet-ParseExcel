@@ -1,5 +1,14 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.13  Sat Feb 21  20:40:00 2001
+    - Support Pps 'BOOK' (not 'Book') with OLE::Storage_Lite 0.07
+                             (Thank you, Punam Chordia )
+    - Modify Makefile.PL (define OLE::Storage_Lite Version)
+                             (Thank you, Aldo Calpini)
+    - Fix Conetinue ASCII-Unicode pattern
+                             (Thank you, Tim Wills)
+    - Add FmtUnicode sample :dmpExU.pl (Sorry and thank you, Mike Goblin)
+
 0.12  Sat Feb 5  11:00:00 2001
     - Support Excel4 file (Thank you, Jeff Haferman and herbert )
     - Add reference of scalar and IO::File object support in Parse

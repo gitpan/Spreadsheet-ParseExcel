@@ -9,13 +9,21 @@ content="text/html; charset=x-euc-jp">
 
 <body bgcolor="#00FFFF">
 
-<pre>Speadsheet::ParseExcel.pm - 0.12   
+<pre>Speadsheet::ParseExcel.pm - 0.13   
 
                                                 by 川合孝典 (Hippo2000)
 
 履歴
 </pre>
 
+<pre>  0.13  2001/2/21
+　　　　 PPSがBOOK(通常はBook, Workbook)のものにも対応
+                             (Thank you, Punam Chordia )
+         Makefile.PLでOLE::Storage_Liteのバージョンを定義
+                             (Thank you, Aldo Calpini)         
+         Continue でのASCII->Unicodeパターンでのバグ修正
+                             (Thank you, Tim Wills)         
+</pre>
 <pre>  0.12  2001/2/3
 　　　　 Excel4 ファイルにも対応できるようにしたつもり (Thank you, Jeff Haferman and herbert)
 　　　　 Parseの対象をスカラへのリファレンスやIO::Handleに広げたつもり (Thank you, Jeff Haferman)
@@ -91,7 +99,7 @@ content="text/html; charset=x-euc-jp">
     Jcode.pmと同じです。
 
 インストール
-  今回のバージョンからは、OLE::Storage_Liteを利用します。（他の方法はなくしました）
+  OLE::Storage_Liteがインストールされている必要があります。
 　Spreadsheet::ParseExcel::FmtJapanを使用する場合、Jcode.pmを必要とします。（他のモジュールを必要としません。）
 　Spreadsheet::ParseExcel::FmtJapan2を使用する場合、Jcode.pm、Unicode::Mapを必要とします。
 　Perlの標準的なインストールになりました。このモジュール自体はPerlのみで作成されているので、コピーするだけでも動きます。</pre>

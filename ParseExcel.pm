@@ -117,7 +117,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.12'; # 
+$VERSION = '0.13'; # 
 
 my $oFmtClass;
 my @aColor =
@@ -366,7 +366,7 @@ sub _subGetContent($)
     return (undef, undef) unless($oOl);
     my @aRes = $oOl->getPpsSearch(
             [OLE::Storage_Lite::Asc2Ucs('Book'), 
-             OLE::Storage_Lite::Asc2Ucs('Workbook')], 1);
+             OLE::Storage_Lite::Asc2Ucs('Workbook')], 1, 1);
     return (undef, undef) if($#aRes < 0);
 #Hack from Herbert
     unless($aRes[0]->{Data}) {
@@ -1160,9 +1160,13 @@ sub _subStrWk($$;$)
         #1.3 Diff code (Unicode or ASCII)
                 my $iDiff = ($iStP + $iLenS) - $iLenB;
                 if($iCnt1st & 0x01) {
-#print "DIFF ASC\n";
-                    for(my $i = 1; $i <$iDiff; $i++) {
-                        substr($sWk, $i, 2) =  substr($sWk, $i, 1);
+#print "DIFF ASC $iStP $iLenS $iLenB DIFF:$iDiff\n";
+#print "BEF:", unpack("H6", $oBook->{StrBuff}), "\n";
+		    my ($iDum, $iGr) =unpack('vc', $oBook->{StrBuff});
+		    substr($oBook->{StrBuff}, 2, 1) = pack('c', $iGr | 0x01);
+#print "AFT:", unpack("H6", $oBook->{StrBuff}), "\n";
+                    for(my $i = ($iLenB-$iStP); $i >=1; $i--) {
+                        substr($oBook->{StrBuff}, $iStP+$i, 0) =  "\x00";
                     }
                 }
                 else {
@@ -1213,7 +1217,7 @@ sub _subStrWk($$;$)
             if($iGr & 0x01) {
                 _SwapForUnicode(\$sTxt);
             }
-#print "ADD ARRY:", $#{$oBook->{PkgStr}}, " LEN:", length($sTxt), " ST:", $iStP, , ":", substr($sTxt, 0, 30), "\n";
+#print "ADD ARRY:", $#{$oBook->{PkgStr}}, " LEN:", length($sTxt), " ST:", $iStP, , ":", substr($sTxt, length($sTxt)-10, 10), "\n";
             push @{$oBook->{PkgStr}}, {
                 Text => $sTxt,
                 Unicode => $iGr & 0x01,

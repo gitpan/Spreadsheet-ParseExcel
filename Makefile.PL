@@ -4,4 +4,5 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'	=> 'Spreadsheet::ParseExcel',
     'VERSION_FROM' => 'ParseExcel.pm', # finds $VERSION
+    'PREREQ_PM' => { OLE::Storage_Lite => 0.07 },
 );

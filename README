@@ -13,8 +13,8 @@ DESCRIPTION
 REQUIREMENT
 	This module requires these modules:
 		OLE::Storage_Lite
-		Jcode.pm	(if you are using FmtJapan)
-		Unicode::Map	(if you are using FmtJapan2)
+		Jcode.pm	(if you are using FmtJapan, or FmtJapan2)
+		Unicode::Map	(if you are using FmtJapan2 or FmtUnicode)
 
 INSTALLATION
     The module can be installed using the standard Perl procedure:
@@ -46,8 +46,8 @@ map:     (which you copied directry)/CP932Excel.map
 
 
 VERSION
-    This document refers to version 0.12 of Spreadsheet::ParseExcel,
-    released Feb 1, 2001.
+    This document refers to version 0.13 of Spreadsheet::ParseExcel,
+    released Feb 21, 2001.
 
 AUTHOR
     Kawai Takanori (kwitknr@cpan.org)
