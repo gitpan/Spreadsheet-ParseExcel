@@ -117,7 +117,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.11'; # 
+$VERSION = '0.12'; # 
 
 my $oFmtClass;
 my @aColor =
@@ -313,23 +313,9 @@ sub Parse($$;$) {
     $oBook->{SheetCount} = 0;
 
 #1.Get content
-    my($sBiff, $iLen);
-    if(ref($sFile) eq "SCALAR") {
-#1.1 Specified by Buffer
-        $sBiff = $$sFile;
-        $iLen  = length($sBiff);
-    }
-    elsif(ref($sFile)) {
-#1.2 Specified by Other Things(HASH reference etc)
-        return undef;
-    }
-    else {
-#1.3 Specified by File name
-        $oBook->{File} = $sFile;
-        return undef unless (-e $sFile);
-        ($sBiff, $iLen) = $oThis->{GetContent}->($sFile);
-        return undef unless($sBiff);
-    }
+    $oBook->{File} = $sFile;
+    my($sBiff, $iLen) = $oThis->{GetContent}->($sFile);
+    return undef unless($sBiff);
 
 #2. Ready for format
     if ($oWkFmt) {
@@ -382,7 +368,40 @@ sub _subGetContent($)
             [OLE::Storage_Lite::Asc2Ucs('Book'), 
              OLE::Storage_Lite::Asc2Ucs('Workbook')], 1);
     return (undef, undef) if($#aRes < 0);
-    return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
+#Hack from Herbert
+    unless($aRes[0]->{Data}) {
+        #Same as OLE::Storage_Lite
+        my $oIo;
+        #1. $sFile is Ref of scalar
+        if(ref($sFile) eq 'SCALAR') {
+            $oIo = new IO::Scalar;
+            $oIo->open($sFile);
+        }
+        #2. $sFile is a IO::Handle object
+        elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
+            $oIo = $sFile;
+            binmode($oIo);
+        }
+        #3. $sFile is a simple filename string
+        elsif(!ref($sFile)) {
+            $oIo = new IO::File;
+            $oIo->open("<$sFile") || return undef;
+            binmode($oIo);
+        }
+        my $sWk;
+        my $sBuff ='';
+
+        while($oIo->read($sWk, 4096)) { #4_096 has no special meanings
+            $sBuff .= $sWk;
+        }
+        $oIo->close();
+        #Not Excel file (simple method)
+        return (undef, undef) if (substr($sBuff, 0, 1) ne "\x09");
+        return ($sBuff, length($sBuff));
+    }
+    else {
+        return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
+    }
 }
 #------------------------------------------------------------------------------
 # _subBOF (for Spreadsheet::ParseExcel)
@@ -397,11 +416,18 @@ sub _subBOF($$$$$)
     else {
         if($bVer ==8) {
             $oBook->{Version} = unpack("v", $sWk);
+            $oBook->{_CurSheet} = -1;
         }
         else {
             $oBook->{Version} = $bVer;
+            $oBook->{_CurSheet} = 0;
+            $oBook->{Worksheet}[$oBook->{SheetCount}] =
+                    new Spreadsheet::ParseExcel::Worksheet(
+                         _Name => '',
+                          Name => '',
+            );
+    	    $oBook->{SheetCount}++;
         }
-        $oBook->{_CurSheet} = -1;
     }
 }
 #------------------------------------------------------------------------------
@@ -770,7 +796,6 @@ sub _subPackedIdx($$$$$)
     $iIdx = unpack("L", ($BIGENDIAN)?
                 substr($sWk, 9, 1) . substr($sWk, 8, 1) . substr($sWk, 7, 1) . substr($sWk, 6, 1) :
                 substr($sWk, 6, 4));
-
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
     _NewCell (
             Kind    => 'PackedIdx',
@@ -1106,40 +1131,58 @@ sub _LongToDt($) {
 sub _subStrWk($$;$)
 {
     my($oBook, $sWk, $fCnt) = @_;
-
-#print "NEW LEN:", length($oBook->{StrBuff}), "  CONT:", defined($fCnt), "\n";
-#print " DUMP:", unpack("H10", $sWk), "\n";
+#print "NEW LEN:", length($oBook->{StrBuff}), "  CONT:", defined($fCnt);
+#print " STR:", unpack("H60", $oBook->{StrBuff}), "\n";
+#print " SWK:", unpack("H60", $sWk), "\n";
+    #1. Continue
     if(defined($fCnt)) {
-        if(defined($oBook->{_PrevCond}) && ($oBook->{_PrevCond} & 0x01)) {
-#print "DEFINED:", $#{$oBook->{PkgStr}}, "\n";
-#print " SWK:", unpack("H10", $sWk), "\n";
-#print " STR:", unpack("H40", $oBook->{StrBuff}), "\n";
-          
-#           $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) != 0))? 
-#                               substr($sWk, 1): $sWk;
-    if(($oBook->{StrBuff} ne '') && (ord($sWk) != 0)) {
-    $oBook->{StrBuff} .= substr($sWk, 1);
-    }
-    elsif(ord($sWk) == 0) {
-        $oBook->{StrBuff} .= substr($sWk, 1, 1) . "\x00" . substr($sWk, 2);
-        #Swapping First Number
-    }
-    else {
-        $oBook->{StrBuff} .= $sWk;
-    }
-
-
+    #1.1 Before No Data No
+        if(($oBook->{StrBuff} eq '') || (!(defined($oBook->{_PrevCond})))){
+            $oBook->{StrBuff} .= $sWk;
         }
         else {
-            $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) == 0))? 
-                                substr($sWk, 1): $sWk;
-#print "NOT DEFINED:", $#{$oBook->{PkgStr}}, "\n";
+#print "CONT\n";
+            my $iCnt1st = ord($sWk); # 1st byte of Continue may be a GR byte
+            my($iStP, $iLenS) = @{$oBook->{_PrevInfo}};
+            my $iLenB = length($oBook->{StrBuff});
+
+        #1.1 Not in String
+            if($iLenB >= ($iStP + $iLenS)) {
+#print "NOT STR\n";
+                $oBook->{StrBuff} .= $sWk;
+            }
+        #1.2 Same code (Unicode or ASCII)
+            elsif(($oBook->{_PrevCond} & 0x01) == ($iCnt1st & 0x01)) {
+#print "SAME\n";
+                $oBook->{StrBuff} .= substr($sWk, 1);
+            }
+            else {
+        #1.3 Diff code (Unicode or ASCII)
+                my $iDiff = ($iStP + $iLenS) - $iLenB;
+                if($iCnt1st & 0x01) {
+#print "DIFF ASC\n";
+                    for(my $i = 1; $i <$iDiff; $i++) {
+                        substr($sWk, $i, 2) =  substr($sWk, $i, 1);
+                    }
+                }
+                else {
+#print "DIFF UNI:", $oBook->{_PrevCond}, ":", $iCnt1st, " DIFF:$iDiff\n";
+                    for(my $i = ($iDiff/2); $i>=1;$i--) {
+                        substr($sWk, $i+1, 0) =  "\x00";
+                    }
+                }
+                $oBook->{StrBuff} .= substr($sWk, 1);
+           }
         }
     }
     else {
+    #2. Saisho
         $oBook->{StrBuff} .= $sWk;
     }
+#print " AFT:", unpack("H60", $oBook->{StrBuff}), "\n";
+
     $oBook->{_PrevCond} = undef;
+    $oBook->{_PrevInfo} = undef;
     my($iLen, $iLenS);
     my($iCrun, $iExrst);
     my($iStP);
@@ -1170,7 +1213,7 @@ sub _subStrWk($$;$)
             if($iGr & 0x01) {
                 _SwapForUnicode(\$sTxt);
             }
-#print "ADD ARRY:", $#{$oBook->{PkgStr}}, " LEN:", length($sTxt), " ST:", $iStP, "\n";
+#print "ADD ARRY:", $#{$oBook->{PkgStr}}, " LEN:", length($sTxt), " ST:", $iStP, , ":", substr($sTxt, 0, 30), "\n";
             push @{$oBook->{PkgStr}}, {
                 Text => $sTxt,
                 Unicode => $iGr & 0x01,
@@ -1179,6 +1222,7 @@ sub _subStrWk($$;$)
         }
         else {
             $oBook->{_PrevCond} = $iGr;
+            $oBook->{_PrevInfo} = [$iStP, $iLenS];
             last;
         }
     }
@@ -1240,10 +1284,12 @@ sub ExcelLocaltime($$)
     $iYear = 1904;
     $iDt++;         #Start from Jan 1st
     $iYDays = 366;
+    $iwDay = (($iDt+4) % 7);
   }
   else {
     $iYear = 1900;
     $iYDays = 366;  #In Excel 1900 is leap year (That's not TRUE!)
+    $iwDay = (($iDt+6) % 7);
   }
 
   while($iDt > $iYDays) {
@@ -1329,25 +1375,22 @@ I<$oExcel> = new Spreadsheet::ParseExcel;
 
 Constructor.
 
-If you don't want to use OLE::Storage, you can use like this:
-
-I<$oExcel> = new Spreadsheet::ParseExcel(NotUseOLE=>1);
-
-But this works imcompletely!
-
 =item Parse
 
-I<$oWorkbook> = $oParse->Parse(I<oFileName> [, I<$oFmt>]);
+I<$oWorkbook> = $oParse->Parse(I<$sFileName> [, I<$oFmt>]);
 
 return L<Workbook> object.
 if error occurs, returns undef.
 
 =over 4
 
-=item I<$oFileName>
+=item I<$sFileName>
 
 name of the file to parse
 
+From 0.12 (with OLE::Storage_Lite v.0.06), 
+scalar reference of file contents (ex. \$sBuff) or 
+IO::Handle object (inclucdng IO::File etc.) are also available.
 
 =item I<$oFmt>
 
@@ -1537,13 +1580,13 @@ Kawai Takanori (Hippo2000) kwitknr@cpan.org
 
 =head1 SEE ALSO
 
-XLHTML, OLE::Storage, Spreadsheet::WriteExcel
+XLHTML, OLE::Storage, Spreadsheet::WriteExcel, OLE::Storage_Lite
 
 This module is based on herbert within OLE::Storage and XLHTML.
 
 =head1 COPYRIGHT
 
-The Spreadsheet::ParseExcel module is Copyright (c) 2000 Kawai Takanori. Japan.
+The Spreadsheet::ParseExcel module is Copyright (c) 2000,2001 Kawai Takanori. Japan.
 All rights reserved.
 
 You may distribute under the terms of either the GNU General Public

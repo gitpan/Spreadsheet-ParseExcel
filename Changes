@@ -1,5 +1,15 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.12  Sat Feb 5  11:00:00 2001
+    - Support Excel4 file (Thank you, Jeff Haferman and herbert )
+    - Add reference of scalar and IO::File object support in Parse
+                          (Thank you, Jeff Haferman)
+    - Fix Continue SST (Thank you, Gennadiy)
+    - Delete VBAMacros from sample/Excel/Test97j.xls and Test97.xls
+      avoiding virus check.
+                          (Thank you, Alfred Nathaniel)
+    - Fix weekday of ExcelLocaltime
+
 0.11  Sat Jan 26 14:00:00 2001
     - Skip 0xEF to EOF(0x0A) (Thank you, Phil DiFalco)
 
