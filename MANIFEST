@@ -3,10 +3,12 @@ Changes
 MANIFEST
 Makefile.PL
 ParseExcel.pm
+ParseExcel/Dump.pm
 ParseExcel/FmtDefault.pm
 ParseExcel/FmtJapan.pm
 ParseExcel/FmtJapan2.pm
 ParseExcel/FmtUnicode.pm
+ParseExcel/Utility.pm
 README
 README_Japan.htm
 sample/Excel/AuthorK.xls
@@ -19,9 +21,9 @@ sample/Excel/Test97.xls
 sample/Excel/Test97J.xls
 sample/Excel/oem.xls
 sample/README
+sample/chkFmt.pl
 sample/dmpEx.pl
 sample/dmpExj.pl
-sample/dmpExu.pl
 sample/res_oem
 sample/res_sample
 sample/res_samplej

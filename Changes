@@ -1,5 +1,11 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.15  Wed Mar 6  10:00:00 2001
+    - Fix RK number
+            (Thank you Jimmy Sieben)
+    - Modify many internal functions!!
+    - Add Spreadsheet::ParseExcel::Utity for formatting!
+
 0.13  Sat Feb 21  20:40:00 2001
     - Support Pps 'BOOK' (not 'Book') with OLE::Storage_Lite 0.07
                              (Thank you, Punam Chordia )

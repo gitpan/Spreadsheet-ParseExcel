@@ -1,3 +1,4 @@
+chkFmt.pl   :Sample Script for formatting
 sample.pl   :Simple Script (using SpreadSheet::ParseExcel::FmtDefault)
 sample_j.pl :Simple Script using Japanese character
 		(using SpreadSheet::ParseExcel::FmtJapan)

@@ -9,13 +9,18 @@ content="text/html; charset=x-euc-jp">
 
 <body bgcolor="#00FFFF">
 
-<pre>Speadsheet::ParseExcel.pm - 0.13   
+<pre>Speadsheet::ParseExcel.pm - 0.15
 
                                                 by 川合孝典 (Hippo2000)
 
 履歴
 </pre>
 
+<pre>  0.15  2001/2/27
+　　　　 内部処理を大幅に変更しました
+         書式設定をSpreadsheet::ParseExcel::Utilityでサポートしました。
+           ->初リリース以来の大規模な変更になっています
+</pre>
 <pre>  0.13  2001/2/21
 　　　　 PPSがBOOK(通常はBook, Workbook)のものにも対応
                              (Thank you, Punam Chordia )
@@ -192,7 +197,7 @@ map:     (コピー先のディレクトリ)/CP932Excel.map
         herbert (OLE::Storageに同梱されるツール）
     Spreadsheet::WriteExcel
 
-   Solarisのデバッグは島本武氏がいなければ、成立しませんでした。
+   Solarisのデバッグは島本武氏と山路春奈さんがいなければ、成立しませんでした。(cloudyに感謝）
 　 埜口晴美さんにはExcel2000のファイルをいただきました。
    Hirofumi Morisadaさんからの情報で文字列のバグを発見、修正することができました。
    そして「Excel97デベロッパーズキット」をどうもありがとうございました。

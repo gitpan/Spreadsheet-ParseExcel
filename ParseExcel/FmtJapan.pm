@@ -1,16 +1,60 @@
-package Spreadsheet::ParseExcel::FmtJapan;
-#===================================
 # Spreadsheet::ParseExcel::FmtJapan
-#  by Kawai, Takanori (Hippo2000) 2000.9.20
+#  by Kawai, Takanori (Hippo2000) 2001.2.2
 # This Program is ALPHA version.
-#===================================
+#==============================================================================
+package Spreadsheet::ParseExcel::FmtJapan;
 require Exporter;
 use strict;
-use vars qw($VERSION @ISA);
-@ISA = qw(Exporter);
-$VERSION = '0.01'; # 
+use Spreadsheet::ParseExcel::FmtDefault;
 use Jcode;
+use vars qw($VERSION @ISA);
+@ISA = qw(Spreadsheet::ParseExcel::FmtDefault Exporter);
 
+$VERSION = '0.02'; # 
+my %hFmtJapan = (
+    0x00 => '@',
+    0x01 => '0',
+    0x02 => '0.00',
+    0x03 => '#,##0',
+    0x04 => '#,##0.00',
+    0x05 => '(\\#,##0_);(\\#,##0)',
+    0x06 => '(\\#,##0_);[RED](\\#,##0)',
+    0x07 => '(\\#,##0.00_);(\\#,##0.00_)',
+    0x08 => '(\\#,##0.00_);[RED](\\#,##0.00_)',
+    0x09 => '0%',
+    0x0A => '0.00%',
+    0x0B => '0.00E+00',
+    0x0C => '# ?/?',
+    0x0D => '# ??/??',
+#    0x0E => 'm/d/yy',
+    0x0E => 'yyyy/m/d',
+    0x0F => 'd-mmm-yy',
+    0x10 => 'd-mmm',
+    0x11 => 'mmm-yy',
+    0x12 => 'h:mm AM/PM',
+    0x13 => 'h:mm:ss AM/PM',
+    0x14 => 'h:mm',
+    0x15 => 'h:mm:ss',
+    0x16 => 'm/d/yy h:mm',
+#0x17-0x24 -- Differs in Natinal
+    0x25 => '(#,##0_);(#,##0)',
+    0x26 => '(#,##0_);[RED](#,##0)',
+    0x27 => '(#,##0.00);(#,##0.00)',
+    0x28 => '(#,##0.00);[RED](#,##0.00)',
+    0x29 => '_(*#,##0_);_(*(#,##0);_(*"-"_);_(@_)',
+    0x2A => '_(\\*#,##0_);_(\\*(#,##0);_(*"-"_);_(@_)',
+    0x2B => '_(*#,##0.00_);_(*(#,##0.00);_(*"-"??_);_(@_)',
+    0x2C => '_(\\*#,##0.00_);_(\\*(#,##0.00);_(*"-"??_);_(@_)',
+    0x2D => 'mm:ss',
+    0x2E => '[h]:mm:ss',
+    0x2F => 'mm:ss.0',
+    0x30 => '##0.0E+0',
+    0x31 => '@',
+);
+
+#------------------------------------------------------------------------------
+# new (for Spreadsheet::ParseExcel::FmtJapan)
+#------------------------------------------------------------------------------
 sub new($%) {
     my($sPkg, %hKey) = @_;
     my $oThis={ 
@@ -19,11 +63,12 @@ sub new($%) {
     bless $oThis;
     return $oThis;
 }
-
+#------------------------------------------------------------------------------
+# TextFmt (for Spreadsheet::ParseExcel::FmtJapan)
+#------------------------------------------------------------------------------
 sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
     $sCode = 'sjis' if(defined($sCode) && ($sCode eq '_native_'));
-
     if($oThis->{Code}) {
         return Jcode::convert($sTxt, $oThis->{Code}, $sCode);
     }
@@ -31,122 +76,19 @@ sub TextFmt($$;$) {
         return $sTxt;
     }
 }
-
+#------------------------------------------------------------------------------
+# ValFmt (for Spreadsheet::ParseExcel::FmtJapan)
+#------------------------------------------------------------------------------
 sub ValFmt($$$) {
     my($oThis, $oCell, $oBook) =@_;
-
-    my($Dt, $iFmtIdx, $iNumeric, $Flg1904);
-
-    $Dt       = $oCell->{Val};
-    $iFmtIdx  = $oCell->{Format}->{FmtIdx};
-    $Flg1904  = $oBook->{Flg1904};
-
-    if ($oCell->{Type} eq 'Numeric') {
-        if($iFmtIdx == 0x00) {      #General
-            return sprintf "%.15g", $Dt;
-        }
-        elsif($iFmtIdx == 0x01) { # Number 0
-            return sprintf "%0.0f", $Dt;
-        }
-        elsif($iFmtIdx == 0x02) { # Number 0.00
-            return sprintf "%0.2f", $Dt;
-        }
-        elsif($iFmtIdx == 0x03) { # Number w/comma 0,000.0
-            return sprintf "%0.0f", $Dt;
-        }
-        elsif($iFmtIdx == 0x04) { # Number w/comma  0,000.00
-            return sprintf "%0.2f", $Dt;
-        }
-        elsif($iFmtIdx == 0x09) { # Percent 0%
-            return sprintf("%.0f%%", $Dt * 100.0);
-        }
-        elsif($iFmtIdx == 0x0A) { # Percent 0.00%
-            return sprintf("%0.2f%%", $Dt*100.0);
-        }
-        elsif($iFmtIdx == 0x0B) { # Scientific 0.00+E00
-            return sprintf("%0.2E", $Dt);
-        }
-        elsif($iFmtIdx == 0x0C) { #Fraction 1 number  e.g. 1/2, 1/3
-            return sprintf "%0.1f", $Dt;
-        }
-        elsif($iFmtIdx == 0x0D) { # Fraction 2 numbers  e.g. 1/50, 25/33
-            return sprintf "%0.2f", $Dt;
-        }
-        elsif($iFmtIdx == 0x31) { # Text - if we are here...its a number
-            return sprintf "%g", $Dt;
-        }
-        else { #// Unsupported...but, if we are here, its a number
-            return sprintf "%g", $Dt;
-        }
-    }
-    elsif($oCell->{Type} eq 'Date') {
-        my($iSec, $iMin, $iHour, $iDay, $iMon, $iYear, $iwDay, $iMSec) = 
-            Spreadsheet::ParseExcel::ExcelLocaltime($Dt, $Flg1904);
-        $iMon++;
-        $iYear+=1900;
-
-        if(($iFmtIdx == 0x0E)||  # Date: m-d-y
-          ($iFmtIdx == 0x0F) ||  # Date: d-mmm-yy
-          ($iFmtIdx == 0x10) ||  # Date: d-mmm
-          ($iFmtIdx == 0x11)     # Date: mmm-yy
-        ){
-            return sprintf("%4d/%2d/%2d", $iYear, $iMon, $iDay);
-        }
-        elsif(
-          ($iFmtIdx == 0x12) ||  # Time: h:mm AM/PM
-          ($iFmtIdx == 0x13) ||  # Time: h:mm:ss AM/PM
-          ($iFmtIdx == 0x14) ||  # Time: h:mm
-          ($iFmtIdx == 0x15) ||  # Time: h:mm:ss
-          ($iFmtIdx == 0x2D) ||  # Time: mm:ss
-          ($iFmtIdx == 0x2E) ||  # Time: [h]:mm:ss
-          ($iFmtIdx == 0x2F)     # Time: mm:ss.0
-          ) {
-            return sprintf("%2d:%02d:%02d", $iHour, $iMin, $iSec);
-        }
-        else {
-            return sprintf("%2d:%02d:%02d", $iHour, $iMin, $iSec);
-        }
-    }
-    else {
-        return $oThis->TextFmt($oCell->{Val}, $oCell->{Code});
-    }
+    return $oThis->SUPER::ValFmt($oCell, $oBook, \%hFmtJapan);
 }
+#------------------------------------------------------------------------------
+# ChkType (for Spreadsheet::ParseExcel::FmtJapan)
+#------------------------------------------------------------------------------
 sub ChkType($$$) {
     my($oPkg, $iNumeric, $iFmtIdx) =@_;
-
-    if ($iNumeric) {
-        if(
-          ($iFmtIdx == 0x0E) ||  # Date: m-d-y
-          ($iFmtIdx == 0x0F) ||  # Date: d-mmm-yy
-          ($iFmtIdx == 0x10) ||  # Date: d-mmm
-          ($iFmtIdx == 0x11) ||  # Date: mmm-yy
-          ($iFmtIdx == 0x12) ||  # Time: h:mm AM/PM
-          ($iFmtIdx == 0x13) ||  # Time: h:mm:ss AM/PM
-          ($iFmtIdx == 0x14) ||  # Time: h:mm
-          ($iFmtIdx == 0x15) ||  # Time: h:mm:ss
-          ($iFmtIdx == 0x2D) ||  # Time: mm:ss
-          ($iFmtIdx == 0x2E) ||  # Time: [h]:mm:ss
-          ($iFmtIdx == 0x2F)  # Time: mm:ss.0
-          ) {
-            return "Date";
-        }
-        else {
-#         ($iFmtIdx == 0x00) or   #General
-#         ($iFmtIdx == 0x01) or # Number 0
-#         ($iFmtIdx == 0x02) or # Number 0.00
-#         ($iFmtIdx == 0x03) or # Number w/comma 0,000.0
-#         ($iFmtIdx == 0x04) or # Number w/comma    0,000.00
-#         ($iFmtIdx == 0x09) or # Percent 0%
-#         ($iFmtIdx == 0x0A) or # Percent 0.00%
-#         ($iFmtIdx == 0x0B) or # Scientific 0.00+E00
-#         ($iFmtIdx == 0x0C) or #Fraction 1 number  e.g. 1/2, 1/3
-#         ($iFmtIdx == 0x0D)    # Fraction 2 numbers  e.g. 1/50, 25/33
-#          )
-            return "Numeric";
-        }
-    }
-    else {
-        return "Text";
-    }
+# Is there something special for Japan?
+    return $oPkg->SUPER::ChkType($iNumeric, $iFmtIdx);
 }
 1;
