@@ -1,5 +1,15 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.2402 Thu Jul 12 20:30:00 2001
+    - Mod Utility, FmtDefault :Fix format error
+                        (Thank you, Kevin Ko)
+    - Mod Utility :Mod for Japanese sign(triangle)
+
+0.2401 Mon Jul 9  19:00:00 2001
+    - Mod FmtUnicode :Mod alphanumeric in BIG5
+                        (Thank you, Kevin Ko)
+        Sorry, it is not effective (ToT)
+
 0.24 Wed Jul 5  06:30:00 2001
     - Mod ParseExcel :Add OO style callback
                         (Thank you, Ilya Sterin)

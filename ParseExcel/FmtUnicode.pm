@@ -33,8 +33,10 @@ sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
     if($oThis->{_UniMap}) {
         if(! defined($sCode)) {
+            my $sSv = $sTxt;
             $sTxt =~ s/(.)/\x00$1/g;
             $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
+            $sTxt = $sSv unless($sTxt);
         }
         elsif($sCode eq 'ucs2') {
             $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);

@@ -10,11 +10,11 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime);
-$VERSION=0.03;
+$VERSION=0.04;
 my $sNUMEXP = '^[+-]?\d+(\.\d+)?$';
 
 #ProtoTypes
-sub ExcelFmt($$;$);
+sub ExcelFmt($$;$$);
 sub LocaltimeExcel($$$$$$;$$);
 sub ExcelLocaltime($;$);
 sub AddComma($);
@@ -25,12 +25,11 @@ sub LeapYear($);
 #------------------------------------------------------------------------------
 # ExcelFmt (for Spreadsheet::ParseExcel::Utility)
 #------------------------------------------------------------------------------
-sub ExcelFmt($$;$) {
-    my($sFmt, $iData, $i1904) =@_;
+sub ExcelFmt($$;$$) {
+    my($sFmt, $iData, $i1904, $sType) =@_;
     my $sCond;
     my $sWkF ='';
     my $sRes='';
-
 #1. Get Condition
     if($sFmt=~/^\[([<>=][^\]]+)\](.*)$/) {
         $sCond = $1;
@@ -80,7 +79,7 @@ sub ExcelFmt($$;$) {
         }
         else {
             my $iWk = ($iData =~/$sNUMEXP/)? $iData: 0;
-            $iData = abs($iData) if($iWk !=0);
+            # $iData = abs($iData) if($iWk !=0);
             if(scalar(@sFmtWk)==2) {
                 $sFmtObj = $sFmtWk[(($iWk>=0)? 0: 1)];
             }
@@ -149,13 +148,30 @@ sub ExcelFmt($$;$) {
             $i++;
             next;
         }
-#print STDERR "DEF1: $iDblQ DEF2: $iQ\n";
+#print "WK:", ord($sWk), " $iFmtMode \n";
+#print "DEF1: $iDblQ DEF2: $iQ\n";
         if((defined($iDblQ) and ($iDblQ)) or (defined($iQ) and ($iQ))) {
             $iQ = 0;
-            $i++;
+            if(($iFmtMode != 2) and 
+                ((substr($sFmtObj, $i, 2) eq "\x81\xA2") ||
+                 (substr($sFmtObj, $i, 2) eq "\x81\xA3") ||
+                 (substr($sFmtObj, $i, 2) eq "\xA2\xA4") ||
+                 (substr($sFmtObj, $i, 2) eq "\xA2\xA5"))
+                ){
+#print "PUSH:", unpack("H*", substr($sFmtObj, $i, 2)), "\n";
+                push @aRep, [substr($sFmtObj, $i, 2),  
+                        length($sFmtRes), 2];
+                $iFugouFlg = 1;
+                $i+=2;
+            }
+            else{
+                $i++;
+            }
         }
         elsif(($sWk =~ /[#0\+\.\?eE\,\%]/) || 
-              (($iFmtMode != 2) and ($sWk eq '-'))) {
+              (($iFmtMode != 2) and 
+                (($sWk eq '-') || ($sWk eq '(') || ($sWk eq ')')))
+            ) {
             $iFmtMode = 1 unless($iFmtMode);
             if(substr($sFmtObj, $i, 1) =~ /[#0]/) {
                 if(substr($sFmtObj, $i) =~ /^([#0]+)([\.]?)([0#]*)([eE])([\+\-])([0#]+)/){
@@ -226,6 +242,12 @@ sub ExcelFmt($$;$) {
                 }
                 elsif(substr($sFmtObj, $i, 1) eq '%') {
                     $iPer = 1;
+                }
+                elsif((substr($sFmtObj, $i, 1) eq '(') ||
+                      (substr($sFmtObj, $i, 1) eq ')')) {
+                            push @aRep, [substr($sFmtObj, $i, 1),  
+                                                length($sFmtRes), 1];
+                            $iFugouFlg = 1;
                 }
             }
             $i++;
@@ -314,6 +336,10 @@ sub ExcelFmt($$;$) {
             push @aRep, ['@', length($sFmtRes), 1];
             $i++;
         }
+        elsif($sWk eq '*') {
+            push @aRep, [substr($sFmtObj, $i, 1),  
+                                        length($sFmtRes), 1];
+        }
         else{
             $i++;
         }
@@ -326,7 +352,9 @@ sub ExcelFmt($$;$) {
                     $iRpos,, $i-$iFflg+1];
         $iFflg= 0;
     }
+
 #For Date format
+    $iFmtMode = 0 if(defined $sType && $sType eq 'Text');   #Not Convert Non Numeric
     if(($iFmtMode==2)&& ($iData =~/$sNUMEXP/)) {
         my @aTime = ExcelLocaltime($iData, $i1904);
         $aTime[4]++;
@@ -485,7 +513,7 @@ sub ExcelFmt($$;$) {
                     $iAftP++ if($iP);
                 }
             }
-    #print "DATA:$iData\n";
+#print "DATA:$iData\n";
             $iData *= 100.0 if($iPer);
             my $iDData = ($iFugouFlg)? abs($iData) : $iData+0;
             if($iBunFlg) {
@@ -509,7 +537,7 @@ sub ExcelFmt($$;$) {
 
             for(my $iIt=$#aRep; $iIt>=0;$iIt--) {
                 my $rItem = $aRep[$iIt];
-#print "Rep:", $rItem->[0], "\n";
+#print "Rep:", unpack("H*", $rItem->[0]), "\n";
                 if($rItem->[0] =~/([#0]*)([\.]?)([0#]*)([eE])([\+\-])([0#]+)/) {
                     substr($sFmtRes, $rItem->[1], $rItem->[2]) = 
                             MakeE($rItem->[0], $iData);
@@ -533,53 +561,63 @@ sub ExcelFmt($$;$) {
                 elsif($rItem->[0] eq '@') {
                     substr($sFmtRes, $rItem->[1], $rItem->[2]) = $iData;
                 }
+                elsif($rItem->[0] eq '*') {
+                    substr($sFmtRes, $rItem->[1], $rItem->[2]) = ''; #REMOVE
+                }
+                elsif(($rItem->[0] eq "\xA2\xA4") or ($rItem->[0] eq "\xA2\xA5") or
+                      ($rItem->[0] eq "\x81\xA2") or ($rItem->[0] eq "\x81\xA3") ){
+                    substr($sFmtRes, $rItem->[1], $rItem->[2]) = $rItem->[0];
+                            # ($iData > 0)? '': (($iData==0)? '':$rItem->[0]);
+                }
+                elsif(($rItem->[0] eq '(') or ($rItem->[0] eq ')')){
+                    substr($sFmtRes, $rItem->[1], $rItem->[2]) = $rItem->[0];
+                         # ($iData > 0)? '': (($iData==0)? '':$rItem->[0]);
+                }
                 else {
                     if($iLen>0) {
                         if($iIt <= 0) {
                             $sRep = substr($sNumRes, 0, $iLen);
+                            $iLen = 0;
                         }
                         else {
                             my $iReal = length($rItem->[0]);
-#print "PPOS:$iPPos REAL:$iReal\n";
                             if($iPPos >= 0) {
                                 my $sWkF = $rItem->[0];
                                 $sWkF=~s/^#+//;
                                 $iReal = length($sWkF);
-#print "LEN:$iLen $iReal\n";
                                 $iReal = ($iLen <=$iReal)? $iLen:$iReal;
                             }
-                else {
+                            else {
                                 $iReal = ($iLen <=$iReal)? $iLen:$iReal;
                             }
-#print "RES:$sFmtRes<< $sNumRes<< $iReal $iLen\n";
                             $sRep = substr($sNumRes, $iLen - $iReal, $iReal);
-#print "REP:$sRep\n";
                             $iLen -=$iReal;
                         }
                     }
                     else {
                             $sRep = '';
                     }
-#print "REP:$sRep ", $rItem->[1], ":" ,$rItem->[2], "\n";
-                    substr($sFmtRes, $rItem->[1], $rItem->[2]) = $sRep;
-#print "RES:$sFmtRes\n";
+                    substr($sFmtRes, $rItem->[1], $rItem->[2]) = "\x00" . $sRep;
                 }
             }
+            $sRep = ($iLen > 0)?substr($sNumRes, 0, $iLen) : '';
+            $sFmtRes =~ s/\x00/$sRep/;
+            $sFmtRes =~ s/\x00//g;
         }
     }
     else {
-    my $iAtMk = 0;
+       my $iAtMk = 0;
         for(my $iIt=$#aRep; $iIt>=0;$iIt--) {
             my $rItem = $aRep[$iIt];
             if($rItem->[0] eq '@') {
                 substr($sFmtRes, $rItem->[1], $rItem->[2]) = $iData;
-        $iAtMk++;
+                $iAtMk++;
             }
             else {
                 substr($sFmtRes, $rItem->[1], $rItem->[2]) = '';
             }
         }
-    $sFmtRes = $iData unless($iAtMk);
+        $sFmtRes = $iData unless($iAtMk);
     }
     return wantarray()? ($sFmtRes, $sColor) : $sFmtRes;
 }

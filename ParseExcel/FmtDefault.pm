@@ -129,8 +129,7 @@ sub ValFmt($$$) {
     }
     $Flg1904  = $oBook->{Flg1904};
     my $sFmtStr = $oThis->FmtString($oCell, $oBook);
-
-    return ExcelFmt($sFmtStr, $Dt, $Flg1904);
+    return ExcelFmt($sFmtStr, $Dt, $Flg1904, $oCell->{Type});
 }
 #------------------------------------------------------------------------------
 # ChkType (for Spreadsheet::ParseExcel::FmtDefault)

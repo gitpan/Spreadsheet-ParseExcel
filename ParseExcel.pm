@@ -103,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.24'; # 
+$VERSION = '0.2402'; # 
 my @aColor =
 (
     '000000',   # 0x00

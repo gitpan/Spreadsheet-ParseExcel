@@ -24,6 +24,7 @@ foreach my $oWkS (@{$oBook->{Worksheet}}) {
                         defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
             $oWkC = $oWkS->{Cells}[$iR][$iC];
             print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);
+print $oWkC->{_Kind}, "\n";
         }
     }
 }
