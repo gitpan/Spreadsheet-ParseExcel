@@ -176,7 +176,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2601'; # 
+$VERSION = '0.2602'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -1371,16 +1371,16 @@ sub _subHeader($$$$)
     my $sW;
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
-	$sW = _convBIFF8String($oBook, $sWk);
+    $sW = _convBIFF8String($oBook, $sWk);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} = 
-		($sW eq "\x00")? undef : $sW;
+        ($sW eq "\x00")? undef : $sW;
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
-	$sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
+    $sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} =
-		($sW eq "\x00\x00\x00")? undef : $sW;
+        ($sW eq "\x00\x00\x00")? undef : $sW;
     }
 }
 #------------------------------------------------------------------------------
@@ -1393,16 +1393,16 @@ sub _subFooter($$$$)
     my $sW;
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
-	$sW = _convBIFF8String($oBook, $sWk);
+    $sW = _convBIFF8String($oBook, $sWk);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
-		($sW eq "\x00")? undef : $sW;
+        ($sW eq "\x00")? undef : $sW;
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
-	$sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
+    $sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
-		($sW eq "\x00\x00\x00")? undef : $sW;
+        ($sW eq "\x00\x00\x00")? undef : $sW;
     }
 }
 #------------------------------------------------------------------------------

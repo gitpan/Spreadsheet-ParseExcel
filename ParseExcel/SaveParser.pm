@@ -12,7 +12,7 @@ require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::Workbook Exporter);
-$VERSION = '0.04'; # 
+$VERSION = '0.05'; # 
 sub new($$) {
     my($sPkg, $oBook) = @_;
     return undef unless(defined $oBook);
@@ -187,8 +187,12 @@ sub SaveAs($$){
         for(my $iC = $oWkS->{MinCol} ;
                             defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {            
             if(defined $oWkS->{ColWidth}[$iC]) {
-                $oWrS->set_column($iC, $iC, $oWkS->{ColWidth}[$iC]) ;
-                #$oWrS->set_column($iC, $iC, $oWkS->{ColWidth}[$iC] * MagicCol) ;
+                if($oWkS->{ColWidth}[$iC]>0) {
+                    $oWrS->set_column($iC, $iC, $oWkS->{ColWidth}[$iC]);#, undef, 1) ;
+                }
+                else {
+                    $oWrS->set_column($iC, $iC, 0, undef, 1) ;
+                }
             }
         }
         for(my $iR = $oWkS->{MinRow} ; 
@@ -317,7 +321,7 @@ use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::Worksheet Exporter);
 sub new($%) {
   my ($sClass, %rhIni) = @_;
-  $sClass->SUPER::new(%rhIni);	# returns object
+  $sClass->SUPER::new(%rhIni);  # returns object
 }
 #------------------------------------------------------------------------------
 # AddCell (for Spreadsheet::ParseExcel::SaveParser::Worksheet)
