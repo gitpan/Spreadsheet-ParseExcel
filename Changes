@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.2603  Mon May 30, 2004
+    - Mod SaveParser : Apply a path from Eduardo J
+                        adding Protect feature
+                        (Thank you, Eduardo J for patch)
+    - Mod ParseExcel : Apply a path from C. Jon Larsen
+                        adding GetContent
+                        (Thank you, C. Jon Larsen)
+
 0.2602  Mon Jul 15, 2002
     - Fix SaveParser : Mod hidden support(with 0 column width)
                         (Thank you, HIROSHIGE,Shigeru for report)

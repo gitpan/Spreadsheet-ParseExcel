@@ -12,7 +12,7 @@ require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::Workbook Exporter);
-$VERSION = '0.05'; # 
+$VERSION = '0.06'; # 
 sub new($$) {
     my($sPkg, $oBook) = @_;
     return undef unless(defined $oBook);
@@ -71,6 +71,8 @@ sub SaveAs($$){
 
             $oFmt->set_hidden($rFont->{Hidden});        #Add
 
+            $oFmt->set_locked($pFmt->{Lock});
+
             $oFmt->set_align($aAlH[$pFmt->{AlignH}]);
             $oFmt->set_align($aAlV[$pFmt->{AlignV}]);
             if($pFmt->{Rotate}==0) {
@@ -117,6 +119,15 @@ sub SaveAs($$){
         }
         else {
             $oWrS->set_portrait();
+        }
+        #Protect
+        if(defined $oWkS->{Protect}) { # Protect ('':NoPassword, Password:Password)
+	    if ($oWkS->{Protect} ne '') {
+		$oWrS->protect($oWkS->{Protect});
+	    }
+	    else {
+		$oWrS->protect();
+	    }
         }
         if(($oWkS->{FitWidth}==1) and ($oWkS->{FitHeight}==1)) {
             # Pages on fit with width and Heigt
@@ -329,6 +340,16 @@ sub new($%) {
 sub AddCell($$$$$;$) {
     my($oSelf, $iR, $iC, $sVal, $oCell, $sCode)=@_;
     $oSelf->{_Book}->AddCell($oSelf->{_SheetNo}, $iR, $iC, $sVal, $oCell, $sCode);
+}
+#------------------------------------------------------------------------------
+# Protect (for Spreadsheet::ParseExcel::SaveParser::Worksheet)
+#  - Password = undef   ->  No protect
+#  - Password = ''      ->  Protected. No password
+#  - Password = $pwd    ->  Protected. Password = $pwd
+#------------------------------------------------------------------------------
+sub Protect {
+    my($oSelf, $sPassword)=@_;
+    $oSelf->{Protect} = $sPassword;
 }
 
 #==============================================================================

@@ -48,3 +48,4 @@ sample/iftest.pl
 sample/iftestj.pl
 sample/dmpEx_2xml.pl
 test.pl
+META.yml                                 Module meta-data (added by MakeMaker)

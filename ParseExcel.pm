@@ -176,7 +176,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2602'; # 
+$VERSION = '0.2603'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -342,10 +342,11 @@ sub Parse($$;$) {
 
 #1.Get content
     my($sBIFF, $iLen);
+    
     if(ref($sFile) eq "SCALAR") {
 #1.1 Specified by Buffer
-        $sBIFF = $$sFile;
-        $iLen  = length($sBIFF);
+        ($sBIFF, $iLen) = $oThis->{GetContent}->($sFile);
+        return undef unless($sBIFF);	
     }
 #1.2 Specified by Other Things(HASH reference etc)
 #    elsif(ref($sFile)) {
@@ -444,7 +445,11 @@ sub Parse($$;$) {
 #------------------------------------------------------------------------------
 sub _subGetContent($)
 {
+        
     my($sFile)=@_;
+    
+    # warn qq{_subGetContent called; sFile:}, ref $sFile;
+    
     my $oOl = OLE::Storage_Lite->new($sFile);
     return (undef, undef) unless($oOl);
     my @aRes = $oOl->getPpsSearch(
@@ -2617,7 +2622,7 @@ This module is based on herbert within OLE::Storage and XLHTML.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2000-2002 Kawai Takanori
+Copyright (c) 2000-2004 Kawai Takanori
 All rights reserved.
 
 You may distribute under the terms of either the GNU General Public
