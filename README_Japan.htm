@@ -8,91 +8,11 @@ content="text/html; charset=x-euc-jp">
 
 <body bgcolor="#00FFFF">
 
-<pre>Speadsheet::ParseExcel.pm - 0.19
+<pre>Speadsheet::ParseExcel.pm - 0.20
 
                                                 by 川合孝典 (Hippo2000)
 
-履歴
-</pre>
-
-
-<pre>
-0.19  Mon Mar 26  12:00:00 2001
-    - Fix Utility.pm :Month short name
-                       (Thank you, Morten Sickel)
-    - Fix Utility.pm :Formatting Error
-                       (Thank you, yusuf_najuddin)
-    - Fix FmtJapan2.pm: CP932Excel.map readable check
-                       (Thank you, Kawasaki)    
-</pre>
-<pre>
-0.18  Sat Mar 18  16:00:00 2001
-    - Excel4 ファイルのデグレード修正
-    - subLabel (Unicode)の修正
-            (Thank you, yusuf_najmuddin) 
-</pre>
-<pre>
-0.17  2001/3/13
-    - 数値フォーマットの修正 Utility.pm
-    - FmtJapan2.pm を use FmtJapan するよう変更
-            (Thank you, Kawasaki)
-    - 数値フォーマットのさらに修正 Utility.pm
-      文字列に対して数値が適用されている場合の対応
-            (Thank you, John Dawson )
-</pre>
-<pre> 0.16  2001/3/7
-    - 書式文字列の取得の修正
-    - ワーニングを押さえました
-            (Thank you Jimmy Sieben and Daniel Berger)   
-</pre>
-<pre>  0.15  2001/3/6
-　　　　 内部処理を大幅に変更しました
-         書式設定をSpreadsheet::ParseExcel::Utilityでサポートしました。
-           ->初リリース以来の大規模な変更になっています
-</pre>
-<pre>  0.13  2001/2/21
-　　　　 PPSがBOOK(通常はBook, Workbook)のものにも対応
-                             (Thank you, Punam Chordia )
-         Makefile.PLでOLE::Storage_Liteのバージョンを定義
-                             (Thank you, Aldo Calpini)         
-         Continue でのASCII->Unicodeパターンでのバグ修正
-                             (Thank you, Tim Wills)         
-</pre>
-<pre>  0.12  2001/2/3
-　　　　 Excel4 ファイルにも対応できるようにしたつもり (Thank you, Jeff Haferman and herbert)
-　　　　 Parseの対象をスカラへのリファレンスやIO::Handleに広げたつもり (Thank you, Jeff Haferman)
-         SSTのCONTINUEでのバグフィックス(Gennadiy)
-         ExcelLocaltimeの曜日の修正</pre>
-<pre>  0.11  2001/1/26
-　　　　 コマンド0xEF(?)からEOF(0x0A)を読み飛ばすようにしました (Thank you, Phil DiFalco)</pre>
-<pre>  0.10  2001/1/15
-　　　　 式関連の関数を修正しました(_subFormula _subString) (Thank you, Ilter Cekic and Mike Edwards)</pre>
-<pre>  0.09  2000/12/15
-　　　　 FmtDefaultでの月名のリストが不完全だったのを修正しました (Thank you, Michael Edwards)</pre>
-
-<pre>　　　　 FmtJapan2を追加しました</pre>
-
-<pre>  0.08  2000/11/25
-　　　　 文字列関連のバグを修正しました(Thank you for your report Kim Namusk)</pre>
-
-<pre>　　　　 未定義の関数を使っていた箇所を修正しました(Thank you for your report Hirofumi Morisada)</pre>
-
-<pre>  0.07  2000/11/18
-　　　　　OLE::Storage_Liteを使うように変更しました。
-         文字列関連のバグを修正しました(Thank you for your report Hirofumi Morisada)</pre>
-
-<pre>  0.06 2000/10/3
-          名称の変更
- 　　　　　OLE::Storage、Startupを標準では使うように戻しました。 （マクロが入った場合などうまく動かないことがあるので）
-           Valueをメソッドに変更しました プロパティ、隠しコマンド多数 </pre>
-
-<pre>  0.02  2000/9/27
-         OLE::Storage、Startupなどのモジュールを必要としなくなりました。
-         Solarisでも動くように対応しました。（Thank you Mr.Shimamoto!)
-         CellsをWorkbookではなくWorksheetの属性に変更しました。</pre>
-
-<pre>  0.01  2000/9/21
-         最初のリリース
+更新履歴はChangesをご覧ください
 
 概要
   このモジュールは、まだαバージョンです。

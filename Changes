@@ -1,5 +1,15 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.20  Mon Mar 30  20:00:00 2001
+    - Fix ParseExcel.pm : RK int minus 
+                       (Thank you, Morten Sickel)
+    - Mod ParseExcel.pm : Fix Font number but not complete
+                       (Thank you, Vladimir Igrevsky)
+    - Fix ParseExcel.pm : _convBIFF8 non conversion (LABEL, String...)
+                       (Thank you, Fukusima, Tuneyosi)
+    - Add pod : Limitaion with Spreadsheet::WriteExcel.pm
+                       (Thank you, Venkataramana Mokkapati)
+
 0.19  Mon Mar 26  12:00:00 2001
     - Fix Utility.pm :Month short name 
                        (Thank you, Morten Sickel)

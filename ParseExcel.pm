@@ -123,7 +123,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.19'; # 
+$VERSION = '0.20'; # 
 my $oFmtClass;
 my @aColor =
 (
@@ -617,7 +617,7 @@ sub _subString($$$$)
 
     my ($iLen, $sTxt, $iCode);
     if($oBook->{BIFFVersion} == verBIFF8) {
-        my( $raBuff, $iLen) = _convBIFF8String($sWk);
+        my( $raBuff, $iLen) = _convBIFF8String($sWk, 1);
         $sTxt  = $raBuff->[0];
         $iCode = $raBuff->[1];
     }
@@ -654,7 +654,7 @@ sub _subLabel($$$$)
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         my ( $raBuff, $iLen, $iStPos, $iLenS) = 
-                _convBIFF8String(substr($sWk,6));
+                _convBIFF8String(substr($sWk,6), 1);
         $sLbl  = $raBuff->[0];
         $sCode = ($raBuff->[1])? 'ucs2': undef;
     }
@@ -978,7 +978,8 @@ sub _subXF($$$$)
    push @{$oBook->{Format}} , 
          Spreadsheet::ParseExcel::Format->new (
             FontNo   => $iFnt,
-            Font     => ($iFnt == 0)? $oBook->{Font}[0] : $oBook->{Font}[$iFnt-1],
+            Font     => $oBook->{Font}[$iFnt], 
+    #($iFnt == 0)? $oBook->{Font}[0] : $oBook->{Font}[$iFnt-1],
             FmtIdx   => $iIdx,
             Gen      => $iGen,
             Align    => $iAlign,
@@ -1174,12 +1175,16 @@ sub _UnpackRKRec($) {
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk)/ 100);
     }
     elsif($iPtn == 2) {
-        my $sWkLB = pack("B32", "00" . substr(unpack("B32", $sWk), 0, 30));
+    my $sUB = unpack("B32", $sWk);
+        my $sWkLB = pack("B32", (substr($sUB, 0, 1) x 2) .
+                                substr($sUB, 0, 30));
         my $sWkL  = ($BIGENDIAN)? $sWkLB: pack("c4", reverse(unpack("c4", $sWkLB)));
         return ($iF, unpack("i", $sWkL));
     }
     else {
-        my $sWkLB = pack("B32", "00" . substr(unpack("B32", $sWk), 0, 30));
+    my $sUB = unpack("B32", $sWk);
+        my $sWkLB = pack("B32", (substr($sUB, 0, 1) x 2) .
+                                substr($sUB, 0, 30));
         my $sWkL  = ($BIGENDIAN)? $sWkLB: pack("c4", reverse(unpack("c4", $sWkLB)));
         return ($iF, unpack("i", $sWkL) / 100);
     }
@@ -1540,6 +1545,16 @@ Workbook object
 =back
 
 =back
+
+=head1 KNOWN PROBLEM
+
+This module can not get the values of fomulas in 
+Excel files made with Spreadsheet::WriteExcel.
+Normaly (ie. By Excel application), formula has the result with it.
+But Spreadsheet::WriteExcel writes formula with no result.
+If you set your Excel application "Auto Calculation" off.
+(maybe [Tool]-[Option]-[Calculation] or something)
+You will see the same result.
 
 =head1 AUTHOR
 
