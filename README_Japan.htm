@@ -3,21 +3,28 @@
 <head>
 <meta http-equiv="Content-Type"
 content="text/html; charset=x-euc-jp">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
 <title></title>
 </head>
 
 <body bgcolor="#00FFFF">
 
-<pre>Speadsheet::ParseExcel.pm - 0.08   
+<pre>Speadsheet::ParseExcel.pm - 0.09   
 
                                                 by 川合孝典 (Hippo2000)
 
-  まだまだの状態のままですが、リリースしちゃってます。
-
 履歴
+</pre>
+
+<pre>  0.09  2000/12/15
+　　　　 FmtDefaultでの月名のリストが不完全だったのを修正しました (Thank you, Michael Edwards)</pre>
+
+<pre>　　　　 FmtJapan2を追加しました</pre>
+
 <pre>  0.08  2000/11/25
 　　　　 文字列関連のバグを修正しました(Thank you for your report Kim Namusk)</pre>
-　　　　 未定義の関数を使っていた箇所を修正しました(Thank you for your report Hirofumi Morisada)</pre>
+
+<pre>　　　　 未定義の関数を使っていた箇所を修正しました(Thank you for your report Hirofumi Morisada)</pre>
 
 <pre>  0.07  2000/11/18
 　　　　　OLE::Storage_Liteを使うように変更しました。
@@ -77,15 +84,30 @@ content="text/html; charset=x-euc-jp">
 インストール
   今回のバージョンからは、OLE::Storage_Liteを利用します。（他の方法はなくしました）
 　Spreadsheet::ParseExcel::FmtJapanを使用する場合、Jcode.pmを必要とします。（他のモジュールを必要としません。）
-</pre>
-
-<pre>　Perlの標準的なインストールになりました。このモジュール自体はPerlのみで作成されているので、コピーするだけでも動きます。</pre>
+　Spreadsheet::ParseExcel::FmtJapan2を使用する場合、Jcode.pm、Unicode::Mapを必要とします。
+　Perlの標準的なインストールになりました。このモジュール自体はPerlのみで作成されているので、コピーするだけでも動きます。</pre>
 
 <pre>  perl Makefile.PL
   make
   make test
   make install (rootになって）
 </pre>
+
+<pre>FmtJapan2のために</pre>
+
+<pre> 機種依存文字に対応するためのFmtJapan2を0.09から同梱します。
+ 利用するためにはUnicode::Mapをインストールするほか、以下の手順が必要になります：</pre>
+
+<pre>  (1) 同梱される&quot;CP932Excel.map&quot;を適切なディレクトリにコピーします。</pre>
+
+<pre>  (2) &quot;CP932Excel&quot;をマップ名として追加するために、Unicode::Map階層にあるREGISTRYに以下の行を追加します。
+      （mapのディレクトリ名は適切なディレクトリ名にしてください）</pre>
+
+<pre>name:    CP932Excel
+srcURL:  $SrcUnicode/VENDORS/MICSFT/WINDOWS/CP932.TXT
+src:     $DestUnicode/VENDORS/MICSFT/WINDOWS/CP932.TXT
+map:     (コピー先のディレクトリ)/CP932Excel.map
+# Don't remove this line</pre>
 
 <pre>使い方
   use strict;
@@ -123,18 +145,19 @@ content="text/html; charset=x-euc-jp">
 
 問題点・バグ</pre>
 
-  最大の問題点であった「Exce97 デベロッパーズ キット」が手に入りました。
+<pre>最大の問題点であった「Exce97 デベロッパーズ キット」が手に入りました。
   ただただHirofumi Morisadaさんに感謝、感謝です。
+</pre>
 
-<pre>  Excel97/2000で保存した場合、機種依存文字（(株)やローマ数字のIなど）が〓になってしまいます。
-  ＃マッピングを考えないとまずいです。（今後対応予定）</pre>
+<pre>  Excel97/2000で保存した場合、FmtJapanでは機種依存文字（(株)やローマ数字のIなど）が〓になってしまいます。
+  FmtJapan2では一応対応しているつもりです。</pre>
 
 <pre>  まだテストもちゃんとできていません。とりあえずは動くでしょう。 &lt;(__)&gt;
   TurboLinux Version 6で作成しているので、他の環境でどうなるのかとても気に
   なります。
   Solarisでは動作確認をしてもらいました。（まだ不具合がありそうですが）
 
-  コメント、バグレポートをお待ちしています 川合孝典：GCD00051@nifty.ne.jp
+  コメント、バグレポートをお待ちしています 川合孝典：kwitknr@cpn.org
 
 やらなきゃいけないこと：
   テスト！
@@ -157,9 +180,6 @@ content="text/html; charset=x-euc-jp">
    Hirofumi Morisadaさんからの情報で文字列のバグを発見、修正することができました。
    そして「Excel97デベロッパーズキット」をどうもありがとうございました。
 
-  その他、たくさんの方からの動作報告やバグレポートをいただき感謝、感謝です。<(__)>
-</pre>
-
-<p>　</p>
+  その他、たくさんの方からの動作報告やバグレポートをいただき感謝、感謝です。</pre>
 </body>
 </html>

@@ -11,3 +11,8 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 0.08  Sat Nov 25 12:00:00 2000
     - Fix RString, PackedString BUGS (Thank you, Kim Namsuk)
     - Fix undefined function _subDefColW (Thank you, Hirofumi Morisada)
+
+0.09  Sat Dec 15 12:00:00 2000
+    - Fix Month name of FmtDefault.pm  (Thank you, Michael Edwards)
+    - Add FmtJapan2.pm
+    - Fix Slightly Bug

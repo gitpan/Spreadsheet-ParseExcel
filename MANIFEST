@@ -1,9 +1,11 @@
+CP932Excel.map
 Changes
 MANIFEST
 Makefile.PL
 ParseExcel.pm
 ParseExcel/FmtDefault.pm
 ParseExcel/FmtJapan.pm
+ParseExcel/FmtJapan2.pm
 README
 README_Japan.htm
 sample/Excel/AuthorK.xls
@@ -14,11 +16,14 @@ sample/Excel/Test95.xls
 sample/Excel/Test95J.xls
 sample/Excel/Test97.xls
 sample/Excel/Test97J.xls
+sample/Excel/oem.xls
 sample/README
 sample/dmpEx.pl
 sample/dmpExj.pl
+sample/res_oem
 sample/res_sample
 sample/res_samplej
 sample/sample.pl
+sample/sampleOEM.pl
 sample/sample_j.pl
 test.pl

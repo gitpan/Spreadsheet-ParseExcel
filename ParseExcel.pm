@@ -117,7 +117,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.08'; # 
+$VERSION = '0.09'; # 
 
 my $oFmtClass;
 my @aColor =
@@ -1092,12 +1092,29 @@ sub _subStrWk($$;$)
 #print " DUMP:", unpack("H10", $sWk), "\n";
     if(defined($fCnt)) {
 		if(defined($oBook->{_PrevCond}) && ($oBook->{_PrevCond} & 0x01)) {
- 		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) != 0))? 
-								substr($sWk, 1): $sWk;
+#print "DEFINED:", $#{$oBook->{PkgStr}}, "\n";
+#print " SWK:", unpack("H10", $sWk), "\n";
+#print " STR:", unpack("H40", $oBook->{StrBuff}), "\n";
+		  
+# 		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) != 0))? 
+#								substr($sWk, 1): $sWk;
+    if(($oBook->{StrBuff} ne '') && (ord($sWk) != 0)) {
+	$oBook->{StrBuff} .= substr($sWk, 1);
+    }
+    elsif(ord($sWk) == 0) {
+    	$oBook->{StrBuff} .= substr($sWk, 1, 1) . "\x00" . substr($sWk, 2);
+        #Swapping First Number
+    }
+    else {
+        $oBook->{StrBuff} .= $sWk;
+    }
+
+
 		}
 		else {
  		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) == 0))? 
 								substr($sWk, 1): $sWk;
+#print "NOT DEFINED:", $#{$oBook->{PkgStr}}, "\n";
 		}
     }
     else {
@@ -1153,6 +1170,7 @@ sub _subStrWk($$;$)
 sub _SwapForUnicode(\$) 
 {
     my($sObj) = @_;
+
     for(my $i = 0; $i<length($$sObj); $i+=2){
             my $sIt = substr($$sObj, $i, 1);
             substr($$sObj, $i, 1) = substr($$sObj, $i+1, 1);
@@ -1273,7 +1291,7 @@ Spreadsheet::ParseExcel - Get information from Excel file
             for(my $iC = $oWkS->{MinCol} ;
                             defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
                 $oWkC = $oWkS->{Cells}[$iR][$iC];
-                print "( $iR , $iC ) =>", $oWkC->Value, "\n";
+                print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);
             }
         }
     }
@@ -1494,7 +1512,7 @@ Workbook object
 
 =head1 AUTHOR
 
-Kawai Takanori (Hippo2000) GCD00051@nifty.ne.jp
+Kawai Takanori (Hippo2000) kwitknr@cpan.org
 
     http://member.nifty.ne.jp/hippo2000/ (Sorry Only in Japanese)
 

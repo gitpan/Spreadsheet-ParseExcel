@@ -1,26 +1,42 @@
-package Spreadsheet::ParseExcel::FmtDefault;
+package Spreadsheet::ParseExcel::FmtJapan2;
 #===================================
-# Spreadsheet::ParseExcel::FmtDefault
-#  by Kawai, Takanori (Hippo2000) 2000.9.20
+# Spreadsheet::ParseExcel::FmtJapan2
+#  by Kawai, Takanori (Hippo2000) 2000.12.14
 # This Program is ALPHA version.
 #===================================
 require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.02'; # 
+$VERSION = '0.01'; # 
+use Jcode;
+use Unicode::Map;
 
-sub new($;%) {
+sub new($%) {
     my($sPkg, %hKey) = @_;
+    my $oMap = Unicode::Map->new('CP932Excel');
     my $oThis={ 
+        Code => $hKey{Code},
+        _UniMap => $oMap,
     };
     bless $oThis;
     return $oThis;
 }
 
 sub TextFmt($$;$) {
-    my($oThis, $sTxt) =@_;
-    return $sTxt;
+    my($oThis, $sTxt, $sCode) =@_;
+    $sCode = 'sjis' if(defined($sCode) && ($sCode eq '_native_'));
+
+    if($oThis->{Code}) {
+	if($sCode eq 'ucs2') {
+	    $sCode = 'sjis';
+            $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
+        }
+        return Jcode::convert($sTxt, $oThis->{Code}, $sCode);
+    }
+    else {
+        return $sTxt;
+    }
 }
 
 sub ValFmt($$$) {
@@ -73,84 +89,33 @@ sub ValFmt($$$) {
     elsif($oCell->{Type} eq 'Date') {
         my($iSec, $iMin, $iHour, $iDay, $iMon, $iYear, $iwDay, $iMSec) = 
             Spreadsheet::ParseExcel::ExcelLocaltime($Dt, $Flg1904);
-
         $iMon++;
         $iYear+=1900;
 
-        if($iFmtIdx == 0x0E) { # Date: m-d-y
-            return sprintf("%d-%d-%02d", $iMon, $iDay, $iYear);
+        if(($iFmtIdx == 0x0E)||  # Date: m-d-y
+          ($iFmtIdx == 0x0F) ||  # Date: d-mmm-yy
+          ($iFmtIdx == 0x10) ||  # Date: d-mmm
+          ($iFmtIdx == 0x11)     # Date: mmm-yy
+        ){
+            return sprintf("%4d/%2d/%2d", $iYear, $iMon, $iDay);
         }
-        elsif($iFmtIdx == 0x0F) { # Date: d-mmm-yy
-            return sprintf("%d-%s-%02d", $iDay, 
-                ('', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')[$iMon],
-                $iYear);
+        elsif(
+          ($iFmtIdx == 0x12) ||  # Time: h:mm AM/PM
+          ($iFmtIdx == 0x13) ||  # Time: h:mm:ss AM/PM
+          ($iFmtIdx == 0x14) ||  # Time: h:mm
+          ($iFmtIdx == 0x15) ||  # Time: h:mm:ss
+          ($iFmtIdx == 0x2D) ||  # Time: mm:ss
+          ($iFmtIdx == 0x2E) ||  # Time: [h]:mm:ss
+          ($iFmtIdx == 0x2F)     # Time: mm:ss.0
+          ) {
+            return sprintf("%2d:%02d:%02d", $iHour, $iMin, $iSec);
         }
-        elsif($iFmtIdx == 0x10) { # Date: d-mmm
-            return sprintf("%d-%s", $iDay, 
-                ('', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')[$iMon]);
-        }
-        elsif($iFmtIdx == 0x11) { # Date: mmm-yy
-            return sprintf("%s-%02d", 
-                ('', 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')[$iMon],
-                $iYear);
-        }
-        elsif($iFmtIdx == 0x12) { # Time: h:mm AM/PM
-            if($iHour == 0) {
-                return sprintf("12:%02d AM", $iMin);
-            }
-            elsif($iHour < 12) {
-                return sprintf("%d:%02d AM", $iHour, $iMin);
-            }
-            elsif($iHour == 12) {
-                return sprintf("12:%02d PM", $iMin);
-            }
-            else {
-                return sprintf("%d:%02d PM", $iHour-12, $iMin);
-            }
-        }
-        elsif($iFmtIdx == 0x13) { # Time: h:mm:ss AM/PM
-            if($iHour == 0) {
-                return sprintf("12:%02d:%02d AM", $iMin, $iSec);
-            }
-            elsif($iHour < 12) {
-                return sprintf("%d:%02d:%02d AM", $iHour, $iMin,  $iSec);
-            }
-            elsif($iHour == 12) {
-                return sprintf("12:%02d:%02d PM", $iMin,  $iSec);
-            }
-            else {
-                return sprintf("%d:%02d:%02d PM", $iHour-12, $iMin,  $iSec);
-            }
-        }
-        elsif($iFmtIdx == 0x14) { # Time: h:mm
-            return sprintf("%d:%02d", $iHour, $iMin);
-        }
-        elsif($iFmtIdx == 0x15) { # Time: h:mm:ss
-            return sprintf("%d:%02d:%02d", $iHour, $iMin, $iSec);
-        }
-        elsif($iFmtIdx == 0x2D) { # Time: mm:ss
-            return sprintf("%02d:%02d", $iMin, $iSec);
-        }
-        elsif($iFmtIdx == 0x2E) { # Time: [h]:mm:ss
-            if($iHour) {
-                return sprintf("%d:%02d:%02d", $iHour, $iMin, $iSec);
-            }
-            else {
-                return sprintf("%02d:%02d", $iMin, $iSec);
-            }
-        }
-        elsif($iFmtIdx == 0x2F) { # Time: mm:ss.0
-            return sprintf("%d:%02d.%01d", $iHour, $iMin, $iMSec);
-        }
-        elsif($iFmtIdx == 0x31) { # Text - if we are here...its a number
-            return sprintf "%g", $Dt;
-        }
-        else { #// Unsupported...but, if we are here, its a number
-            return sprintf "%g", $Dt;
+        else {
+            return sprintf("%2d:%02d:%02d", $iHour, $iMin, $iSec);
         }
     }
     else {
-        return $oThis->TextFmt($oCell->{Val}, $oThis->{Code}, $oCell->{Code});
+        return $oThis->TextFmt($oCell->{Val}, $oCell->{Code});
     }
 }
 sub ChkType($$$) {

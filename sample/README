@@ -9,3 +9,5 @@ dmpEx.pl    : print out content of Excel file
 dmpExj.pl   : print out content of Excel file
 		(using SpreadSheet::ParseExcel::FmtJapan)
 
+sampleOEM.pl: Displys difference between FmtJapan and FmtJapan2
+res_oem     : result of samplOEM.pl
