@@ -1,28 +1,41 @@
-package Spreadsheet::ParseExcel::FmtDefault;
+package Spreadsheet::ParseExcel::FmtUnicode;
 #===================================
-# Spreadsheet::ParseExcel::FmtDefault
-#  by Kawai, Takanori (Hippo2000) 2000.9.20
+# Spreadsheet::ParseExcel::FmtUnicode
+# FmtDefault + Unicode support
+#  by Kawai, Takanori (Hippo2000) 2000.12.20
 # This Program is ALPHA version.
 #===================================
 require Exporter;
 use strict;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.02'; # 
+$VERSION = '0.01'; # 
+use Unicode::Map;
 
-sub new($;%) {
+sub new($%) {
     my($sPkg, %hKey) = @_;
+    my $sMap = $hKey{Unicode_Map};
+    my $oMap;
+    $oMap = Unicode::Map->new($sMap) if $sMap;
     my $oThis={ 
+        Unicode_Map => $sMap,
+        _UniMap => $oMap,
     };
     bless $oThis;
     return $oThis;
 }
 
 sub TextFmt($$;$) {
-    my($oThis, $sTxt) =@_;
-    return $sTxt;
+    my($oThis, $sTxt, $sCode) =@_;
+    if($oThis->{_UniMap}) {
+        $sTxt = $oThis->{_UniMap}->from_unicode($sTxt)
+		 if($sCode eq 'ucs2');
+        return $sTxt;
+    }
+    else {
+        return $sTxt;
+    }
 }
-
 sub ValFmt($$$) {
     my($oThis, $oCell, $oBook) =@_;
 

@@ -45,7 +45,7 @@ map:     (which you copied directry)/CP932Excel.map
 
 
 VERSION
-    This document refers to version 0.09 of Spreadsheet::ParseExcel,
+    This document refers to version 0.10 of Spreadsheet::ParseExcel,
     released Dec 15, 2000.
 
 AUTHOR

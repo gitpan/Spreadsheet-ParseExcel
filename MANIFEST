@@ -6,6 +6,7 @@ ParseExcel.pm
 ParseExcel/FmtDefault.pm
 ParseExcel/FmtJapan.pm
 ParseExcel/FmtJapan2.pm
+ParseExcel/FmtUnicode.pm
 README
 README_Japan.htm
 sample/Excel/AuthorK.xls

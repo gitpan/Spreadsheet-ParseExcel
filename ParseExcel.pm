@@ -354,7 +354,7 @@ sub Parse($$;$) {
         if(defined $oThis->{FuncTbl}->{$bOp}) {
             $oThis->{FuncTbl}->{$bOp}->($oBook, $bOp, $bVer, $bLen, $sWk);
         }
-		$PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
+        $PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
 
         $sWk = substr($sBiff, $lPos, 4) if(($lPos+4) <= $iLen);
         $lPos += 4;
@@ -370,9 +370,9 @@ sub _subGetContent($)
     my($sFile)=@_;
     my $oOl = OLE::Storage_Lite->new($sFile);
     return (undef, undef) unless($oOl);
-	my @aRes = $oOl->getPpsSearch(
-			[OLE::Storage_Lite::Asc2Ucs('Book'), 
-			 OLE::Storage_Lite::Asc2Ucs('Workbook')], 1);
+    my @aRes = $oOl->getPpsSearch(
+            [OLE::Storage_Lite::Asc2Ucs('Book'), 
+             OLE::Storage_Lite::Asc2Ucs('Workbook')], 1);
     return (undef, undef) if($#aRes < 0);
     return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
 }
@@ -387,12 +387,12 @@ sub _subBOF($$$$$)
         $oBook->{_CurSheet}++; 
     }
     else {
-	    if($bVer ==8) {
-	        $oBook->{Version} = unpack("v", $sWk);
-	    }
-	    else {
-	        $oBook->{Version} = $bVer;
-	    }
+        if($bVer ==8) {
+            $oBook->{Version} = unpack("v", $sWk);
+        }
+        else {
+            $oBook->{Version} = $bVer;
+        }
         $oBook->{_CurSheet} = -1;
     }
 }
@@ -590,9 +590,17 @@ sub _subFormula($$$$$)
             $sTxt = DecodeBoolErr($iVal, 1);
         }
         else {
-            #Not Implemented
-			push @{$oBook->{_PrevPos}}, [$iR, $iC, $iF];
-	    	return;
+            $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
+                _NewCell (
+                    Kind    => 'Formula String',
+                    Val     => '',
+                    Format  => $oBook->{Format}[$iF],
+                    Numeric => 0,
+                    Code    => undef,
+                    Book    => $oBook,
+                );
+            $oBook->{_PrevPos} = [$iR, $iC, $iF];
+            return;
             #$sTxt = substr($sWk, 8);
             #$sTxt = "NOT IMPLEMENT:$iKind:" . unpack("H34",substr($sWk, 13));
         }
@@ -629,19 +637,21 @@ sub _subFormula($$$$$)
 sub _subString($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
-    my $iPos = shift @{$oBook->{_PrevPos}};
+    my $iPos = $oBook->{_PrevPos};
+    return undef unless($iPos);
+    $oBook->{_PrevPos} = undef;
     my ($iR, $iC, $iF) = @$iPos;
-    my ($iLen, $sTxt, $iCode);
 
+    my ($iLen, $sTxt, $iCode);
     if($oBook->{Version} == verExcel95) {
-		$iCode = 0;
+        $iCode = 0;
         $iLen = unpack("v", $sWk);
         $sTxt = substr($sWk, 2, $iLen);
     }
     elsif($oBook->{Version} == verExcel97) {
         ($iLen, $iCode) = unpack("vc", $sWk);
-		if($iCode) {
-	        $iLen *= 2 if($iCode);
+        if($iCode) {
+            $iLen *= 2 if($iCode);
             $sTxt = substr($sWk, 3, $iLen);
             _SwapForUnicode(\$sTxt);
         }
@@ -650,7 +660,7 @@ sub _subString($$$$$)
         }
     }
     else {
-		$iCode = 0;
+        $iCode = 0;
         $iLen = unpack("c", $sWk);
         $sTxt = substr($sWk, 1, $iLen);
     }
@@ -1091,18 +1101,18 @@ sub _subStrWk($$;$)
 #print "NEW LEN:", length($oBook->{StrBuff}), "  CONT:", defined($fCnt), "\n";
 #print " DUMP:", unpack("H10", $sWk), "\n";
     if(defined($fCnt)) {
-		if(defined($oBook->{_PrevCond}) && ($oBook->{_PrevCond} & 0x01)) {
+        if(defined($oBook->{_PrevCond}) && ($oBook->{_PrevCond} & 0x01)) {
 #print "DEFINED:", $#{$oBook->{PkgStr}}, "\n";
 #print " SWK:", unpack("H10", $sWk), "\n";
 #print " STR:", unpack("H40", $oBook->{StrBuff}), "\n";
-		  
-# 		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) != 0))? 
-#								substr($sWk, 1): $sWk;
+          
+#           $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) != 0))? 
+#                               substr($sWk, 1): $sWk;
     if(($oBook->{StrBuff} ne '') && (ord($sWk) != 0)) {
-	$oBook->{StrBuff} .= substr($sWk, 1);
+    $oBook->{StrBuff} .= substr($sWk, 1);
     }
     elsif(ord($sWk) == 0) {
-    	$oBook->{StrBuff} .= substr($sWk, 1, 1) . "\x00" . substr($sWk, 2);
+        $oBook->{StrBuff} .= substr($sWk, 1, 1) . "\x00" . substr($sWk, 2);
         #Swapping First Number
     }
     else {
@@ -1110,28 +1120,28 @@ sub _subStrWk($$;$)
     }
 
 
-		}
-		else {
- 		    $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) == 0))? 
-								substr($sWk, 1): $sWk;
+        }
+        else {
+            $oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && (ord($sWk) == 0))? 
+                                substr($sWk, 1): $sWk;
 #print "NOT DEFINED:", $#{$oBook->{PkgStr}}, "\n";
-		}
+        }
     }
     else {
         $oBook->{StrBuff} .= $sWk;
     }
-	$oBook->{_PrevCond} = undef;
+    $oBook->{_PrevCond} = undef;
     my($iLen, $iLenS);
     my($iCrun, $iExrst);
     my($iStP);
 
     while(length($oBook->{StrBuff}) >= 4) {
-        my($iChrs, $iGr) = unpack("v2", $oBook->{StrBuff});
+        my($iChrs, $iGr) = unpack("vc", $oBook->{StrBuff});
         $iLenS = $iChrs;
         $iLenS *= 2 if($iGr & 0x01);
         $iLen = $iLenS;
         $iStP = 3;
-        if(($iGr & 0x0C) == 0x0C) {	#FarEast + RichText
+        if(($iGr & 0x0C) == 0x0C) { #FarEast + RichText
             ($iCrun, $iExrst) = unpack("vV", substr($oBook->{StrBuff}, 3, 6));
             $iLen += $iCrun * 4 + $iExrst;
             $iStP = 9;
@@ -1149,7 +1159,7 @@ sub _subStrWk($$;$)
         if(length($oBook->{StrBuff}) >= $iLen + $iStP) {
             my $sTxt = substr($oBook->{StrBuff}, $iStP, $iLenS);
             if($iGr & 0x01) {
-				_SwapForUnicode(\$sTxt);
+                _SwapForUnicode(\$sTxt);
             }
 #print "ADD ARRY:", $#{$oBook->{PkgStr}}, " LEN:", length($sTxt), " ST:", $iStP, "\n";
             push @{$oBook->{PkgStr}}, {
@@ -1159,7 +1169,7 @@ sub _subStrWk($$;$)
             $oBook->{StrBuff} = substr($oBook->{StrBuff}, $iStP+$iLen);
         }
         else {
-			$oBook->{_PrevCond} = $iGr;
+            $oBook->{_PrevCond} = $iGr;
             last;
         }
     }
