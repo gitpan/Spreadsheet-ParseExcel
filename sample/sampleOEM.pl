@@ -2,6 +2,8 @@ use strict;
 use Spreadsheet::ParseExcel;
 use Spreadsheet::ParseExcel::FmtJapan;
 use Spreadsheet::ParseExcel::FmtJapan2;
+sub PrnAll($);
+
 my $oExcel = new Spreadsheet::ParseExcel;
 my $oFmtJ = Spreadsheet::ParseExcel::FmtJapan->new(Code => 'euc');
 my $oFmtJ2 = Spreadsheet::ParseExcel::FmtJapan2->new(Code => 'euc');

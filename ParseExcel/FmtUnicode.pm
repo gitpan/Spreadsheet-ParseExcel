@@ -9,10 +9,10 @@ use strict;
 use Spreadsheet::ParseExcel::FmtDefault;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtDefault Exporter);
-$VERSION = '0.03'; # 
+$VERSION = '0.04'; # 
 use Unicode::Map;
 #------------------------------------------------------------------------------
-# new (for Spreadsheet::ParseExcel::FmtJapan2)
+# new (for Spreadsheet::ParseExcel::FmtUnicode)
 #------------------------------------------------------------------------------
 sub new($%) {
     my($sPkg, %hKey) = @_;
@@ -27,13 +27,20 @@ sub new($%) {
     return $oThis;
 }
 #------------------------------------------------------------------------------
-# TextFmt (for Spreadsheet::ParseExcel::FmtJapan2)
+# TextFmt (for Spreadsheet::ParseExcel::FmtUnicode)
 #------------------------------------------------------------------------------
 sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
     if($oThis->{_UniMap}) {
-        $sTxt = $oThis->{_UniMap}->from_unicode($sTxt)
-         if(defined($sCode) && $sCode eq 'ucs2');
+        if(! defined($sCode)) {
+            $sTxt =~ s/(.)/\x00$1/g;
+            $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
+        }
+        elsif($sCode eq 'ucs2') {
+            $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
+        }
+#        $sTxt = $oThis->{_UniMap}->from_unicode($sTxt)
+#                     if(defined($sCode) && $sCode eq 'ucs2');
         return $sTxt;
     }
     else {

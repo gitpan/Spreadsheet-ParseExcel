@@ -10,7 +10,7 @@ use Unicode::Map;
 use Spreadsheet::ParseExcel::FmtJapan;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtJapan Exporter);
-$VERSION = '0.03'; # 
+$VERSION = '0.04'; # 
 
 #------------------------------------------------------------------------------
 # new (for Spreadsheet::ParseExcel::FmtJapan2)
@@ -34,15 +34,16 @@ sub new($%) {
 #------------------------------------------------------------------------------
 sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
-#    $sCode = 'sjis' if(defined($sCode) && ($sCode eq '_native_'));
-    $sCode = 'sjis' if((! defined($sCode)) || ($sCode eq '_native_'));
-
+#    $sCode = 'sjis' if((! defined($sCode)) || ($sCode eq '_native_'));
     if($oThis->{Code}) {
-    if($sCode eq 'ucs2') {
-        $sCode = 'sjis';
+        if(! defined($sCode)) {
+            $sTxt =~ s/(.)/\x00$1/g;
             $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
         }
-        return Jcode::convert($sTxt, $oThis->{Code}, $sCode);
+        elsif($sCode eq 'ucs2') {
+            $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
+        }
+        return Jcode::convert($sTxt, $oThis->{Code}, 'sjis');
     }
     else {
         return $sTxt;

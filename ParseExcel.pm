@@ -102,7 +102,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.22.3'; # 
+$VERSION = '0.23'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -528,7 +528,7 @@ sub _subRString($$$$)
             FormatNo=> $iF,
             Format  => $oBook->{Format}[$iF],
             Numeric => 0,
-            Code    => undef,
+            Code    => '_native_', #undef,
             Book    => $oBook,
             Rich    => substr($sWk, (8+$iL)+1),
         );
@@ -541,7 +541,7 @@ sub _subRString($$$$)
             FormatNo=> $iF,
             Format  => $oBook->{Format}[$iF],
             Numeric => 0,
-            Code    => undef,
+            Code    => '_native_',
             Book    => $oBook,
         );
     }
@@ -628,19 +628,7 @@ sub _subFormula($$$$)
                     Book    => $oBook,
                 );
         }
-        else { # Result
-=cmmt
-            _NewCell (
-                    $oBook, $iR, $iC,
-                    Kind    => 'Formula String',
-                    Val     => '',
-                    FormatNo=> $iF,
-                    Format  => $oBook->{Format}[$iF],
-                    Numeric => 0,
-                    Code    => undef,
-                    Book    => $oBook,
-                );
-=cut
+        else { # Result (Reserve Only)
             $oBook->{_PrevPos} = [$iR, $iC, $iF];
         }
     }
@@ -673,19 +661,19 @@ sub _subString($$$$)
     $oBook->{_PrevPos} = undef;
     my ($iR, $iC, $iF) = @$iPos;
 
-    my ($iLen, $sTxt, $iCode);
+    my ($iLen, $sTxt, $sCode);
     if($oBook->{BIFFVersion} == verBIFF8) {
         my( $raBuff, $iLen) = _convBIFF8String($oBook, $sWk, 1);
         $sTxt  = $raBuff->[0];
-        $iCode = $raBuff->[1];
+        $sCode = ($raBuff->[1])? 'ucs2': undef;
     }
     elsif($oBook->{BIFFVersion} == verBIFF5) {
-        $iCode = 0;
+        $sCode = '_native_';
         $iLen = unpack("v", $sWk);
         $sTxt = substr($sWk, 2, $iLen);
     }
     else {
-        $iCode = 0;
+        $sCode = '_native_';
         $iLen = unpack("c", $sWk);
         $sTxt = substr($sWk, 1, $iLen);
     }
@@ -696,7 +684,7 @@ sub _subString($$$$)
             FormatNo=> $iF,
             Format  => $oBook->{Format}[$iF],
             Numeric => 0,
-            Code    => ($iCode)? 'ucs2': '_native_',
+            Code    => $sCode,
             Book    => $oBook,
         );
 #2.MaxRow, MaxCol, MinRow, MinCol
@@ -830,7 +818,7 @@ sub _subRow($$$$)
     return undef unless(defined $oBook->{_CurSheet});
 
 #0. Get Worksheet info (MaxRow, MaxCol, MinRow, MinCol)
-    my($iR, $iSc, $iEc, $iHght, undef, undef, $iGr, $iXf) = unpack("v8", $sWk);
+    my($iR, $iSc, $iEc, $iHght, $undef1, $undef2, $iGr, $iXf) = unpack("v8", $sWk);
     $iEc--;
 
 #1. RowHeight
@@ -1004,6 +992,7 @@ sub _convBIFF8String($$;$){
     }
     else {              #Not Compressed
         $sStr = substr($sWk, $iStPos, $iLen);
+        $sStr = $oBook->{FmtClass}->TextFmt($sStr, undef) unless($iCnvFlg);
     }
 
 #4. return 

@@ -10,7 +10,7 @@ use Jcode;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtDefault Exporter);
 
-$VERSION = '0.03'; # 
+$VERSION = '0.04'; # 
 my %hFmtJapan = (
     0x00 => '@',
     0x01 => '0',
@@ -88,8 +88,14 @@ sub new($%) {
 sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
 
-    $sCode = 'sjis' if((! defined($sCode)) || ($sCode eq '_native_'));
     if($oThis->{Code}) {
+        if(! defined($sCode)) {
+            $sTxt =~ s/(.)/\x00$1/g;
+            $sCode = 'ucs2';
+        }
+        elsif($sCode eq '_native_') {
+            $sCode = 'sjis';
+        }
         return Jcode::convert($sTxt, $oThis->{Code}, $sCode);
     }
     else {
