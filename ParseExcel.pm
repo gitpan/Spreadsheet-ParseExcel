@@ -123,7 +123,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.17'; # 
+$VERSION = '0.18'; # 
 my $oFmtClass;
 my @aColor =
 (
@@ -386,13 +386,20 @@ sub _subBOF($$$$)
             ($oBook->{BIFFVersion} == verBIFF3) ||
             ($oBook->{BIFFVersion} == verBIFF4)) {
             $oBook->{Version} = $oBook->{BIFFVersion};
+            $oBook->{_CurSheet} = 0;
+            $oBook->{Worksheet}[$oBook->{SheetCount}] =
+                    new Spreadsheet::ParseExcel::Worksheet(
+                         _Name => '',
+                          Name => '',
+            );
+            $oBook->{SheetCount}++;
         }
         else {
             $oBook->{Version} = unpack("v", $sWk);
             $oBook->{BIFFVersion} = 
                 ($oBook->{Version}==verExcel95)? verBIFF5:verBIFF8;
+            $oBook->{_CurSheet} = -1;
         }
-        $oBook->{_CurSheet} = -1;
     }
 }
 #------------------------------------------------------------------------------
@@ -643,13 +650,26 @@ sub _subLabel($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     my($iR, $iC, $iF) = unpack("v3", $sWk);
+    my ($sLbl, $sCode);
+    #BIFF8
+    if($oBook->{BIFFVersion} >= verBIFF8) {
+        my ( $raBuff, $iLen, $iStPos, $iLenS) = 
+                _convBIFF8String(substr($sWk,6));
+        $sLbl  = $raBuff->[0];
+        $sCode = ($raBuff->[1])? 'ucs2': undef;
+    }
+    #Before BIFF8
+    else {
+        $sLbl  = substr($sWk,8);
+        $sCode = '_native_';
+    }
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
         _NewCell ( 
             Kind    => 'Label',
-            Val     => substr($sWk, 8),
+            Val     => $sLbl,
             Format  => $oBook->{Format}[$iF],
             Numeric => 0,
-            Code    => '_native_',
+            Code    => $sCode,
             Book    => $oBook,
         );
 #2.MaxRow, MaxCol, MinRow, MinCol
