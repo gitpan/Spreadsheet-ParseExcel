@@ -103,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2403'; # 
+$VERSION = '0.2404'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -276,8 +276,21 @@ sub Parse($$;$) {
 #    elsif(ref($sFile)) {
 #        return undef;
 #    }
+#1.2 Specified by GLOB reference
+     elsif(ref($sFile) =~ /GLOB/) {
+        $sBIFF = <$sFile>;
+        $iLen  = length($sBIFF);
+     }
+#1.3 Specified by IO object
+     elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
+        return undef unless $sFile->can('read');
+        binmode($sFile);
+        my $sWk;
+        $sBIFF .= $sWk while $sFile->read($sWk, 4096);
+        $iLen = length($sBIFF);
+     }
     else {
-#1.3 Specified by File name
+#1.4 Specified by File name
         $oBook->{File} = $sFile;
         return undef unless (-e $sFile);
         ($sBIFF, $iLen) = $oThis->{GetContent}->($sFile);
@@ -1147,7 +1160,6 @@ sub _subFormat($$$$)
     else {
         $sFmt = _convBIFF8String($oBook, substr($sWk, 2));
     }
-#print "FMT:$sFmt\n";
     $oBook->{FormatStr}->{unpack('v', substr($sWk, 0, 2))} = $sFmt;
 }
 #------------------------------------------------------------------------------
@@ -1166,16 +1178,22 @@ sub _subPalette($$$$)
 sub _subFont($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
-    my($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline, $iUnicode, $sFntName);
+    my($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline, $sFntName);
     my($bBold, $bItalic, $bUnderline, $bStrikeout);
 
     if($oBook->{BIFFVersion} == verBIFF8) {
         ($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline) = 
             unpack("v5c", $sWk);
-        $iUnicode = 1;
-        $sFntName = substr($sWk, 16);
-        _SwapForUnicode(\$sFntName);
-        $sFntName = $oBook->{FmtClass}->TextFmt($sFntName, 'ucs2');
+        my($iSize, $iHigh) = unpack('cc', substr($sWk, 14, 2));
+        if($iHigh) {
+            $sFntName = substr($sWk, 16, $iSize*2);
+            _SwapForUnicode(\$sFntName);
+            $sFntName = $oBook->{FmtClass}->TextFmt($sFntName, 'ucs2');
+        }
+        else {
+            $sFntName = substr($sWk, 16, $iSize);
+            $sFntName = $oBook->{FmtClass}->TextFmt($sFntName, '_native_');
+        }
         $bBold       = ($iBold >= 0x2BC)? 1: 0;
         $bItalic     = ($iAttr & 0x02)? 1: 0;
         $bStrikeout  = ($iAttr & 0x08)? 1: 0;
@@ -1785,7 +1803,8 @@ sub _subStrWk($$;$)
 sub _SwapForUnicode(\$) 
 {
     my($sObj) = @_;
-    for(my $i = 0; $i<length($$sObj); $i+=2){
+#    for(my $i = 0; $i<length($$sObj); $i+=2){
+    for(my $i = 0; $i<(int (length($$sObj) / 2) * 2); $i+=2) {
             my $sIt = substr($$sObj, $i, 1);
             substr($$sObj, $i, 1) = substr($$sObj, $i+1, 1);
             substr($$sObj, $i+1, 1) = $sIt;
@@ -1812,7 +1831,6 @@ sub _NewCell($$$%)
         );
     $oCell->{_Kind}  = $rhKey{Kind};
     $oCell->{_Value} = $oBook->{FmtClass}->ValFmt($oCell, $oBook);
-
     if($rhKey{Rich}) {
         my @aRich = ();
         my $sRich = $rhKey{Rich};
@@ -2431,9 +2449,17 @@ XLHTML, OLE::Storage, Spreadsheet::WriteExcel, OLE::Storage_Lite
 
 This module is based on herbert within OLE::Storage and XLHTML.
 
+=head1 TODO
+
+- Spreadsheet::ParseExcel : 
+ Password protected data, Formulas support
+
+- Spreadsheet::ParseExcel::SaveParser :
+ Catch up Spreadsheet::WriteExce feature, Create new Excel fle
+
 =head1 COPYRIGHT
 
-Copyright (c) 2000-2001 Kawai Takanori and Nippon-RAD Co. OP Division
+Copyright (c) 2000-2001 Kawai Takanori
 All rights reserved.
 
 You may distribute under the terms of either the GNU General Public

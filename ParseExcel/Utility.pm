@@ -10,8 +10,9 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime);
-$VERSION=0.04;
-my $sNUMEXP = '^[+-]?\d+(\.\d+)?$';
+$VERSION=0.05;
+#my $sNUMEXP = '^[+-]?\d+(\.\d+)?$';
+my $sNUMEXP = '(^[+-]?\d+(\.\d+)?$)|(^[+-]?\d\.*(\d+)[eE][+-](\d+))$';
 
 #ProtoTypes
 sub ExcelFmt($$;$$);
@@ -62,7 +63,7 @@ sub ExcelFmt($$;$$) {
         }
         elsif($sWk eq '\\') {
             $iQ = 1;
-            next;
+#            next;
         }
         elsif($sWk eq '(') { #Skip?
             next;
@@ -143,7 +144,7 @@ sub ExcelFmt($$;$$) {
             $i++;
             next;
         }
-        elsif($sWk eq '!') {
+        elsif($sWk eq '!' || $sWk eq '\\') {
             $iQ = 1;
             $i++;
             next;
