@@ -5,6 +5,7 @@
 #//////////////////////////////////////////////////////////////////////////////
 # Spreadsheet::ParseExcel Objects
 #//////////////////////////////////////////////////////////////////////////////
+use Spreadsheet::ParseExcel::FmtDefault;
 #==============================================================================
 # Spreadsheet::ParseExcel::Workbook
 #==============================================================================
@@ -102,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2301'; # 
+$VERSION = '0.24'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -200,6 +201,7 @@ my $BIGENDIAN;
 my $PREFUNC;
 my $_CellHandler;
 my $_NotSetCell;
+my $_Object;
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel->new
 #------------------------------------------------------------------------------
@@ -231,7 +233,8 @@ sub new($;%) {
 #Experimental
     $_CellHandler = $hParam{CellHandler} if($hParam{CellHandler});
     $_NotSetCell  = $hParam{NotSetCell};
-    
+    $_Object      = $hParam{Object};
+
     return $oThis;
 }
 #------------------------------------------------------------------------------
@@ -286,7 +289,7 @@ sub Parse($$;$) {
         $oBook->{FmtClass} = $oWkFmt;
     }
     else {
-        require Spreadsheet::ParseExcel::FmtDefault;
+#        require Spreadsheet::ParseExcel::FmtDefault;
         $oBook->{FmtClass} = new Spreadsheet::ParseExcel::FmtDefault;
     }
 
@@ -1821,7 +1824,15 @@ sub _NewCell($$$%)
     }
 
     if(defined $_CellHandler) {
-        $_CellHandler->($oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell);
+        if(defined $_Object){
+            no strict;
+            ref($_CellHandler) eq "CODE" ? 
+                    $_CellHandler->($_Object, $oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell) :
+                    $_CellHandler->callback($_Object, $oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell);
+        }
+        else{
+            $_CellHandler->($oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell);
+        }
     }
     unless($_NotSetCell) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] 

@@ -100,7 +100,8 @@ for(my $iSheet=0; $iSheet < $oBook->{SheetCount} ; $iSheet++) {
                         'Indent           :', $oWkC->{Format}->{Indent}, "\n",
                         'Wrap             :', $oWkC->{Format}->{Wrap}, "\n",
                         'Shrink           :', $oWkC->{Format}->{Shrink}, "\n",
-                        'Merged           :', $oWkC->{Merged}, "\n",
+                        'Merged           :', (defined($oWkC->{Merged})? 
+						$oWkC->{Merged}: 'No'), "\n",
                         'Rotate           :', $oWkC->{Format}->{Rotate}, "\n";
 #                       'JustLast         :', $oWkC->{Format}->{JustLast}, "\n",
 #                       'ReadDir          :', $oWkC->{Format}->{ReadDir}, "\n",

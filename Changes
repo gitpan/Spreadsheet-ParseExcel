@@ -1,5 +1,12 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.24 Wed Jul 5  06:30:00 2001
+    - Mod ParseExcel :Add OO style callback
+                        (Thank you, Ilya Sterin)
+    - Add sample/Ilya.pl :-)
+    - Mod ParseExcel : Mod use FmtDefault for PDK
+                        (Thank you, Maxime Alechine)
+
 0.2301 Tue Jun 26  8:00:00 2001
     - Mod FmtDefault
                     :Fix not convert undefined or '' string
