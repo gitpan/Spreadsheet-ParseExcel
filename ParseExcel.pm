@@ -117,7 +117,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.09'; # 
+$VERSION = '0.11'; # 
 
 my $oFmtClass;
 my @aColor =
@@ -344,18 +344,26 @@ sub Parse($$;$) {
     my $lPos = 0;
     $sWk = substr($sBiff, $lPos, 4);
     $lPos += 4;
+    my $iEfFlg = 0;
     while($lPos<=$iLen) {
         my($bOp, $bVer, $bLen) = unpack("C2v", $sWk);
        if($bLen) {
             $sWk = substr($sBiff, $lPos, $bLen);
             $lPos += $bLen;
         }
-
-        if(defined $oThis->{FuncTbl}->{$bOp}) {
-            $oThis->{FuncTbl}->{$bOp}->($oBook, $bOp, $bVer, $bLen, $sWk);
-        }
-        $PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
-
+	#Check EF, EOF
+	if($bOp == 0xEF) {    #EF
+            $iEfFlg = $bOp;
+	}
+	elsif($bOp == 0x0A) { #EOF
+            undef $iEfFlg;
+	}
+	unless($iEfFlg) {
+	    if(defined $oThis->{FuncTbl}->{$bOp}) {
+            	$oThis->{FuncTbl}->{$bOp}->($oBook, $bOp, $bVer, $bLen, $sWk);
+            }
+            $PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
+	}
         $sWk = substr($sBiff, $lPos, 4) if(($lPos+4) <= $iLen);
         $lPos += 4;
     }
@@ -733,7 +741,9 @@ sub _subMulBlank($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
     my($iR, $iSc, $iEc,$sTxt);
-    ($iR, $iSc, $iEc) = unpack("v3", $sWk);
+    ($iR, $iSc) = unpack("v2", $sWk);
+    $iEc = unpack("v", substr($sWk, length($sWk)-2, 2));
+
     for(my $iC=$iSc; $iC<=$iEc; $iC++) {
 
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
@@ -824,7 +834,6 @@ sub _SetDimension($$$$)
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow} = $iR 
         unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow}) and
                ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow} > $iR);
-
 #2.3 MinCol
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinCol} = $iSc
             unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinCol}) and
