@@ -1,6 +1,11 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
 0.22.2 Thu May 16  8:00:00 2001
+    - Mod FmtUnicode : Fix code undefined
+    - Mod ParseExcel : Fix Marged area (row>255)
+                       (Thank you, Dmitriy Litovchin)
+
+0.22.2 Thu May 16  8:00:00 2001
     - Mod ParseExcel : Fix Hidden RowHeight, ColWidht 
                        (Thank you, Maxim Ovchinnikov)
 

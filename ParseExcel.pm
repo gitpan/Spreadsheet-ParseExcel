@@ -102,7 +102,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.22.2'; # 
+$VERSION = '0.22.3'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -1618,7 +1618,7 @@ sub _subMergeArea($$$$)
     my $oWkS = $oBook->{Worksheet}[$oBook->{_CurSheet}];
     $oWkS->{MergedArea} = [] unless(defined $oWkS->{MergedArea});
     for(my $i=0; $i < $iCnt; $i++) {
-        my($iRs, $iRe, $iCs, $iCe) = unpack('n4', substr($sWk, $i*8 + 1, 8));
+        my($iRs, $iRe, $iCs, $iCe) = unpack('v4', substr($sWk, $i*8 + 2, 8));
         for(my $iR=$iRs;$iR<=$iRe;$iR++) {
             for(my $iC=$iCs;$iC<=$iCe;$iC++) {
                 $oWkS->{Cells}[$iR][$iC] ->{Merged} = 1 

@@ -9,7 +9,7 @@ use strict;
 use Spreadsheet::ParseExcel::FmtDefault;
 use vars qw($VERSION @ISA);
 @ISA = qw(Spreadsheet::ParseExcel::FmtDefault Exporter);
-$VERSION = '0.02'; # 
+$VERSION = '0.03'; # 
 use Unicode::Map;
 #------------------------------------------------------------------------------
 # new (for Spreadsheet::ParseExcel::FmtJapan2)
@@ -33,7 +33,7 @@ sub TextFmt($$;$) {
     my($oThis, $sTxt, $sCode) =@_;
     if($oThis->{_UniMap}) {
         $sTxt = $oThis->{_UniMap}->from_unicode($sTxt)
-         if($sCode eq 'ucs2');
+         if(defined($sCode) && $sCode eq 'ucs2');
         return $sTxt;
     }
     else {
