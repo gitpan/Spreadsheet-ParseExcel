@@ -86,7 +86,8 @@ sub FmtStringDef($$$;$) {
 sub FmtString($$$) {
     my($oThis, $oCell, $oBook) =@_;
 
-    my $sFmtStr = $oThis->FmtStringDef($oCell->{Format}->{FmtIdx}, $oBook);
+    my $sFmtStr = $oThis->FmtStringDef(
+        $oBook->{Format}[$oCell->{FormatNo}]->{FmtIdx}, $oBook);
 
     unless($sFmtStr) {
         if ($oCell->{Type} eq 'Numeric') {

@@ -100,10 +100,9 @@ package Spreadsheet::ParseExcel;
 require Exporter;
 use strict;
 use OLE::Storage_Lite;
-use vars qw($VERSION @ISA );
+use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.21.1'; # 
-my $oFmtClass;
+$VERSION = '0.21.2'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -284,13 +283,12 @@ sub Parse($$;$) {
 
 #2. Ready for format
     if ($oWkFmt) {
-        $oFmtClass = $oWkFmt;
+        $oBook->{FmtClass} = $oWkFmt;
     }
     else {
         require Spreadsheet::ParseExcel::FmtDefault;
-        $oFmtClass = new Spreadsheet::ParseExcel::FmtDefault;
+        $oBook->{FmtClass} = new Spreadsheet::ParseExcel::FmtDefault;
     }
-    $oThis->{FmtClass} = $oFmtClass;
 
 #3. Parse content
     my $lPos = 0;
@@ -664,7 +662,7 @@ sub _subString($$$$)
 
     my ($iLen, $sTxt, $iCode);
     if($oBook->{BIFFVersion} == verBIFF8) {
-        my( $raBuff, $iLen) = _convBIFF8String($sWk, 1);
+        my( $raBuff, $iLen) = _convBIFF8String($oBook, $sWk, 1);
         $sTxt  = $raBuff->[0];
         $iCode = $raBuff->[1];
     }
@@ -702,7 +700,7 @@ sub _subLabel($$$$)
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         my ( $raBuff, $iLen, $iStPos, $iLenS) = 
-                _convBIFF8String(substr($sWk,6), 1);
+                _convBIFF8String($oBook, substr($sWk,6), 1);
         $sLbl  = $raBuff->[0];
         $sCode = ($raBuff->[1])? 'ucs2': undef;
     }
@@ -931,19 +929,19 @@ sub _subWriteAccess($$$$)
 
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
-        $oBook->{Author} = _convBIFF8String($sWk);
+        $oBook->{Author} = _convBIFF8String($oBook, $sWk);
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
-        $oBook->{Author} = $oFmtClass->TextFmt(substr($sWk, 1, $iLen), '_native_');
+        $oBook->{Author} = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
     }
 }
 #------------------------------------------------------------------------------
 # _convBIFF8String (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
-sub _convBIFF8String($;$){
-    my($sWk, $iCnvFlg) = @_;
+sub _convBIFF8String($$;$){
+    my($oBook, $sWk, $iCnvFlg) = @_;
     my($iLen, $iFlg) = unpack("vc", $sWk);
     my($iHigh, $iExt, $iRich) = ($iFlg & 0x01, $iFlg & 0x04, $iFlg & 0x08);
     my($iStPos, $iExtCnt, $iRichCnt, $sStr);
@@ -972,7 +970,7 @@ sub _convBIFF8String($;$){
         $iLen *= 2;
         $sStr = substr($sWk,    $iStPos, $iLen);
         _SwapForUnicode(\$sStr);
-        $sStr = $oFmtClass->TextFmt($sStr, 'ucs2') unless($iCnvFlg);
+        $sStr = $oBook->{FmtClass}->TextFmt($sStr, 'ucs2') unless($iCnvFlg);
     }
     else {              #Not Compressed
         $sStr = substr($sWk, $iStPos, $iLen);
@@ -1122,10 +1120,10 @@ sub _subFormat($$$$)
         ($oBook->{BIFFVersion} == verBIFF4) ||
         ($oBook->{BIFFVersion} == verBIFF5) ) {
         $sFmt = substr($sWk, 3, unpack('c', substr($sWk, 2, 1)));
-        $sFmt = $oFmtClass->TextFmt($sFmt, '_native_');
+        $sFmt = $oBook->{FmtClass}->TextFmt($sFmt, '_native_');
     }
     else {
-        $sFmt = _convBIFF8String(substr($sWk, 2));
+        $sFmt = _convBIFF8String($oBook, substr($sWk, 2));
     }
 #print "FMT:$sFmt\n";
     $oBook->{FormatStr}->{unpack('v', substr($sWk, 0, 2))} = $sFmt;
@@ -1155,7 +1153,7 @@ sub _subFont($$$$)
         $iUnicode = 1;
         $sFntName = substr($sWk, 16);
         _SwapForUnicode(\$sFntName);
-        $sFntName = $oFmtClass->TextFmt($sFntName, 'ucs2');
+        $sFntName = $oBook->{FmtClass}->TextFmt($sFntName, 'ucs2');
         $bBold       = ($iBold >= 0x2BC)? 1: 0;
         $bItalic     = ($iAttr & 0x02)? 1: 0;
         $bStrikeout  = ($iAttr & 0x08)? 1: 0;
@@ -1164,7 +1162,7 @@ sub _subFont($$$$)
     elsif($oBook->{BIFFVersion} == verBIFF5) {
         ($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline) = 
             unpack("v5c", $sWk);
-        $sFntName = $oFmtClass->TextFmt(
+        $sFntName = $oBook->{FmtClass}->TextFmt(
                     substr($sWk, 15, unpack("c", substr($sWk, 14, 1))), 
                     '_native_');
         $bBold       = ($iBold >= 0x2BC)? 1: 0;
@@ -1215,7 +1213,7 @@ sub _subBoundSheet($$$$)
         my $sWsName = substr($sWk, 8);
         if($iUni & 0x01) {
             _SwapForUnicode(\$sWsName);
-            $sWsName = $oFmtClass->TextFmt($sWsName, 'ucs2');
+            $sWsName = $oBook->{FmtClass}->TextFmt($sWsName, 'ucs2');
         }
         $oBook->{Worksheet}[$oBook->{SheetCount}] = 
             new Spreadsheet::ParseExcel::Worksheet(
@@ -1227,7 +1225,7 @@ sub _subBoundSheet($$$$)
     else {
         $oBook->{Worksheet}[$oBook->{SheetCount}] = 
             new Spreadsheet::ParseExcel::Worksheet(
-                    Name => $oFmtClass->TextFmt(substr($sWk, 7), '_native_'),
+                    Name => $oBook->{FmtClass}->TextFmt(substr($sWk, 7), '_native_'),
                     Kind => $iKind,
                     _Pos => $iPos,
                 );
@@ -1243,13 +1241,13 @@ sub _subHeader($$$$)
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} = 
-            _convBIFF8String($sWk);
+            _convBIFF8String($oBook, $sWk);
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} 
-            = $oFmtClass->TextFmt(substr($sWk, 1, $iLen), '_native_');
+            = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
     }
 }
 #------------------------------------------------------------------------------
@@ -1261,13 +1259,13 @@ sub _subFooter($$$$)
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
-            _convBIFF8String($sWk);
+            _convBIFF8String($oBook, $sWk);
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer}
-            = $oFmtClass->TextFmt(substr($sWk, 1, $iLen), '_native_');
+            = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
     }
 }
 #------------------------------------------------------------------------------
@@ -1566,7 +1564,7 @@ sub _subMergeArea($$$$)
     my($oBook, $bOp, $bLen, $sWk) = @_;
     my $iCnt = unpack("v", $sWk);
     my $oWkS = $oBook->{Worksheet}[$oBook->{_CurSheet}];
-    $oWkS->{MergedArea} = () unless(defined $oWkS->{MergedAread});
+    $oWkS->{MergedArea} = [] unless(defined $oWkS->{MergedArea});
     for(my $i=0; $i < $iCnt; $i++) {
         my($iRs, $iRe, $iCs, $iCe) = unpack('n4', substr($sWk, $i*8 + 1, 8));
         for(my $iR=$iRs;$iR<=$iRe;$iR++) {
@@ -1710,7 +1708,7 @@ sub _subStrWk($$;$)
     $oBook->{_PrevInfo} = undef;
 
     while(length($oBook->{StrBuff}) >= 4) {
-        my ( $raBuff, $iLen, $iStPos, $iLenS) = _convBIFF8String($oBook->{StrBuff}, 1);
+        my ( $raBuff, $iLen, $iStPos, $iLenS) = _convBIFF8String($oBook, $oBook->{StrBuff}, 1);
                                                     #No Code Convert
         if(defined($raBuff->[0])) {
             push @{$oBook->{PkgStr}}, 
@@ -1756,12 +1754,12 @@ sub _NewCell($$$%)
             FormatNo=> $rhKey{FormatNo},
             Format  => $rhKey{Format},
             Code    => $rhKey{Code},
-            Type    => $oFmtClass->ChkType(
+            Type    => $oBook->{FmtClass}->ChkType(
                             $rhKey{Numeric}, 
                             $rhKey{Format}->{FmtIdx}),
         );
     $oCell->{_Kind}  = $rhKey{Kind};
-    $oCell->{_Value} = $oFmtClass->ValFmt($oCell, $rhKey{Book});
+    $oCell->{_Value} = $oBook->{FmtClass}->ValFmt($oCell, $oBook);
 
     if($rhKey{Rich}) {
         my @aRich = ();
@@ -2070,7 +2068,12 @@ Array ref of horizontal page breaks.
 
 =item VPageBreak
 
-Array fef of vertical page breaks.
+Array ref of vertical page breaks.
+
+=item MergedArea
+
+Array ref of merged areas.
+Each merged area is : [ I<StartRow>, I<StartColumn>, I<EndRow>, I<EndColumn>]
 
 =back
 

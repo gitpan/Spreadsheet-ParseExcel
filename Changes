@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.21.2 Tue May 1 7:00:00 2001
+    - Fix ParseExcel : MergedArea
+                       (Thank you, Bradley M. Handy )
+
 0.21.1 Sat Apr 29 14:00:00 2001
     - Add ParseExcel : Rich text information support
                        (Thank you, Vladimir Igrevsky)
