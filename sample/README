@@ -8,5 +8,4 @@ dmpEx.pl    : print out content of Excel file
 		(using SpreadSheet::ParseExcel::FmtDefault)
 dmpExj.pl   : print out content of Excel file
 		(using SpreadSheet::ParseExcel::FmtJapan)
-noOLE.pl    : Sample script not using OLE::Storage
 

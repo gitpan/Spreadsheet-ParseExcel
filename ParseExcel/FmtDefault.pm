@@ -191,3 +191,4 @@ sub ChkType($$$) {
         return "Text";
     }
 }
+1;

@@ -114,9 +114,10 @@ sub Value($){
 package Spreadsheet::ParseExcel;
 require Exporter;
 use strict;
+use OLE::Storage_Lite;
 use vars qw($VERSION @ISA );
 @ISA = qw(Exporter);
-$VERSION = '0.06'; # 
+$VERSION = '0.07'; # 
 
 my $oFmtClass;
 my @aColor =
@@ -150,7 +151,7 @@ my %ProcTbl =(
     0x04 => \&_subLabelUni , # Label
     0x05 => \&_subBoolErr,   # BoolErr
     0x06 => \&_subFormula,   # Formula
-#    0x07 => undef,          # STRING
+    0x07 => \&_subString,    # STRING
     0x08 => \&_subRowData,   # RowData
     0x09 => \&_subBOF,       # BOF
 #    0x0A => undef,          # EOF
@@ -252,6 +253,7 @@ my %ProcTbl =(
     );
 
 my $BIGENDIAN;
+my $PREFUNC;
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel->new
 #------------------------------------------------------------------------------
@@ -265,9 +267,8 @@ sub new($;%) {
     bless $oThis;
 
 #1. Set Parameter
-#1.1 Get Content (Use OLE::Storage or not)
-    $oThis->{GetContent} =($hParam{NotUseOLE})? 
-                        \&_subGetContent : \&_subGetContentOLE;
+#1.1 Get Content
+    $oThis->{GetContent} = \&_subGetContent;
 
 #1.2 Set Event Handler
     if($hParam{EventHandlers}) {
@@ -284,14 +285,14 @@ sub new($;%) {
     return $oThis;
 }
 #------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel->SetGetContent
+# Spreadsheet::ParseExcel->SetEventHandler
 #------------------------------------------------------------------------------
 sub SetEventHandler($$\&) {
     my($oThis, $sKey, $oFunc) = @_;
     $oThis->{FuncTbl}->{$sKey} = $oFunc;
 }
 #------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel->SetGetContent
+# Spreadsheet::ParseExcel->SetEventHandlers
 #------------------------------------------------------------------------------
 sub SetEventHandlers($$) {
     my($oThis, $rhTbl) = @_;
@@ -353,6 +354,7 @@ sub Parse($$;$) {
         if(defined $oThis->{FuncTbl}->{$bOp}) {
             $oThis->{FuncTbl}->{$bOp}->($oBook, $bOp, $bVer, $bLen, $sWk);
         }
+		$PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
 
         $sWk = substr($sBiff, $lPos, 4) if(($lPos+4) <= $iLen);
         $lPos += 4;
@@ -361,59 +363,18 @@ sub Parse($$;$) {
     return $oBook;
 }
 #------------------------------------------------------------------------------
-# _subGetContentOLE (for Spreadsheet::ParseExcel)
-#------------------------------------------------------------------------------
-sub _subGetContentOLE($)
-{
-    my($sFile) =@_;
-    use OLE::Storage;
-    use Startup;     
-    my $oVar = OLE::Storage->NewVar ();
-    my $oStartup = new Startup;
-    my $oDoc = OLE::Storage->open ($oStartup, $oVar, $sFile);
-    my ($oDir, %oDir);
-    return (undef, undef) unless $oDoc->directory($oDir, \%oDir, "string");
-    return (undef, undef) unless my $sPps = $oDir{"Book"} || $oDir{"Workbook"} ;
-
-    my $sBuff = "";
-    return (undef, undef) unless $oDoc->read($sPps, \$sBuff);
-    return ($sBuff, length($sBuff));
-}
-#------------------------------------------------------------------------------
 # _subGetContent (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
 sub _subGetContent($)
 {
     my($sFile)=@_;
-    my $sStart;
-    my $sWk;
-    my $sBuff;
-    my ($iBlk, $iSiz);
-
-    open(IN, "<$sFile");
-    binmode IN;
-    seek( IN, 0x30, 0);     #Get StartBlock
-    read(IN, $sStart,  4);
-
-    # Get PPS
-    seek( IN, unpack("V", $sStart) * 0x200, 0);
-    while(read(IN, $sWk, 0x80)>=0x80) {
-        my $sNm = substr($sWk, 0, unpack("v", substr($sWk, 64, 2)));  
-        $sNm =~ s/\x00//g;      #SIMPLE convert UCS2->ASCII
-        if(($sNm eq "Book") or ($sNm eq "Workbook")) {
-            ($iBlk, $iSiz) = unpack("VV", substr($sWk, 116, 8));
-            # Get Content, Search BOF (=0x0908)
-            while(1){
-                seek(IN, ($iBlk+1)*0x200, 0);
-                return (undef, 0) if(read(IN, $sBuff, $iSiz)<$iSiz);
-                last if(substr($sBuff, 0, 2) eq pack("H04", '0908'));
-                $iBlk++;
-            }
-            last;
-        }
-    }
-    close(IN);
-    return ($sBuff,$iSiz) ;
+    my $oOl = OLE::Storage_Lite->new($sFile);
+    return (undef, undef) unless($oOl);
+	my @aRes = $oOl->getPpsSearch(
+			[OLE::Storage_Lite::Asc2Ucs('Book'), 
+			 OLE::Storage_Lite::Asc2Ucs('Workbook')], 1);
+    return (undef, undef) if($#aRes < 0);
+    return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
 }
 #------------------------------------------------------------------------------
 # _subBOF (for Spreadsheet::ParseExcel)
@@ -422,17 +383,16 @@ sub _subBOF($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
 
-    if($bVer ==8) {
-        $oBook->{Version} = unpack("v", $sWk);
-    }
-    else {
-        $oBook->{Version} = $bVer;
-    }
-
     if(defined $oBook->{_CurSheet}) {
         $oBook->{_CurSheet}++; 
     }
     else {
+	    if($bVer ==8) {
+	        $oBook->{Version} = unpack("v", $sWk);
+	    }
+	    else {
+	        $oBook->{Version} = $bVer;
+	    }
         $oBook->{_CurSheet} = -1;
     }
 }
@@ -547,8 +507,7 @@ sub _subRString($$$$$)
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
     my($iR, $iC, $iF, $iL, $sTxt);
     ($iR, $iC, $iF, $iL) = unpack("v4", $sWk);
-    $sTxt = substr($sWk, 8, $bLen - 8);
-
+    $sTxt = substr($sWk, 8, $iL);
     $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
         _NewCell (
             Kind    => 'RString',
@@ -624,15 +583,18 @@ sub _subFormula($$$$$)
     if($iFlg == 0xFFFF) {
         my($iKind) = unpack("c", substr($sWk, 6, 1));
         my($iVal)  = unpack("c", substr($sWk, 8, 1));
-        if($iKind == 1) {
+        if($iKind == 1) { # Boolean Value
             $sTxt = DecodeBoolErr($iVal, 0);
         }
-        elsif($iKind == 2) {
+        elsif($iKind == 2) { #Error Code
             $sTxt = DecodeBoolErr($iVal, 1);
         }
         else {
             #Not Implemented
-            $sTxt = substr($sWk, 8);
+			push @{$oBook->{_PrevPos}}, [$iR, $iC, $iF];
+	    	return;
+            #$sTxt = substr($sWk, 8);
+            #$sTxt = "NOT IMPLEMENT:$iKind:" . unpack("H34",substr($sWk, 13));
         }
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
         _NewCell (
@@ -658,6 +620,49 @@ sub _subFormula($$$$$)
                 Book    => $oBook,
             );
     }
+#2.MaxRow, MaxCol, MinRow, MinCol
+    _SetDimension($oBook, $iR, $iC, $iC);
+}
+#------------------------------------------------------------------------------
+# _subString (for Spreadsheet::ParseExcel)
+#------------------------------------------------------------------------------
+sub _subString($$$$$)
+{
+    my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
+    my $iPos = shift @{$oBook->{_PrevPos}};
+    my ($iR, $iC, $iF) = @$iPos;
+    my ($iLen, $sTxt, $iCode);
+
+    if($oBook->{Version} == verExcel95) {
+		$iCode = 0;
+        $iLen = unpack("v", $sWk);
+        $sTxt = substr($sWk, 2, $iLen);
+    }
+    elsif($oBook->{Version} == verExcel97) {
+        ($iLen, $iCode) = unpack("vc", $sWk);
+		if($iCode) {
+	        $iLen *= 2 if($iCode);
+            $sTxt = substr($sWk, 3, $iLen);
+            _SwapForUnicode(\$sTxt);
+        }
+        else {
+            $sTxt = substr($sWk, 3, $iLen);
+        }
+    }
+    else {
+		$iCode = 0;
+        $iLen = unpack("c", $sWk);
+        $sTxt = substr($sWk, 1, $iLen);
+    }
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] = 
+        _NewCell (
+            Kind    => 'Formula String',
+            Val     => $sTxt,
+            Format  => $oBook->{Format}[$iF],
+            Numeric => 0,
+            Code    => ($iCode)? 'ucs2': undef,
+            Book    => $oBook,
+        );
 #2.MaxRow, MaxCol, MinRow, MinCol
     _SetDimension($oBook, $iR, $iC, $iC);
 }
@@ -887,7 +892,7 @@ sub _subPackedStr($$$$$)
 sub _subContinue($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
-    _subStrWk($oBook, substr($sWk, 1));
+    _subStrWk($oBook, $sWk, 1) if($PREFUNC == 0xFC);
 }
 #------------------------------------------------------------------------------
 # _subAuthors (for Spreadsheet::ParseExcel)
@@ -934,10 +939,9 @@ sub _subExFmt($$$$$)
         ($iBdrLClr, $iBdrTClr, $iCellColor)
                 = unpack("vlv", substr($sWk, 12, 8));
     }
-    my $sBdrL = unpack("B16", $iBdrLClr);
-    my $sBdrT = unpack("B16", $iBdrTClr);
-    my $sBitC = unpack("B16", $iCellColor);
-
+    my $sBdrL = ($iBdrLClr==0)? '0'x16 : unpack("B16", $iBdrLClr);
+    my $sBdrT = ($iBdrTClr==0)? '0'x16 : unpack("B16", $iBdrTClr);
+    my $sBitC = ($iCellColor==0)? '0'x16: unpack("B16", $iCellColor);
 
     push @{$oBook->{Format}} , 
         Spreadsheet::ParseExcel::Format->new (
@@ -1036,8 +1040,8 @@ sub _subBoundSheet($$$$$)
 sub subDUMP($$$$$)
 {
     my($oBook, $bOp, $bVer, $bLen, $sWk) = @_;
-    printf ("%02X:%-22s (Len:%3d) : %s\n", 
-            $bOp, OpName($bOp), $bLen, unpack("H40",$sWk));
+    printf "%02X:%-22s (Len:%3d) : %s\n", 
+            $bOp, OpName($bOp), $bLen, unpack("H40",$sWk);
 }
 #------------------------------------------------------------------------------
 # DecodeBoolErr (for Spreadsheet::ParseExcel)
@@ -1102,15 +1106,20 @@ sub _LongToDt($) {
 #------------------------------------------------------------------------------
 # _subStrWk (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
-sub _subStrWk($$)
+sub _subStrWk($$;$)
 {
-    my($oBook, $sWk) = @_;
+    my($oBook, $sWk, $fCnt) = @_;
 
-    $oBook->{StrBuff} .= $sWk;
+    if(defined($fCnt)) {
+ 		$oBook->{StrBuff} .= (($oBook->{StrBuff} ne '') && 
+                              (substr($sWk, 0, 1) ne "\x00"))? substr($sWk, 1): $sWk;
+    }
+    else {
+        $oBook->{StrBuff} .= $sWk;
+    }
     my($iLen, $iLenS);
     my($iCrun, $iExrst);
     my($iStP);
-
     while(length($oBook->{StrBuff}) >= 4) {
         my($iChrs, $iGr) = unpack("v2", $oBook->{StrBuff});
         $iLenS = $iChrs;
@@ -1523,6 +1532,6 @@ First of all, I would like to acknowledge valuable program and modules :
 XHTML, OLE::Storage and Spreadsheet::WriteExcel.
 
 In no particular order: Simamoto Takesi, Noguchi Harumi, Ikezawa Kazuhiro, 
-Suwazono Shugo and many many people + Kawai Mikako.
+Suwazono Shugo, Hirofumi Morisada, Michael Edwards and many many people + Kawai Mikako.
 
 =cut

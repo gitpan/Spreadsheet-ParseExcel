@@ -3,3 +3,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 0.05  Mon Oct  2 03:14:04 2000
 	- original version
 
+0.07  Sat Nov 18 12:00:00 2000
+	- Change to use OLE::Storage_Lite
+	- Fix RString, PackedString BUGS (Thank you, Hirofumi Morisada)
+	- Fix and Add Formula String     (Thank you, Michael Edwards)

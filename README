@@ -11,8 +11,7 @@ DESCRIPTION
 
 REQUIREMENT
 	This module requires these modules:
-		OLE::Storage
-		Startup
+		OLE::Storage_Lite
 		Jcode.pm	(if you are using FmtJapanese)
 
 INSTALLATION
@@ -28,8 +27,8 @@ INSTALLATION
         ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
 
 VERSION
-    This document refers to version 0.05 of Spreadsheet::ParseExcel,
-    released Oct 2, 2000.
+    This document refers to version 0.07 of Spreadsheet::ParseExcel,
+    released Nov 17, 2000.
 
 AUTHOR
     Kawai Takanori (GCD00051@nifty.ne.jp)
