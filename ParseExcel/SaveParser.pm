@@ -235,6 +235,7 @@ sub SaveAs($$$){
             }
         }
     }
+    return $oWrEx
 }
 1;
 

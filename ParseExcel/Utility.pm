@@ -144,10 +144,19 @@ sub ExcelFmt($$;$$) {
             $i++;
             next;
         }
-        elsif($sWk eq '!' || $sWk eq '\\') {
+        elsif($sWk eq '!') {
             $iQ = 1;
             $i++;
             next;
+        }
+        elsif($sWk eq '\\') {
+            if($iQ == 1) {
+	    }
+	    else {
+                $iQ = 1;
+                $i++;
+                next;
+            }
         }
 #print "WK:", ord($sWk), " $iFmtMode \n";
 #print "DEF1: $iDblQ DEF2: $iQ\n";
@@ -522,7 +531,10 @@ sub ExcelFmt($$;$$) {
             }
             else {
                 if($iP) {
-                    $sNumRes = sprintf("%0${iTtl}.${iAftP}f", $iDData);
+#                    $sNumRes = sprintf("%0${iTtl}.${iAftP}f", $iDData);
+                    $sNumRes = sprintf(
+                         (defined($iAftP)? 
+                         "%0${iTtl}.${iAftP}f": "%0${iTtl}f"), $iDData);
                 }
                 else {
     #print "DATA:", $iDData, "\n";

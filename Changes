@@ -1,5 +1,21 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.2405 Tue Jan 29
+    - Mod FmtDefault : Fix 0x01 (='0') format
+                        (Thank you Marc Pohl for report)
+    - Mod ParseExcel : Mod Parse Fh of CGI.pm and GLOB ref.
+                        (Thank you Nicholas Hamlin and Abe Daisuke for reports)
+                       Fix PrintArea detection
+                        (Thank you Todd A. Green for patch)
+                       Add  custom palette support
+                        (Thank you Florian Pflug for patch)
+                       Fix  _SetDimension prototype
+                        (Thank you David Dyck for patch)
+    - Mod SaveParser : Mod return value of SaveParser
+                        (Thank you Iceman for patch)
+    - Mod Utility    : Mod $iAftP manipulation
+                        (Thank you Stanislav Sukholet for patch)
+
 0.2404 Tue Jul 24  7:30:00 2001 - Tue Dec 4 11:00:00 2001
     - Mod ParseExcel : Mod _SwapForUnicode for a string with odd length
                         (Thank you, Mikhail Turenko)

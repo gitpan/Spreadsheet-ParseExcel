@@ -74,7 +74,7 @@ sub FmtStringDef($$$;$) {
     my($oThis, $iFmtIdx, $oBook, $rhFmt) =@_;
     my $sFmtStr = $oBook->{FormatStr}->{$iFmtIdx};
 
-    if(!($sFmtStr) && defined($rhFmt)) {
+    if(!(defined($sFmtStr)) && defined($rhFmt)) {
         $sFmtStr = $rhFmt->{$iFmtIdx};
     }
     $sFmtStr = $hFmtDefault{$iFmtIdx} unless($sFmtStr);
@@ -89,7 +89,7 @@ sub FmtString($$$) {
     my $sFmtStr = $oThis->FmtStringDef(
         $oBook->{Format}[$oCell->{FormatNo}]->{FmtIdx}, $oBook);
 
-    unless($sFmtStr) {
+    unless(defined($sFmtStr)) {
         if ($oCell->{Type} eq 'Numeric') {
             if(int($oCell->{Val}) != $oCell->{Val}) {
                 $sFmtStr = '0.00';

@@ -103,7 +103,7 @@ use strict;
 use OLE::Storage_Lite;
 use vars qw($VERSION @ISA);
 @ISA = qw(Exporter);
-$VERSION = '0.2404'; # 
+$VERSION = '0.2405'; # 
 my @aColor =
 (
     '000000',   # 0x00
@@ -157,6 +157,8 @@ my %ProcTbl =(
     0x83    => \&_subHcenter,           # HCENTER
     0x84    => \&_subVcenter,           # VCENTER
     0x85    => \&_subBoundSheet,        # BoundSheet
+
+    0x92    => \&_subPalette,           # Palette, fgp
 
     0x99    => \&_subStandardWidth,     # Standard Col
 #Develpers' Kit P293
@@ -277,17 +279,16 @@ sub Parse($$;$) {
 #        return undef;
 #    }
 #1.2 Specified by GLOB reference
-     elsif(ref($sFile) =~ /GLOB/) {
-        $sBIFF = <$sFile>;
-        $iLen  = length($sBIFF);
-     }
-#1.3 Specified by IO object
-     elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
-        return undef unless $sFile->can('read');
+     elsif((ref($sFile) =~ /GLOB/) or
+           (ref($sFile) eq 'Fh')) { #For CGI.pm (Light FileHandle)
         binmode($sFile);
         my $sWk;
-        $sBIFF .= $sWk while $sFile->read($sWk, 4096);
-        $iLen = length($sBIFF);
+        my $sBuff='';
+        while(read($sFile, $sWk, 4096)) {
+            $sBuff .= $sWk;
+        }                
+        ($sBIFF, $iLen) = $oThis->{GetContent}->(\$sBuff);
+        return undef unless($sBIFF);
      }
     else {
 #1.4 Specified by File name
@@ -851,7 +852,7 @@ sub _subRow($$$$)
 #------------------------------------------------------------------------------
 # _SetDimension (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
-sub _SetDimension(($$$$))
+sub _SetDimension($$$$)
 {
     my($oBook, $iR, $iSc, $iEc)=@_;
     return undef unless(defined $oBook->{_CurSheet});
@@ -1169,7 +1170,8 @@ sub _subPalette($$$$)
 {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     for(my $i=0;$i<unpack('v', $sWk);$i++) {
-        push @aColor, unpack('H6', substr($sWk, $i*4+2));
+#        push @aColor, unpack('H6', substr($sWk, $i*4+2));
+        $aColor[$i+8] = unpack('H6', substr($sWk, $i*4+2));
     }
 }
 #------------------------------------------------------------------------------
@@ -1493,7 +1495,7 @@ sub _subName($$$$)
             my $iSheet = unpack('v', substr($sWk, 8 )) - 1;
             if($iName == 6) {       #PrintArea
                 my($iSheetW, $raArea) = _ParseNameArea(substr($sWk, 16));
-                $oBook->{PrintArea}[$iSheet] =  $raArea;
+                $oBook->{PrintArea}[$iSheetW] =  $raArea;
             }
             elsif($iName == 7) {    #Title
                 my($iSheetW, $raArea) = _ParseNameArea(substr($sWk, 16));
@@ -1507,7 +1509,7 @@ sub _subName($$$$)
                         push @aTtlC, [$raI->[1], $raI->[3] ];
                     }
                 }
-                $oBook->{PrintTitle}[$iSheet] =  {Row => \@aTtlR, Column => \@aTtlC};
+                $oBook->{PrintTitle}[$iSheetW] =  {Row => \@aTtlR, Column => \@aTtlC};
             }
         }
         else {
@@ -2452,14 +2454,15 @@ This module is based on herbert within OLE::Storage and XLHTML.
 =head1 TODO
 
 - Spreadsheet::ParseExcel : 
- Password protected data, Formulas support
+ Password protected data, Formulas support, HyperLink support, 
+ Named Range support
 
 - Spreadsheet::ParseExcel::SaveParser :
  Catch up Spreadsheet::WriteExce feature, Create new Excel fle
 
 =head1 COPYRIGHT
 
-Copyright (c) 2000-2001 Kawai Takanori
+Copyright (c) 2000-2002 Kawai Takanori
 All rights reserved.
 
 You may distribute under the terms of either the GNU General Public
