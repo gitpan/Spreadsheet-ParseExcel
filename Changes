@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.27_01
+    - Moving test.pl to t/ and using Test::More
+    - Add tests running (some of the) sample files
+    - Add 'use warnings', remove prototypes
+    - Fix the warning in Spreadsheet::ParseExcel::FmtDefault
+      Character in "C" format wrapped at .../Spreadsheet/ParseExcel/FmtDefault.pm line 68.
+      http://rt.cpan.org/Public/Bug/Display.html?id=7376
+
 0.2603  Mon May 30, 2004
     - Mod SaveParser : Apply a path from Eduardo J
                         adding Protect feature

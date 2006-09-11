@@ -1,10 +1,11 @@
 use strict;
+use warnings;
+
 use Spreadsheet::ParseExcel;
 use Spreadsheet::ParseExcel::FmtJapan;
 use Spreadsheet::ParseExcel::FmtJapan2;
-sub PrnAll($);
 
-my $oExcel = new Spreadsheet::ParseExcel;
+my $oExcel = Spreadsheet::ParseExcel->new;
 my $oFmtJ = Spreadsheet::ParseExcel::FmtJapan->new(Code => 'euc');
 my $oFmtJ2 = Spreadsheet::ParseExcel::FmtJapan2->new(Code => 'euc');
 my $oBook = $oExcel->Parse('Excel/oem.xls', $oFmtJ);
@@ -12,7 +13,7 @@ PrnAll($oBook);
 $oBook = $oExcel->Parse('Excel/oem.xls', $oFmtJ2);
 PrnAll($oBook);
 
-sub PrnAll($) {
+sub PrnAll {
     my ($oBook) = @_;
     my($iR, $iC, $oWkS, $oWkC);
     print "=========================================\n";

@@ -1,4 +1,6 @@
 use strict;
+use warnings;
+
 if(!(defined $ARGV[0])) {
     print<<EOF;
 Usage: $0 Excel_File
@@ -6,7 +8,7 @@ EOF
     exit;
 }
 use Spreadsheet::ParseExcel;
-my $oExcel = new Spreadsheet::ParseExcel;
+my $oExcel = Spreadsheet::ParseExcel->new;
 my $oBook = $oExcel->Parse($ARGV[0]);
 
 my($iR, $iC, $oWkS, $oWkC);

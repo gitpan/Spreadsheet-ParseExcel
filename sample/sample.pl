@@ -1,7 +1,8 @@
-use lib qw(../);
 use strict;
+use warnings;
+
 use Spreadsheet::ParseExcel;
-my $oExcel = new Spreadsheet::ParseExcel;
+my $oExcel = Spreadsheet::ParseExcel->new;
 sub PrnBook($);
 
 #1.1 Normal Excel97

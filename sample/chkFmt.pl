@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Spreadsheet::ParseExcel::Utility;
 my $sWk;
 my @aData = (-2, 0, 1234, -1234, 34323.23232, -233232.3233, 

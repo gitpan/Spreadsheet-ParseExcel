@@ -1,14 +1,14 @@
 use strict;
+use warnings;
 use Spreadsheet::ParseExcel;
 use Spreadsheet::ParseExcel::FmtJapan;
-sub PrnBook($);
-#0. Check ARGV
+
 if(($#ARGV< 0) or 
    (grep($ARGV[0] eq $_, ('euc', 'sjis', 'jis')) <= 0)) {
     print "USAGE: \n   > perl ", $0, " euc|sjis|jis\n";
     exit;
 }
-my $oExcel = new Spreadsheet::ParseExcel;
+my $oExcel = Spreadsheet::ParseExcel->new;
 
 #1. Make Formatter
 my $oFmtJ = Spreadsheet::ParseExcel::FmtJapan->new(Code => $ARGV[0]);
@@ -37,8 +37,7 @@ PrnBook($oBook);
 $oBook = $oExcel->Parse('Excel/AuthorK95.xls', $oFmtJ);
 PrnBook($oBook);
 
-sub PrnBook($)
-{
+sub PrnBook {
     my($oBook) = @_;
     my($iR, $iC, $oWkS, $oWkC);
 

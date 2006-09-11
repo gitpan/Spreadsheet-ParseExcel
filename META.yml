@@ -1,11 +1,8 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Spreadsheet-ParseExcel
-version:      0.2603
-version_from: ParseExcel.pm
-installdirs:  site
-requires:
-    OLE::Storage_Lite:             0.08
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+--- #YAML:1.0
+name: Spreadsheet-ParseExcel
+version: 0.27_01
+author:
+  - Kawai Takanori
+abstract: Get information from Excel file
+license: perl
+generated_by: Module::Build version 0.2612, without YAML.pm

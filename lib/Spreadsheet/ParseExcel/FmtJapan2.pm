@@ -1,49 +1,48 @@
-# Spreadsheet::ParseExcel::FmtUnicode
-#  by Kawai, Takanori (Hippo2000) 2000.12.20
-#                                 2001.2.2
+# Spreadsheet::ParseExcel::FmtJapan2
+#  by Kawai, Takanori (Hippo2000) 2001.2.2
 # This Program is ALPHA version.
 #==============================================================================
-package Spreadsheet::ParseExcel::FmtUnicode;
-require Exporter;
+package Spreadsheet::ParseExcel::FmtJapan2;
 use strict;
-use Spreadsheet::ParseExcel::FmtDefault;
-use vars qw($VERSION @ISA);
-@ISA = qw(Spreadsheet::ParseExcel::FmtDefault Exporter);
-$VERSION = '0.05'; # 
+use warnings;
+
+use Jcode;
 use Unicode::Map;
+use base 'Spreadsheet::ParseExcel::FmtJapan';
+our $VERSION = '0.05'; # 
+
 #------------------------------------------------------------------------------
-# new (for Spreadsheet::ParseExcel::FmtUnicode)
+# new (for Spreadsheet::ParseExcel::FmtJapan2)
 #------------------------------------------------------------------------------
-sub new($%) {
+sub new {
     my($sPkg, %hKey) = @_;
-    my $sMap = $hKey{Unicode_Map};
-    my $oMap;
-    $oMap = Unicode::Map->new($sMap) if $sMap;
+    my $oMap = Unicode::Map->new('CP932Excel');
+    die "NO MAP FILE CP932Excel!!" 
+        unless(-r Unicode::Map->mapping("CP932Excel"));
+
     my $oThis={ 
-        Unicode_Map => $sMap,
+        Code => $hKey{Code},
         _UniMap => $oMap,
     };
     bless $oThis;
+    $oThis->SUPER::new(%hKey);
     return $oThis;
 }
 #------------------------------------------------------------------------------
-# TextFmt (for Spreadsheet::ParseExcel::FmtUnicode)
+# TextFmt (for Spreadsheet::ParseExcel::FmtJapan2)
 #------------------------------------------------------------------------------
-sub TextFmt($$;$) {
+sub TextFmt {
     my($oThis, $sTxt, $sCode) =@_;
-    if($oThis->{_UniMap}) {
+#    $sCode = 'sjis' if((! defined($sCode)) || ($sCode eq '_native_'));
+    if($oThis->{Code}) {
         if(! defined($sCode)) {
-            my $sSv = $sTxt;
             $sTxt =~ s/(.)/\x00$1/sg;
             $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
-            $sTxt = $sSv unless($sTxt);
         }
         elsif($sCode eq 'ucs2') {
             $sTxt = $oThis->{_UniMap}->from_unicode($sTxt);
         }
-#        $sTxt = $oThis->{_UniMap}->from_unicode($sTxt)
-#                     if(defined($sCode) && $sCode eq 'ucs2');
-        return $sTxt;
+        return Jcode::convert($sTxt, $oThis->{Code}, 'sjis');
     }
     else {
         return $sTxt;

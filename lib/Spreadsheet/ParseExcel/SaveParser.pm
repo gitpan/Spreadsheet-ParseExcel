@@ -8,12 +8,13 @@
 # Spreadsheet::ParseExcel::SaveParser::Workbook
 #==============================================================================
 package Spreadsheet::ParseExcel::SaveParser::Workbook;
-require Exporter;
 use strict;
-use vars qw($VERSION @ISA);
-@ISA = qw(Spreadsheet::ParseExcel::Workbook Exporter);
-$VERSION = '0.06'; # 
-sub new($$) {
+use warnings;
+
+use base 'Spreadsheet::ParseExcel::Workbook'
+our $VERSION = '0.06';
+
+sub new {
     my($sPkg, $oBook) = @_;
     return undef unless(defined $oBook);
     my %oThis = %$oBook;
@@ -29,7 +30,7 @@ sub new($$) {
 #------------------------------------------------------------------------------
 # Parse (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
-sub Parse($$;$) {
+sub Parse {
     my($sClass, $sFile, $oWkFmt)=@_;
     my $oBook = Spreadsheet::ParseExcel::Workbook->Parse($sFile, $oWkFmt);
     bless $oBook, $sClass;
@@ -44,7 +45,7 @@ sub Parse($$;$) {
 #------------------------------------------------------------------------------
 # SaveAs (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
-sub SaveAs($$){
+sub SaveAs {
     my ($oBook, $sName)=@_;
     # Create a new Excel workbook
     my $oWrEx = Spreadsheet::WriteExcel->new($sName);
@@ -234,7 +235,7 @@ sub SaveAs($$){
 #------------------------------------------------------------------------------
 # AddWorksheet (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
-sub AddWorksheet($$%) {
+sub AddWorksheet {
     my($oBook, $sName, %hAttr) = @_;
     $oBook->AddFormat if($#{$oBook->{Format}}<0);
     $hAttr{Name} ||= $sName;
@@ -257,7 +258,7 @@ sub AddWorksheet($$%) {
 #------------------------------------------------------------------------------
 # AddFont (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
-sub AddFont($%){
+sub AddFont {
     my ($oBook, %hAttr) = @_;
     $hAttr{Name}     ||= 'Arial';
     $hAttr{Height}   ||= 10;
@@ -273,7 +274,7 @@ sub AddFont($%){
 #------------------------------------------------------------------------------
 # AddFormat (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
-sub AddFormat($%){
+sub AddFormat {
     my ($oBook, %hAttr) = @_;
     $hAttr{Fill}     ||= [0, 0, 0];
     $hAttr{BdrStyle} ||= [0, 0, 0, 0];
@@ -306,7 +307,7 @@ sub AddFormat($%){
 #------------------------------------------------------------------------------
 # AddCell (for Spreadsheet::ParseExcel::SaveParser::Workbook)
 #------------------------------------------------------------------------------
-sub AddCell($$$$$$;$) {
+sub AddCell {
     my($oBook, $iSheet, $iR, $iC, $sVal, $oCell, $sCode)=@_;
     my %rhKey;
     $oCell ||= 0;
@@ -326,18 +327,21 @@ sub AddCell($$$$$$;$) {
 # Spreadsheet::ParseExcel::SaveParser::Worksheet
 #==============================================================================
 package Spreadsheet::ParseExcel::SaveParser::Worksheet;
-require Exporter;
 use strict;
-use vars qw($VERSION @ISA);
-@ISA = qw(Spreadsheet::ParseExcel::Worksheet Exporter);
-sub new($%) {
+use warnings;
+
+use base 'Spreadsheet::ParseExcel::Worksheet';
+our $VERSION = '0.01';
+
+
+sub new {
   my ($sClass, %rhIni) = @_;
   $sClass->SUPER::new(%rhIni);  # returns object
 }
 #------------------------------------------------------------------------------
 # AddCell (for Spreadsheet::ParseExcel::SaveParser::Worksheet)
 #------------------------------------------------------------------------------
-sub AddCell($$$$$;$) {
+sub AddCell {
     my($oSelf, $iR, $iC, $sVal, $oCell, $sCode)=@_;
     $oSelf->{_Book}->AddCell($oSelf->{_SheetNo}, $iR, $iC, $sVal, $oCell, $sCode);
 }
@@ -356,25 +360,25 @@ sub Protect {
 # Spreadsheet::ParseExcel::SaveParser
 #==============================================================================
 package Spreadsheet::ParseExcel::SaveParser;
-require Exporter;
 use strict;
+use warnings;
+
 use Spreadsheet::WriteExcel;
-use Spreadsheet::ParseExcel;
-use vars qw($VERSION @ISA);
-@ISA = qw(Spreadsheet::ParseExcel Exporter);
-$VERSION = '0.01'; # 
+use base 'Spreadsheet::ParseExcel';
+our $VERSION = '0.01';
+
 use constant MagicCol => 1.14;
 #------------------------------------------------------------------------------
 # new (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
-sub new($%) {
+sub new {
     my($sPkg, %hKey) = @_;
     $sPkg->SUPER::new(%hKey);
 }
 #------------------------------------------------------------------------------
 # Create
 #------------------------------------------------------------------------------
-sub Create($;$) {
+sub Create {
     my($oThis, $oWkFmt)=@_;
 #0. New $oBook
     my $oBook = Spreadsheet::ParseExcel::Workbook->new;
@@ -391,7 +395,7 @@ sub Create($;$) {
 #------------------------------------------------------------------------------
 # Parse (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
-sub Parse($$;$) {
+sub Parse {
     my($oThis, $sFile, $oWkFmt)=@_;
     my $oBook = $oThis->SUPER::Parse($sFile, $oWkFmt);
     return undef unless(defined $oBook);
@@ -400,7 +404,7 @@ sub Parse($$;$) {
 #------------------------------------------------------------------------------
 # SaveAs (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
-sub SaveAs($$$){
+sub SaveAs {
     my ($oThis, $oBook, $sName)=@_;
     $oBook->SaveAs($sName);
 }

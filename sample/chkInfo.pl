@@ -1,22 +1,27 @@
 use strict;
+use warnings;
+
 use Spreadsheet::ParseExcel;
-my $oExcel = new Spreadsheet::ParseExcel;
+my $oExcel = Spreadsheet::ParseExcel->new;
+
 
 #=Default
 use Spreadsheet::ParseExcel::FmtDefault;
 my $oFmt = Spreadsheet::ParseExcel::FmtDefault->new;
 my $oBook = $oExcel->Parse('Excel/FmtTest.xls');
 #=cut
-=Japan
-use Spreadsheet::ParseExcel::FmtJapan2;
-my $oFmt = Spreadsheet::ParseExcel::FmtJapan2->new(Code=>'sjis');
-my $oBook = $oExcel->Parse('Excel/FmtTest.xls', $oFmt);
-=cut
-=Other Countries (ex. Russia (CP1251))
-use Spreadsheet::ParseExcel::FmtUnicode;
-my $oFmt = Spreadsheet::ParseExcel::FmtUnicode->new(Unicode_Map => 'CP1251');
-my $oBook = $oExcel->Parse('Excel/FmtTest.xls', $oFmt);
-=cut
+
+#Japan
+#use Spreadsheet::ParseExcel::FmtJapan2;
+#my $oFmt = Spreadsheet::ParseExcel::FmtJapan2->new(Code=>'sjis');
+#my $oBook = $oExcel->Parse('Excel/FmtTest.xls', $oFmt);
+#=cut
+
+#Other Countries (ex. Russia (CP1251))
+#use Spreadsheet::ParseExcel::FmtUnicode;
+#my $oFmt = Spreadsheet::ParseExcel::FmtUnicode->new(Unicode_Map => 'CP1251');
+#my $oBook = $oExcel->Parse('Excel/FmtTest.xls', $oFmt);
+#=cut
 
 
 my($iR, $iC, $oWkS, $oWkC);
