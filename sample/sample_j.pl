@@ -14,27 +14,27 @@ my $oExcel = Spreadsheet::ParseExcel->new;
 my $oFmtJ = Spreadsheet::ParseExcel::FmtJapan->new(Code => $ARGV[0]);
 
 #2.1 Test97
-my $oBook = $oExcel->Parse('Excel/Test97J.xls', $oFmtJ);
+my $oBook = $oExcel->Parse('sample/Excel/Test97J.xls', $oFmtJ);
 PrnBook($oBook);
 
 #2.2 Test95
-$oBook = $oExcel->Parse('Excel/Test95J.xls', $oFmtJ);
+$oBook = $oExcel->Parse('sample/Excel/Test95J.xls', $oFmtJ);
 PrnBook($oBook);
 
 #2.3 1904 (1904 - 97)
-$oBook = $oExcel->Parse('Excel/Test1904.xls', $oFmtJ);
+$oBook = $oExcel->Parse('sample/Excel/Test1904.xls', $oFmtJ);
 PrnBook($oBook);
 
 #2.4 1904 (1904 - 95)
-$oBook = $oExcel->Parse('Excel/Test1904_95.xls', $oFmtJ);
+$oBook = $oExcel->Parse('sample/Excel/Test1904_95.xls', $oFmtJ);
 PrnBook($oBook);
 
 #2.5 1904 (1904 - 95)
-$oBook = $oExcel->Parse('Excel/AuthorK.xls', $oFmtJ);
+$oBook = $oExcel->Parse('sample/Excel/AuthorK.xls', $oFmtJ);
 PrnBook($oBook);
 
 #2.6 1904 (1904 - 95)
-$oBook = $oExcel->Parse('Excel/AuthorK95.xls', $oFmtJ);
+$oBook = $oExcel->Parse('sample/Excel/AuthorK95.xls', $oFmtJ);
 PrnBook($oBook);
 
 sub PrnBook {

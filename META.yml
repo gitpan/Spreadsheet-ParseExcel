@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: Spreadsheet-ParseExcel
-version: 0.27_01
+version: 0.27_02
 author:
   - Kawai Takanori
 abstract: Get information from Excel file

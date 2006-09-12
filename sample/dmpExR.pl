@@ -8,6 +8,9 @@ EOF
     exit;
 }
 use Spreadsheet::ParseExcel;
+main();
+
+sub main {
 my $oExcel = Spreadsheet::ParseExcel->new;
 my $oBook = $oExcel->Parse($ARGV[0]);
 
@@ -47,4 +50,5 @@ for(my $iSheet=0; $iSheet < $oBook->{SheetCount} ; $iSheet++) {
             }
         }
     }
+}
 }

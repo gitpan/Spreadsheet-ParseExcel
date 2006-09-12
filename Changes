@@ -1,12 +1,20 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
-0.27_01
+0.27_02
+    - Fixing another warning:
+      Character in 'c' format wrapped in pack
+      http://rt.cpan.org/Ticket/Display.html?id=18063
+      (Grant Stevens)
+    - More test, enable use of Devel::Cover
+
+0.27_01  Mon Sep 11, 2006
     - Moving test.pl to t/ and using Test::More
     - Add tests running (some of the) sample files
     - Add 'use warnings', remove prototypes
     - Fix the warning in Spreadsheet::ParseExcel::FmtDefault
       Character in "C" format wrapped at .../Spreadsheet/ParseExcel/FmtDefault.pm line 68.
       http://rt.cpan.org/Public/Bug/Display.html?id=7376
+      (Slaven Rezić and others)
 
 0.2603  Mon May 30, 2004
     - Mod SaveParser : Apply a path from Eduardo J

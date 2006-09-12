@@ -1,5 +1,5 @@
 =========================================
-FILE  :Excel/Test97J.xls
+FILE  :sample/Excel/Test97J.xls
 COUNT :2
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -36,7 +36,7 @@ AUTHOR:kawait
 ( 6 , 1 ) =>1246912.89012345
 ( 7 , 0 ) =>書式に漢字:Float
 =========================================
-FILE  :Excel/Test95J.xls
+FILE  :sample/Excel/Test95J.xls
 COUNT :2
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -69,7 +69,7 @@ AUTHOR:kawait
 ( 6 , 1 ) =>1246912.89012345
 ( 7 , 0 ) =>書式に漢字:Float
 =========================================
-FILE  :Excel/Test1904.xls
+FILE  :sample/Excel/Test1904.xls
 COUNT :1
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -86,7 +86,7 @@ AUTHOR:kawait
 ( 5 , 0 ) =>Formula
 ( 5 , 1 ) =>1246912.89012345
 =========================================
-FILE  :Excel/Test1904_95.xls
+FILE  :sample/Excel/Test1904_95.xls
 COUNT :1
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -103,7 +103,7 @@ AUTHOR:kawait
 ( 5 , 0 ) =>Formula
 ( 5 , 1 ) =>1246912.89012345
 =========================================
-FILE  :Excel/AuthorK.xls
+FILE  :sample/Excel/AuthorK.xls
 COUNT :3
 AUTHOR:kawait
 --------- SHEET:Sheet1
@@ -112,7 +112,7 @@ AUTHOR:kawait
 --------- SHEET:Sheet2
 --------- SHEET:Sheet3
 =========================================
-FILE  :Excel/AuthorK95.xls
+FILE  :sample/Excel/AuthorK95.xls
 COUNT :3
 AUTHOR:kawait
 --------- SHEET:Sheet1

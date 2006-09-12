@@ -3,12 +3,13 @@ use warnings;
 
 use Spreadsheet::ParseExcel;
 my $oExcel = Spreadsheet::ParseExcel->new;
+die "Usage: $0 file.xls\n" if not @ARGV;
 
 
 #=Default
 use Spreadsheet::ParseExcel::FmtDefault;
 my $oFmt = Spreadsheet::ParseExcel::FmtDefault->new;
-my $oBook = $oExcel->Parse('Excel/FmtTest.xls');
+my $oBook = $oExcel->Parse($ARGV[0]);
 #=cut
 
 #Japan

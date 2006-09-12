@@ -6,19 +6,19 @@ my $oExcel = Spreadsheet::ParseExcel->new;
 sub PrnBook($);
 
 #1.1 Normal Excel97
-my $oBook = $oExcel->Parse('Excel/Test97.xls');
+my $oBook = $oExcel->Parse('sample/Excel/Test97.xls');
 PrnBook($oBook);
 
 #1.2 Normal Excel95
-$oBook = $oExcel->Parse('Excel/Test95.xls');
+$oBook = $oExcel->Parse('sample/Excel/Test95.xls');
 PrnBook($oBook);
 
 #1.3 Year 1904 Base (Excel97)
-$oBook = $oExcel->Parse('Excel/Test1904.xls');
+$oBook = $oExcel->Parse('sample/Excel/Test1904.xls');
 PrnBook($oBook);
 
 #1.4 Year 1904 Base (Excel95)
-$oBook = $oExcel->Parse('Excel/Test1904_95.xls');
+$oBook = $oExcel->Parse('sample/Excel/Test1904_95.xls');
 PrnBook($oBook);
 
 sub PrnBook($)

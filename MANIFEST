@@ -10,6 +10,14 @@ META.yml
 t/basic.t
 t/sample.t
 t/pod.t
+t/examples/sample_j.t
+t/examples/sample.t
+t/examples/sampleOEM.t
+t/examples/chkFmt.t
+t/examples/chkInfo.t
+t/examples/dmpExR.t
+t/examples/warning.t
+t/lib/Test/Example.pm
 
 lib/Spreadsheet/ParseExcel.pm
 lib/Spreadsheet/ParseExcel/Dump.pm
@@ -55,3 +63,8 @@ sample/xls2csv.pl
 sample/iftest.pl
 sample/iftestj.pl
 sample/dmpEx_2xml.pl
+
+sample/Excel/gives-warnings.xls
+sample/warning_output
+sample/warning.pl
+

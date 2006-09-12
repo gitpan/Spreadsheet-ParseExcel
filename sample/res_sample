@@ -1,5 +1,5 @@
 =========================================
-FILE  :Excel/Test97.xls
+FILE  :sample/Excel/Test97.xls
 COUNT :2
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -22,7 +22,7 @@ AUTHOR:kawait
 --------- SHEET:Sheet2
 ( 0 , 0 ) =>This is Sheet2
 =========================================
-FILE  :Excel/Test95.xls
+FILE  :sample/Excel/Test95.xls
 COUNT :2
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -56,7 +56,7 @@ AUTHOR:kawait
 ( 5 , 0 ) =>Formula
 ( 5 , 1 ) =>1246912.89012345
 =========================================
-FILE  :Excel/Test1904.xls
+FILE  :sample/Excel/Test1904.xls
 COUNT :1
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC
@@ -73,7 +73,7 @@ AUTHOR:kawait
 ( 5 , 0 ) =>Formula
 ( 5 , 1 ) =>1246912.89012345
 =========================================
-FILE  :Excel/Test1904_95.xls
+FILE  :sample/Excel/Test1904_95.xls
 COUNT :1
 AUTHOR:kawait
 --------- SHEET:Sheet1-ASC

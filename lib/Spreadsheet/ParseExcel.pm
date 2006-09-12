@@ -59,7 +59,7 @@ use overload
     '0+'        => \&sheetNo,
     'fallback'  => 1,
 ;
-use vars qw($VERSION @ISA);
+
 sub new {
   my ($sClass, %rhIni) = @_;
   my $oThis = \%rhIni;
@@ -169,7 +169,7 @@ use strict;
 use warnings;
 
 use OLE::Storage_Lite;
-our $VERSION = '0.27_01';
+our $VERSION = '0.27_02';
 
 my @aColor =
 (
@@ -1736,8 +1736,15 @@ sub _UnpackRKRec {
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk));
     }
     elsif($iPtn == 1) {
-        substr($sWk, 3, 1) &=  pack('c', unpack("c",substr($sWk, 3, 1)) & 0xFC);
-        substr($lWk, 0, 1) &=  pack('c', unpack("c",substr($lWk, 0, 1)) & 0xFC);
+        # http://rt.cpan.org/Ticket/Display.html?id=18063
+        my $u31 = unpack("c",substr($sWk, 3, 1)) & 0xFC;
+        $u31 |= 0xFFFFFF00 if ($u31 & 0x80); # raise neg bits for neg 1-byte value
+        substr($sWk, 3, 1) &= pack('c', $u31);
+
+        my $u01 = unpack("c",substr($lWk, 0, 1)) & 0xFC;
+        $u01 |= 0xFFFFFF00 if ($u01 & 0x80); # raise neg bits for neg 1-byte value
+        substr($lWk, 0, 1) &= pack('c', $u01);
+
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk)/ 100);
     }
     elsif($iPtn == 2) {
@@ -2564,6 +2571,8 @@ XLHTML, OLE::Storage, Spreadsheet::WriteExcel, OLE::Storage_Lite
 
 This module is based on herbert within OLE::Storage and XLHTML.
 
+XLSTools: http://perl.jonallen.info/projects/xlstools
+
 =head1 TODO
 
 - Spreadsheet::ParseExcel : 
@@ -2587,7 +2596,8 @@ First of all, I would like to acknowledge valuable program and modules :
 XHTML, OLE::Storage and Spreadsheet::WriteExcel.
 
 In no particular order: Yamaji Haruna, Simamoto Takesi, Noguchi Harumi, 
-Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards, Kim Namusk 
+Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards, 
+Kim Namusk, Slaven Rezić, Grant Stevens, 
 and many many people + Kawai Mikako.
 
 =cut
