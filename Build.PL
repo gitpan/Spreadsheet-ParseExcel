@@ -11,6 +11,8 @@ my $builder = Module::Build->new(
     recursive_test_files  => 1,
     requires              => {
         'OLE::Storage_Lite'         => 0.08,
+        'IO::Scalar'                => 0,
+        'IO::File'                  => 0,
     },
     build_requires        => {
         'Test::More'                => '0.47',

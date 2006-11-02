@@ -28,7 +28,13 @@ sub test_example_do {
         @ARGV = @{ $args{argv} };
         $T->diag("@ARGV");
     }
-    do "$args{dir}/$args{script}"; # TODO: eval ? check $@ ?
+    #$T->diag("Command: $args{dir}/$args{script}");
+    #$T->diag(`pwd`);
+    if (not defined do("$args{dir}/$args{script}")) {
+        $T->diag("Could not run example: $!");
+    }
+    # TODO: eval ? check $@ ?
+    #system "$^X $args{dir}/$args{script} @ARGV"; 
     @ARGV = ();
     close STDERR;
     close STDOUT;
@@ -55,7 +61,8 @@ sub compare_lists {
     croak 'not array refs' if not (ref($result) eq 'ARRAY' and ref($expected) eq 'ARRAY');
     if (@$expected != @$result) {
         $T->ok(0);
-        $T->diag("Lists are not the same length");
+        $T->diag("Lists are not the same length. Expected is " 
+            . @$expected . " long, while received is " . @$result . " long");
         return;
     }
     foreach my $i (0..@$result-1) {

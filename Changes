@@ -1,5 +1,10 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.27_03 Thu Nov 2, 2006
+    - Officially receive maintainership (Gabor Szabo)
+    - slight code cleanup
+    - more sample test
+
 0.27_02
     - Fixing another warning:
       Character in 'c' format wrapped in pack

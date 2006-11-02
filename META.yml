@@ -1,8 +1,60 @@
---- #YAML:1.0
+---
 name: Spreadsheet-ParseExcel
-version: 0.27_02
+version: 0.27_03
 author:
   - Kawai Takanori
 abstract: Get information from Excel file
 license: perl
-generated_by: Module::Build version 0.2612, without YAML.pm
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  IO::File: 0
+  IO::Scalar: 0
+  OLE::Storage_Lite: 0.08
+build_requires:
+  Test::More: 0.47
+provides:
+  Spreadsheet::ParseExcel:
+    file: lib/Spreadsheet/ParseExcel.pm
+    version: 0.27_03
+  Spreadsheet::ParseExcel::Cell:
+    file: lib/Spreadsheet/ParseExcel.pm
+  Spreadsheet::ParseExcel::Dump:
+    file: lib/Spreadsheet/ParseExcel/Dump.pm
+    version: 0.01
+  Spreadsheet::ParseExcel::FmtDefault:
+    file: lib/Spreadsheet/ParseExcel/FmtDefault.pm
+    version: 0.05
+  Spreadsheet::ParseExcel::FmtJapan:
+    file: lib/Spreadsheet/ParseExcel/FmtJapan.pm
+    version: 0.05
+  Spreadsheet::ParseExcel::FmtJapan2:
+    file: lib/Spreadsheet/ParseExcel/FmtJapan2.pm
+    version: 0.05
+  Spreadsheet::ParseExcel::FmtUnicode:
+    file: lib/Spreadsheet/ParseExcel/FmtUnicode.pm
+    version: 0.05
+  Spreadsheet::ParseExcel::Font:
+    file: lib/Spreadsheet/ParseExcel.pm
+  Spreadsheet::ParseExcel::Format:
+    file: lib/Spreadsheet/ParseExcel.pm
+  Spreadsheet::ParseExcel::SaveParser:
+    file: lib/Spreadsheet/ParseExcel/SaveParser.pm
+    version: 0.01
+  Spreadsheet::ParseExcel::SaveParser::Workbook:
+    file: lib/Spreadsheet/ParseExcel/SaveParser.pm
+    version: 0.06
+  Spreadsheet::ParseExcel::SaveParser::Worksheet:
+    file: lib/Spreadsheet/ParseExcel/SaveParser.pm
+    version: 0.01
+  Spreadsheet::ParseExcel::Utility:
+    file: lib/Spreadsheet/ParseExcel/Utility.pm
+    version: 0.06
+  Spreadsheet::ParseExcel::Workbook:
+    file: lib/Spreadsheet/ParseExcel.pm
+  Spreadsheet::ParseExcel::Worksheet:
+    file: lib/Spreadsheet/ParseExcel.pm
+generated_by: Module::Build version 0.2805
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

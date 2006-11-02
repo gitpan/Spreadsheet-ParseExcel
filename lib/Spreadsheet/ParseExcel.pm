@@ -14,9 +14,9 @@ use strict;
 use warnings;
 
 sub new {
-  my ($sClass) = @_;
-  my $oThis = {};
-  bless $oThis, $sClass;
+    my ($sClass) = @_;
+    my $oThis = {};
+    bless $oThis, $sClass;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Workbook->ParseAbort
@@ -30,7 +30,7 @@ sub ParseAbort {
 #------------------------------------------------------------------------------
 sub Parse {
     my($sClass, $sFile, $oFmt) =@_;
-    my $_oEx = new Spreadsheet::ParseExcel;
+    my $_oEx = Spreadsheet::ParseExcel->new;
     my $oBook = $_oEx->Parse($sFile, $oFmt);
     $oBook->{_Excel} = $_oEx;
     $oBook;
@@ -169,7 +169,9 @@ use strict;
 use warnings;
 
 use OLE::Storage_Lite;
-our $VERSION = '0.27_02';
+use IO::Scalar;
+use IO::File;
+our $VERSION = '0.27_03';
 
 my @aColor =
 (
@@ -379,7 +381,7 @@ sub Parse {
     }
     else {
 #        require Spreadsheet::ParseExcel::FmtDefault;
-        $oBook->{FmtClass} = new Spreadsheet::ParseExcel::FmtDefault;
+        $oBook->{FmtClass} = Spreadsheet::ParseExcel::FmtDefault->new;
     }
 
 #3. Parse content
@@ -455,7 +457,7 @@ sub _subGetContent {
         my $oIo;
         #1. $sFile is Ref of scalar
         if(ref($sFile) eq 'SCALAR') {
-            $oIo = new IO::Scalar;
+            $oIo = IO::Scalar->new;
             $oIo->open($sFile);
         }
         #2. $sFile is a IO::Handle object
@@ -465,7 +467,7 @@ sub _subGetContent {
         }
         #3. $sFile is a simple filename string
         elsif(!ref($sFile)) {
-            $oIo = new IO::File;
+            $oIo = IO::File->new;
             $oIo->open("<$sFile") || return undef;
             binmode($oIo);
         }
@@ -517,7 +519,7 @@ sub _subBOF {
                 $oBook->{Version} = $oBook->{BIFFVersion};
                 $oBook->{_CurSheet} = 0;
                 $oBook->{Worksheet}[$oBook->{SheetCount}] =
-                    new Spreadsheet::ParseExcel::Worksheet(
+                    Spreadsheet::ParseExcel::Worksheet->new(
                              _Name => '',
                               Name => '',
                              _Book => $oBook,
@@ -1310,7 +1312,7 @@ sub _subBoundSheet {
             $sWsName = $oBook->{FmtClass}->TextFmt($sWsName, 'ucs2');
         }
         $oBook->{Worksheet}[$oBook->{SheetCount}] = 
-            new Spreadsheet::ParseExcel::Worksheet(
+            Spreadsheet::ParseExcel::Worksheet->new(
                     Name => $sWsName,
                     Kind => $iKind,
                     _Pos => $iPos,
@@ -1320,7 +1322,7 @@ sub _subBoundSheet {
     }
     else {
         $oBook->{Worksheet}[$oBook->{SheetCount}] = 
-            new Spreadsheet::ParseExcel::Worksheet(
+            Spreadsheet::ParseExcel::Worksheet->new(
                     Name => $oBook->{FmtClass}->TextFmt(substr($sWk, 7), '_native_'),
                     Kind => $iKind,
                     _Pos => $iPos,
@@ -1923,17 +1925,11 @@ __END__
 
 Spreadsheet::ParseExcel - Get information from Excel file
 
-=head1 WARNING
-
-This us an unofficial version.  Kawai Takanori, the original author
-has not blessed this version nor have I received maintainership of the
-module. - Gabor Szabo
-
 =head1 SYNOPSIS
 
     use strict;
     use Spreadsheet::ParseExcel;
-    my $oExcel = new Spreadsheet::ParseExcel;
+    my $oExcel = Spreadsheet::ParseExcel->new;
 
     #1.1 Normal Excel97
     my $oBook = $oExcel->Parse('Excel/Test97.xls');
@@ -1984,7 +1980,7 @@ Spreadsheet::ParseExcel makes you to get information from Excel95, Excel97, Exce
 
 =item new
 
-I<$oExcel> = new Spreadsheet::ParseExcel(
+I<$oExcel> = Spreadsheet::ParseExcel->new(
                     [ I<CellHandler> => \&subCellHandler, 
                       I<NotSetCell> => undef | 1,
                     ]);
@@ -2560,6 +2556,10 @@ You will see the same result.
 
 =head1 AUTHOR
 
+Maintainer: Gabor Szabo szabgab@cpan.org
+
+    http://www.szabgab.com/
+
 Kawai Takanori (Hippo2000) kwitknr@cpan.org
 
     http://member.nifty.ne.jp/hippo2000/            (Japanese)
@@ -2584,7 +2584,7 @@ XLSTools: http://perl.jonallen.info/projects/xlstools
 
 =head1 COPYRIGHT
 
-Copyright (c) 2000-2004 Kawai Takanori
+Copyright (c) 2000-2006 Kawai Takanori
 All rights reserved.
 
 You may distribute under the terms of either the GNU General Public

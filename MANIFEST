@@ -17,6 +17,7 @@ t/examples/chkFmt.t
 t/examples/chkInfo.t
 t/examples/dmpExR.t
 t/examples/warning.t
+t/examples/iftest.t
 t/lib/Test/Example.pm
 
 lib/Spreadsheet/ParseExcel.pm
@@ -55,6 +56,7 @@ sample/res_oem
 sample/res_rich
 sample/res_sample
 sample/res_samplej
+sample/res_iftest.txt
 sample/sample.pl
 sample/sampleOEM.pl
 sample/sample_j.pl

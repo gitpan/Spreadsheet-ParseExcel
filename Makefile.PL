@@ -5,9 +5,12 @@ WriteMakefile
           'PL_FILES' => {},
           'INSTALLDIRS' => 'site',
           'NAME' => 'Spreadsheet::ParseExcel',
+          'EXE_FILES' => [],
           'VERSION_FROM' => 'lib/Spreadsheet/ParseExcel.pm',
           'PREREQ_PM' => {
                            'Test::More' => '0.47',
+                           'IO::Scalar' => 0,
+                           'IO::File' => 0,
                            'OLE::Storage_Lite' => '0.08'
                          }
         )

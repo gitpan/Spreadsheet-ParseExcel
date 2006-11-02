@@ -388,7 +388,7 @@ sub Create {
         $oBook->{FmtClass} = $oWkFmt;
     }
     else {
-        $oBook->{FmtClass} = new Spreadsheet::ParseExcel::FmtDefault;
+        $oBook->{FmtClass} = Spreadsheet::ParseExcel::FmtDefault->new;
     }
     return Spreadsheet::ParseExcel::SaveParser::Workbook->new($oBook);
 }
