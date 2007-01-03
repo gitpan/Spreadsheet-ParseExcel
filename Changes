@@ -1,5 +1,8 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.27 Wed Jan  3, 2007
+    - See changes in the 0.27_XX versions 
+
 0.27_03 Thu Nov 2, 2006
     - Officially receive maintainership (Gabor Szabo)
     - slight code cleanup
