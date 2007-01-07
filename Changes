@@ -1,5 +1,11 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.28 Wed Jan  7, 2007
+    - Documentation update
+    - Add t/parse.t
+    - Add sample/parse.pl
+    - fix some syntax errors in the sub-modules
+
 0.27 Wed Jan  3, 2007
     - See changes in the 0.27_XX versions 
 

@@ -9,6 +9,7 @@ META.yml
 
 t/basic.t
 t/sample.t
+t/parse.t
 t/pod.t
 t/examples/sample_j.t
 t/examples/sample.t
@@ -69,4 +70,6 @@ sample/dmpEx_2xml.pl
 sample/Excel/gives-warnings.xls
 sample/warning_output
 sample/warning.pl
+
+sample/parse.pl
 

@@ -171,7 +171,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::Scalar;
 use IO::File;
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 my @aColor =
 (
@@ -1927,6 +1927,29 @@ Spreadsheet::ParseExcel - Get information from Excel file
 
 =head1 SYNOPSIS
 
+    
+I<new interface>
+
+    use strict;
+    use Spreadsheet::ParseExcel;
+
+    my $excel = Spreadsheet::ParseExcel::Workbook->Parse($file);
+    foreach my $sheet (@{$excel->{Worksheet}}) {
+        printf("Sheet: %s\n", $sheet->{Name});
+        $sheet->{MaxRow} ||= $sheet->{MinRow};
+        foreach my $row ($sheet->{MinRow} .. $sheet->{MaxRow}) {
+            $sheet->{MaxCol} ||= $sheet->{MinCol};
+            foreach my $col ($sheet->{MinCol} ..  $sheet->{MaxCol}) {
+                my $cell = $sheet->{Cells}[$row][$col];
+                if ($cell) {
+                    printf("( %s , %s ) => %s\n", $row, $col, $cell->{Val});
+                }
+            }
+        }
+    }
+
+
+I<old interface>
     use strict;
     use Spreadsheet::ParseExcel;
     my $oExcel = Spreadsheet::ParseExcel->new;
@@ -1947,25 +1970,6 @@ Spreadsheet::ParseExcel - Get information from Excel file
                 $oWkC = $oWkS->{Cells}[$iR][$iC];
                 print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);  # Formatted Value
                 print "( $iR , $iC ) =>", $oWkC->{Val}, "\n" if($oWkC);  # Original Value
-            }
-        }
-    }
-
-I<new interface>
-
-    use strict;
-    use Spreadsheet::ParseExcel;
-    my $oBook = 
-        Spreadsheet::ParseExcel::Workbook->Parse('Excel/Test97.xls');
-    my($iR, $iC, $oWkS, $oWkC);
-    foreach my $oWkS (@{$oBook->{Worksheet}}) {
-        print "--------- SHEET:", $oWkS->{Name}, "\n";
-        for(my $iR = $oWkS->{MinRow} ; 
-                defined $oWkS->{MaxRow} && $iR <= $oWkS->{MaxRow} ; $iR++) {
-            for(my $iC = $oWkS->{MinCol} ;
-                            defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
-                $oWkC = $oWkS->{Cells}[$iR][$iC];
-                print "( $iR , $iC ) =>", $oWkC->Value, "\n" if($oWkC);
             }
         }
     }

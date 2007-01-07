@@ -5,7 +5,7 @@
 #==============================================================================
 package Spreadsheet::ParseExcel::FmtUnicode;
 use strict;
-use warnnigs;
+use warnings;
 
 use Unicode::Map;
 use base 'Spreadsheet::ParseExcel::FmtDefault';

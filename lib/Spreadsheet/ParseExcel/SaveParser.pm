@@ -11,7 +11,7 @@ package Spreadsheet::ParseExcel::SaveParser::Workbook;
 use strict;
 use warnings;
 
-use base 'Spreadsheet::ParseExcel::Workbook'
+use base 'Spreadsheet::ParseExcel::Workbook';
 our $VERSION = '0.06';
 
 sub new {
