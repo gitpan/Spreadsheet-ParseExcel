@@ -331,7 +331,7 @@ use strict;
 use warnings;
 
 use base 'Spreadsheet::ParseExcel::Worksheet';
-our $VERSION = '0.01';
+our $VERSION = '0.06';
 
 
 sub new {
@@ -365,7 +365,7 @@ use warnings;
 
 use Spreadsheet::WriteExcel;
 use base 'Spreadsheet::ParseExcel';
-our $VERSION = '0.01';
+our $VERSION = '0.06';
 
 use constant MagicCol => 1.14;
 #------------------------------------------------------------------------------

@@ -61,12 +61,12 @@ use overload
 ;
 
 sub new {
-  my ($sClass, %rhIni) = @_;
-  my $oThis = \%rhIni;
+    my ($sClass, %rhIni) = @_;
+    my $oThis = \%rhIni;
 
-  $oThis->{Cells}=undef;
-  $oThis->{DefColWidth}=8.38;
-  bless $oThis, $sClass;
+    $oThis->{Cells}=undef;
+    $oThis->{DefColWidth}=8.38;
+    bless $oThis, $sClass;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Worksheet->sheetNo
@@ -123,10 +123,10 @@ use strict;
 use warnings;
 
 sub new {
-  my($sClass, %rhIni) = @_;
-  my $oThis = \%rhIni;
+    my($sClass, %rhIni) = @_;
+    my $oThis = \%rhIni;
 
-  bless $oThis, $sClass;
+    bless $oThis, $sClass;
 }
 #==============================================================================
 # Spreadsheet::ParseExcel::Format
@@ -136,10 +136,10 @@ use strict;
 use warnings;
 
 sub new {
-  my($sClass, %rhIni) = @_;
-  my $oThis = \%rhIni;
+    my($sClass, %rhIni) = @_;
+    my $oThis = \%rhIni;
 
-  bless $oThis, $sClass;
+    bless $oThis, $sClass;
 }
 
 #==============================================================================
@@ -169,9 +169,9 @@ use strict;
 use warnings;
 
 use OLE::Storage_Lite;
-use IO::Scalar;
 use IO::File;
-our $VERSION = '0.28';
+use Config;
+our $VERSION = '0.29';
 
 my @aColor =
 (
@@ -273,11 +273,24 @@ my $PREFUNC;
 my $_CellHandler;
 my $_NotSetCell;
 my $_Object;
+my $_use_perlio;
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel->new
 #------------------------------------------------------------------------------
 sub new {
     my ($sPkg, %hParam) =@_;
+
+    if (not defined $_use_perlio) {
+       if (exists $Config{useperlio} && $Config{useperlio} eq "define") {
+           $_use_perlio = 1;
+       } else {
+           $_use_perlio = 0;
+           require IO::Scalar;
+           import  IO::Scalar;
+       }
+    }
+
+
 
 #0. Check ENDIAN(Little: Interl etc. BIG: Sparc etc)
     $BIGENDIAN = (defined $hParam{Endian})? $hParam{Endian} :
@@ -391,7 +404,7 @@ sub Parse {
     my $iEfFlg = 0;
     while($lPos<=$iLen) {
         my($bOp, $bLen) = unpack("v2", $sWk);
-       if($bLen) {
+        if($bLen) {
             $sWk = substr($sBIFF, $lPos, $bLen);
             $lPos += $bLen;
         }
@@ -440,7 +453,6 @@ sub Parse {
 # _subGetContent (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
 sub _subGetContent {
-        
     my($sFile)=@_;
     
     # warn qq{_subGetContent called; sFile:}, ref $sFile;
@@ -452,39 +464,42 @@ sub _subGetContent {
              OLE::Storage_Lite::Asc2Ucs('Workbook')], 1, 1);
     return (undef, undef) if($#aRes < 0);
 #Hack from Herbert
-    unless($aRes[0]->{Data}) {
-        #Same as OLE::Storage_Lite
-        my $oIo;
-        #1. $sFile is Ref of scalar
-        if(ref($sFile) eq 'SCALAR') {
+    if ($aRes[0]->{Data}) {
+        return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
+    } 
+
+    #Same as OLE::Storage_Lite
+    my $oIo;
+    #1. $sFile is Ref of scalar
+    if(ref($sFile) eq 'SCALAR') {
+        if ($_use_perlio) {
+            open $oIo, "<", \$sFile;
+        } else {
             $oIo = IO::Scalar->new;
             $oIo->open($sFile);
         }
-        #2. $sFile is a IO::Handle object
-        elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
-            $oIo = $sFile;
-            binmode($oIo);
-        }
-        #3. $sFile is a simple filename string
-        elsif(!ref($sFile)) {
-            $oIo = IO::File->new;
-            $oIo->open("<$sFile") || return undef;
-            binmode($oIo);
-        }
-        my $sWk;
-        my $sBuff ='';
+    }
+    #2. $sFile is a IO::Handle object
+    elsif(UNIVERSAL::isa($sFile, 'IO::Handle')) {
+        $oIo = $sFile;
+        binmode($oIo);
+    }
+    #3. $sFile is a simple filename string
+    elsif(!ref($sFile)) {
+        $oIo = IO::File->new;
+        $oIo->open("<$sFile") || return undef;
+        binmode($oIo);
+    }
+    my $sWk;
+    my $sBuff ='';
 
-        while($oIo->read($sWk, 4096)) { #4_096 has no special meanings
-            $sBuff .= $sWk;
-        }
-        $oIo->close();
-        #Not Excel file (simple method)
-        return (undef, undef) if (substr($sBuff, 0, 1) ne "\x09");
-        return ($sBuff, length($sBuff));
+    while($oIo->read($sWk, 4096)) { #4_096 has no special meanings
+        $sBuff .= $sWk;
     }
-    else {
-        return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
-    }
+    $oIo->close();
+    #Not Excel file (simple method)
+    return (undef, undef) if (substr($sBuff, 0, 1) ne "\x09");
+    return ($sBuff, length($sBuff));
 }
 #------------------------------------------------------------------------------
 # _subBOF (for Spreadsheet::ParseExcel) Developers' Kit : P303

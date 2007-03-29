@@ -1,5 +1,9 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.29 2007.03.30
+    - clean up basic.t to skip tests that need additional and missing module
+    - No more need for IO::Scalar if PERLIO is available (H.Merijn Brand)
+
 0.28 Wed Jan  7, 2007
     - Documentation update
     - Add t/parse.t

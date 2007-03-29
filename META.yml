@@ -1,6 +1,6 @@
 ---
 name: Spreadsheet-ParseExcel
-version: 0.28
+version: 0.29
 author:
   - Kawai Takanori
 abstract: Get information from Excel file
@@ -16,7 +16,7 @@ build_requires:
 provides:
   Spreadsheet::ParseExcel:
     file: lib/Spreadsheet/ParseExcel.pm
-    version: 0.28
+    version: 0.29
   Spreadsheet::ParseExcel::Cell:
     file: lib/Spreadsheet/ParseExcel.pm
   Spreadsheet::ParseExcel::Dump:
@@ -40,13 +40,13 @@ provides:
     file: lib/Spreadsheet/ParseExcel.pm
   Spreadsheet::ParseExcel::SaveParser:
     file: lib/Spreadsheet/ParseExcel/SaveParser.pm
-    version: 0.01
+    version: 0.06
   Spreadsheet::ParseExcel::SaveParser::Workbook:
     file: lib/Spreadsheet/ParseExcel/SaveParser.pm
     version: 0.06
   Spreadsheet::ParseExcel::SaveParser::Worksheet:
     file: lib/Spreadsheet/ParseExcel/SaveParser.pm
-    version: 0.01
+    version: 0.06
   Spreadsheet::ParseExcel::Utility:
     file: lib/Spreadsheet/ParseExcel/Utility.pm
     version: 0.06
@@ -54,7 +54,7 @@ provides:
     file: lib/Spreadsheet/ParseExcel.pm
   Spreadsheet::ParseExcel::Worksheet:
     file: lib/Spreadsheet/ParseExcel.pm
-generated_by: Module::Build version 0.2805
+generated_by: Module::Build version 0.2806
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

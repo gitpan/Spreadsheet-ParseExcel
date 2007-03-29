@@ -16,6 +16,8 @@ REQUIREMENT
         OLE::Storage_Lite
         Jcode.pm    (if you are using FmtJapan, or FmtJapan2)
         Unicode::Map    (if you are using FmtJapan2 or FmtUnicode)
+        IO::Scalar if PERLIO is not available
+        Spreadsheet::WriteExcel (to use Spreadsheet::ParseExcel::SaveParser)
 
 INSTALLATION
     The module can be installed using the standard Perl procedure:
@@ -55,18 +57,11 @@ map:     (which you copied directry)/CP932Excel.map
 # Don't remove this line
 
 
-VERSION
-    This document refers to version 0.2602 of Spreadsheet::ParseExcel,
-    released Jul 15, 2002.
-
 AUTHOR
     Kawai Takanori (kwitknr@cpan.org)
 
-SUPPORT
-    Of course, I'll welcome e-mails.
-    And now, I have a Wiki-clone. If you have a question or suggestion, 
-    please let me know with Wiki.
+    Maintainer: Gabor Szabo (szabgab@cpan.org)
 
-  KbWiki
-    http://www.hippo2000.info/cgi-bin/KbWikiE/KbWiki.pl (English)
-    http://www.hippo2000.info/cgi-bin/KbWiki/KbWiki.pl  (Japanese)
+SUPPORT
+    Please use RT for bug reports and CPAN::Forum for general quesions
+    and discussion.
