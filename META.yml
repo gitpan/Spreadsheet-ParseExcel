@@ -1,6 +1,6 @@
 ---
 name: Spreadsheet-ParseExcel
-version: 0.29
+version: 0.30
 author:
   - Kawai Takanori
 abstract: Get information from Excel file
@@ -9,14 +9,14 @@ resources:
   license: http://dev.perl.org/licenses/
 requires:
   IO::File: 0
-  IO::Scalar: 0
   OLE::Storage_Lite: 0.08
+  Scalar::Util: 0
 build_requires:
   Test::More: 0.47
 provides:
   Spreadsheet::ParseExcel:
     file: lib/Spreadsheet/ParseExcel.pm
-    version: 0.29
+    version: 0.30
   Spreadsheet::ParseExcel::Cell:
     file: lib/Spreadsheet/ParseExcel.pm
   Spreadsheet::ParseExcel::Dump:

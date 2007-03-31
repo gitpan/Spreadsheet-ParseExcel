@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.30 2007.03.31
+    - add some more tests
+    - add test to see memory leak using Proc::ProcessTable
+    - Start using Scalar::Util qw(weaken) to (hopefully) avoid memory leak
+    - It seems we did not check correctly if PERLIO is available in Makefile.PL
+      now it is the same test we do in the code itself.
+    - Flag1904 renamed to Flg1904 in documentation (Chad) RT #24293
+
 0.29 2007.03.30
     - clean up basic.t to skip tests that need additional and missing module
     - No more need for IO::Scalar if PERLIO is available (H.Merijn Brand)

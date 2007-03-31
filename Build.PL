@@ -6,9 +6,13 @@ use Config;
 my %deps = (
     'OLE::Storage_Lite'   => 0.08,
     'IO::File'            => 0,
+    'Scalar::Util'        => 0,
+    'IO::Scalar'          => 0,
 );
-exists $Config{useperlio} && $Config{useperlio} eq "define" and
-    $deps{'IO::Scalar'}   =  0;
+
+if (exists $Config{useperlio} && $Config{useperlio} eq "define") {
+    delete $deps{'IO::Scalar'};
+}
 
 
 my $builder = Module::Build->new(

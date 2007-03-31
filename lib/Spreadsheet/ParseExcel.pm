@@ -14,26 +14,26 @@ use strict;
 use warnings;
 
 sub new {
-    my ($sClass) = @_;
-    my $oThis = {};
-    bless $oThis, $sClass;
+    my ($class) = @_;
+    my $self = {};
+    bless $self, $class;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Workbook->ParseAbort
 #------------------------------------------------------------------------------
 sub ParseAbort {
-    my($oThis, $sVal) =@_;
-    $oThis->{_ParseAbort} = $sVal;
+    my($self, $val) =@_;
+    $self->{_ParseAbort} = $val;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Workbook->Parse
 #------------------------------------------------------------------------------
 sub Parse {
-    my($sClass, $sFile, $oFmt) =@_;
-    my $_oEx = Spreadsheet::ParseExcel->new;
-    my $oBook = $_oEx->Parse($sFile, $oFmt);
-    $oBook->{_Excel} = $_oEx;
-    $oBook;
+    my($class, $source, $oFmt) =@_;
+    my $excel = Spreadsheet::ParseExcel->new;
+    my $workbook = $excel->Parse($source, $oFmt);
+    $workbook->{_Excel} = $excel;
+    return $workbook;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Workbook Worksheet
@@ -49,6 +49,11 @@ sub Worksheet {
     }
     return undef;
 }
+
+#DESTROY {
+#    my ($self) = @_;
+#    warn "DESTROY $self called\n"
+#}
 #==============================================================================
 # Spreadsheet::ParseExcel::Worksheet
 #==============================================================================
@@ -59,14 +64,16 @@ use overload
     '0+'        => \&sheetNo,
     'fallback'  => 1,
 ;
+use Scalar::Util qw(weaken);
 
 sub new {
-    my ($sClass, %rhIni) = @_;
-    my $oThis = \%rhIni;
+    my ($class, %rhIni) = @_;
+    my $self = \%rhIni;
+    weaken $self->{_Book};
 
-    $oThis->{Cells}=undef;
-    $oThis->{DefColWidth}=8.38;
-    bless $oThis, $sClass;
+    $self->{Cells}=undef;
+    $self->{DefColWidth}=8.38;
+    bless $self, $class;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel::Worksheet->sheetNo
@@ -115,6 +122,10 @@ sub ColRange {
     return($iMin, $iMax);
 }
 
+#DESTROY {
+#    my ($self) = @_;
+#    warn "DESTROY $self called\n"
+#}
 #==============================================================================
 # Spreadsheet::ParseExcel::Font
 #==============================================================================
@@ -123,11 +134,16 @@ use strict;
 use warnings;
 
 sub new {
-    my($sClass, %rhIni) = @_;
-    my $oThis = \%rhIni;
+    my($class, %rhIni) = @_;
+    my $self = \%rhIni;
 
-    bless $oThis, $sClass;
+    bless $self, $class;
 }
+#DESTROY {
+#    my ($self) = @_;
+#    warn "DESTROY $self called\n"
+#}
+
 #==============================================================================
 # Spreadsheet::ParseExcel::Format
 #==============================================================================
@@ -136,11 +152,16 @@ use strict;
 use warnings;
 
 sub new {
-    my($sClass, %rhIni) = @_;
-    my $oThis = \%rhIni;
+    my($class, %rhIni) = @_;
+    my $self = \%rhIni;
 
-    bless $oThis, $sClass;
+    bless $self, $class;
 }
+
+#DESTROY {
+#    my ($self) = @_;
+#    warn "DESTROY $self called\n"
+#}
 
 #==============================================================================
 # Spreadsheet::ParseExcel::Cell
@@ -152,15 +173,20 @@ use warnings;
 sub new {
     my($sPkg, %rhKey)=@_;
     my($sWk, $iLen);
-    my $oThis = \%rhKey;
+    my $self = \%rhKey;
 
-    bless $oThis, $sPkg;
+    bless $self, $sPkg;
 }
 
 sub Value {
-    my($oThis)=@_;
-    return $oThis->{_Value};
+    my($self)=@_;
+    return $self->{_Value};
 }
+#DESTROY {
+#    my ($self) = @_;
+#    warn "DESTROY $self called\n"
+#}
+
 #==============================================================================
 # Spreadsheet::ParseExcel
 #==============================================================================
@@ -171,7 +197,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 my @aColor =
 (
@@ -278,7 +304,7 @@ my $_use_perlio;
 # Spreadsheet::ParseExcel->new
 #------------------------------------------------------------------------------
 sub new {
-    my ($sPkg, %hParam) =@_;
+    my ($class, %hParam) =@_;
 
     if (not defined $_use_perlio) {
        if (exists $Config{useperlio} && $Config{useperlio} eq "define") {
@@ -290,116 +316,68 @@ sub new {
        }
     }
 
-
-
-#0. Check ENDIAN(Little: Interl etc. BIG: Sparc etc)
+    # Check ENDIAN(Little: Interl etc. BIG: Sparc etc)
     $BIGENDIAN = (defined $hParam{Endian})? $hParam{Endian} :
                     (unpack("H08", pack("L", 2)) eq '02000000')? 0: 1;
-    my $oThis = {};
-    bless $oThis, $sPkg;
+    my $self = {};
+    bless $self, $class;
 
-#1. Set Parameter
-#1.1 Get Content
-    $oThis->{GetContent} = \&_subGetContent;
+    $self->{GetContent} = \&_subGetContent;
 
-#1.2 Set Event Handler
-    if($hParam{EventHandlers}) {
-        $oThis->SetEventHandlers($hParam{EventHandlers});
-    }
-    else {
-        $oThis->SetEventHandlers(\%ProcTbl);
+    if ($hParam{EventHandlers}) {
+        $self->SetEventHandlers($hParam{EventHandlers});
+    } else {
+        $self->SetEventHandlers(\%ProcTbl);
     }
     if($hParam{AddHandlers}) {
         foreach my $sKey (keys(%{$hParam{AddHandlers}})) {
-            $oThis->SetEventHandler($sKey, $hParam{AddHandlers}->{$sKey});
+            $self->SetEventHandler($sKey, $hParam{AddHandlers}->{$sKey});
         }
     }
-#Experimental
     $_CellHandler = $hParam{CellHandler} if($hParam{CellHandler});
     $_NotSetCell  = $hParam{NotSetCell};
     $_Object      = $hParam{Object};
 
-    return $oThis;
+    return $self;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel->SetEventHandler
 #------------------------------------------------------------------------------
 sub SetEventHandler {
-    my($oThis, $sKey, $oFunc) = @_;
-    $oThis->{FuncTbl}->{$sKey} = $oFunc;
+    my($self, $key, $sub_ref) = @_;
+    $self->{FuncTbl}->{$key} = $sub_ref;
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel->SetEventHandlers
 #------------------------------------------------------------------------------
 sub SetEventHandlers {
-    my($oThis, $rhTbl) = @_;
-    $oThis->{FuncTbl} = undef;
+    my($self, $rhTbl) = @_;
+    $self->{FuncTbl} = undef;
     foreach my $sKey (keys %$rhTbl) {
-        $oThis->{FuncTbl}->{$sKey} = $rhTbl->{$sKey};
+        $self->{FuncTbl}->{$sKey} = $rhTbl->{$sKey};
     }
 }
 #------------------------------------------------------------------------------
 # Spreadsheet::ParseExcel->Parse
 #------------------------------------------------------------------------------
 sub Parse {
-    my($oThis, $sFile, $oWkFmt)=@_;
-    my($sWk, $bLen);
+    my($self, $source, $oWkFmt)=@_;
 
-#0. New $oBook
     my $oBook = Spreadsheet::ParseExcel::Workbook->new;
     $oBook->{SheetCount} = 0;
 
-#1.Get content
-    my($sBIFF, $iLen);
-    
-    if(ref($sFile) eq "SCALAR") {
-#1.1 Specified by Buffer
-        ($sBIFF, $iLen) = $oThis->{GetContent}->($sFile);
-        return undef unless($sBIFF);
-    }
-#1.2 Specified by Other Things(HASH reference etc)
-#    elsif(ref($sFile)) {
-#        return undef;
-#    }
-#1.2 Specified by GLOB reference
-     elsif((ref($sFile) =~ /GLOB/) or
-           (ref($sFile) eq 'Fh')) { #For CGI.pm (Light FileHandle)
-        binmode($sFile);
-        my $sWk;
-        my $sBuff='';
-        while(read($sFile, $sWk, 4096)) {
-            $sBuff .= $sWk;
-        }                
-        ($sBIFF, $iLen) = $oThis->{GetContent}->(\$sBuff);
-        return undef unless($sBIFF);
-     }
-    elsif(ref($sFile) eq 'ARRAY') {
-#1.3 Specified by File content
-        $oBook->{File} = undef;
-        my $sData = join('', @$sFile);
-        ($sBIFF, $iLen) = $oThis->{GetContent}->(\$sData);
-        return undef unless($sBIFF);
-    }
-    else {
-#1.4 Specified by File name
-        $oBook->{File} = $sFile;
-        return undef unless (-e $sFile);
-        ($sBIFF, $iLen) = $oThis->{GetContent}->($sFile);
-        return undef unless($sBIFF);
-    }
+    my ($sBIFF, $iLen) = $self->_get_content($source, $oBook);
+    return undef if not $sBIFF;
 
-#2. Ready for format
     if ($oWkFmt) {
         $oBook->{FmtClass} = $oWkFmt;
-    }
-    else {
-#        require Spreadsheet::ParseExcel::FmtDefault;
+    } else {
         $oBook->{FmtClass} = Spreadsheet::ParseExcel::FmtDefault->new;
     }
 
-#3. Parse content
+    #3. Parse content
     my $lPos = 0;
-    $sWk = substr($sBIFF, $lPos, 4);
+    my $sWk = substr($sBIFF, $lPos, 4);
     $lPos += 4;
     my $iEfFlg = 0;
     while($lPos<=$iLen) {
@@ -408,18 +386,16 @@ sub Parse {
             $sWk = substr($sBIFF, $lPos, $bLen);
             $lPos += $bLen;
         }
-#printf STDERR "%4X:%s\n", $bOp, 'UNDEFIND---:' . unpack("H*", $sWk) unless($NameTbl{$bOp});
+        #printf STDERR "%4X:%s\n", $bOp, 'UNDEFIND---:' . unpack("H*", $sWk) unless($NameTbl{$bOp});
         #Check EF, EOF
         if($bOp == 0xEF) {    #EF
             $iEfFlg = $bOp;
-        }
-        elsif($bOp == 0x0A) { #EOF
+        } elsif($bOp == 0x0A) { #EOF
             undef $iEfFlg;
         }
-        unless($iEfFlg) {
         #1. Formula String with No String 
-            if($oBook->{_PrevPos} && (defined $oThis->{FuncTbl}->{$bOp}) &&
-                ($bOp != 0x207)) {
+        if (not $iEfFlg) {
+            if($oBook->{_PrevPos} && (defined $self->{FuncTbl}->{$bOp}) && ($bOp != 0x207)) {
                 my $iPos = $oBook->{_PrevPos};
                 $oBook->{_PrevPos} = undef;
                 my ($iR, $iC, $iF) = @$iPos; 
@@ -434,28 +410,67 @@ sub Parse {
                     Book    => $oBook,
                 );                         
             }
-            if(defined $oThis->{FuncTbl}->{$bOp}) {
-                $oThis->{FuncTbl}->{$bOp}->($oBook, $bOp, $bLen, $sWk);
+            if(defined $self->{FuncTbl}->{$bOp}) {
+                $self->{FuncTbl}->{$bOp}->($oBook, $bOp, $bLen, $sWk);
             }
             $PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
         }
-        $sWk = substr($sBIFF, $lPos, 4) if(($lPos+4) <= $iLen);
-        $lPos += 4;
-        #Abort Parse
-        if(defined $oBook->{_ParseAbort}) {
-            return $oBook;
+        if (($lPos+4) <= $iLen) {
+            $sWk = substr($sBIFF, $lPos, 4);
         }
+        $lPos += 4;
+        return $oBook if defined $oBook->{_ParseAbort};
     }
-#4.return $oBook
     return $oBook;
 }
+
+# $source is either filename or open filehandle or array of string or scalar
+# referernce
+# $oBook is passed to be updated
+sub _get_content {
+    my ($self, $source, $oBook) = @_;
+
+    if(ref($source) eq "SCALAR") {
+        #1.1 Specified by Buffer
+        my ($sBIFF, $iLen) = $self->{GetContent}->($source);
+        return $sBIFF ? ($sBIFF, $iLen) : (undef);
+    }
+        #1.2 Specified by Other Things(HASH reference etc)
+        #    elsif(ref($source)) {
+        #        return undef;
+        #    }
+        #1.2 Specified by GLOB reference
+     elsif((ref($source) =~ /GLOB/) or
+           (ref($source) eq 'Fh')) { #For CGI.pm (Light FileHandle)
+        binmode($source);
+        my $sWk;
+        my $sBuff='';
+        while(read($source, $sWk, 4096)) {
+            $sBuff .= $sWk;
+        }                
+        my ($sBIFF, $iLen) = $self->{GetContent}->(\$sBuff);
+        return $sBIFF ? ($sBIFF, $iLen) : (undef);
+     } elsif(ref($source) eq 'ARRAY') {
+        #1.3 Specified by File content
+        $oBook->{File} = undef;
+        my $sData = join('', @$source);
+        my ($sBIFF, $iLen) = $self->{GetContent}->(\$sData);
+        return $sBIFF ? ($sBIFF, $iLen) : (undef);
+    } else {
+        #1.4 Specified by File name
+        $oBook->{File} = $source;
+        return undef unless (-e $source);
+        my ($sBIFF, $iLen) = $self->{GetContent}->($source);
+        return $sBIFF ? ($sBIFF, $iLen) : (undef);
+    }
+}
+
+
 #------------------------------------------------------------------------------
 # _subGetContent (for Spreadsheet::ParseExcel)
 #------------------------------------------------------------------------------
 sub _subGetContent {
-    my($sFile)=@_;
-    
-    # warn qq{_subGetContent called; sFile:}, ref $sFile;
+    my ($sFile) = @_;
     
     my $oOl = OLE::Storage_Lite->new($sFile);
     return (undef, undef) unless($oOl);
@@ -517,7 +532,7 @@ sub _subBOF {
         $oBook->{_CurSheet_} = -1; 
     }
     #Worksheeet or Dialogsheet
-    elsif($iDt != 0x0020) {  #if($iDt == 0x0010) {
+    elsif($iDt != 0x0020) {  #if($iDt == 0x0010) 
         if(defined $oBook->{_CurSheet_}) {
             $oBook->{_CurSheet} = $oBook->{_CurSheet_} + 1;
             $oBook->{_CurSheet_}++; 
@@ -1021,8 +1036,8 @@ sub _subSST {
 #------------------------------------------------------------------------------
 sub _subContinue {
     my($oBook, $bOp, $bLen, $sWk) = @_;
-    #if(defined $oThis->{FuncTbl}->{$bOp}) {
-    #    $oThis->{FuncTbl}->{$PREFUNC}->($oBook, $bOp, $bLen, $sWk);
+    #if(defined $self->{FuncTbl}->{$bOp}) {
+    #    $self->{FuncTbl}->{$PREFUNC}->($oBook, $bOp, $bLen, $sWk);
     #}
 
     _subStrWk($oBook, $sWk, 1) if($PREFUNC == 0xFC);
@@ -1933,6 +1948,12 @@ sub ColorIdxToRGB {
     my($sPkg, $iIdx) = @_;
     return ((defined $aColor[$iIdx])? $aColor[$iIdx] : $aColor[0]);
 }
+
+#DESTROY {
+#    my ($self) = @_;
+#    warn "DESTROY $self called\n"
+#}
+
 1;
 __END__
 
@@ -2097,7 +2118,7 @@ Name of the file
 
 Author of the file
 
-=item Flag1904
+=item Flg1904
 
 If this flag is on, date of the file count from 1904.
 
@@ -2575,11 +2596,11 @@ You will see the same result.
 
 =head1 AUTHOR
 
-Maintainer: Gabor Szabo szabgab@cpan.org
+Current maintainer: Gabor Szabo szabgab@cpan.org
 
     http://www.szabgab.com/
 
-Kawai Takanori (Hippo2000) kwitknr@cpan.org
+Original author: Kawai Takanori (Hippo2000) kwitknr@cpan.org
 
     http://member.nifty.ne.jp/hippo2000/            (Japanese)
     http://member.nifty.ne.jp/hippo2000/index_e.htm (English)
@@ -2594,6 +2615,8 @@ XLSTools: http://perl.jonallen.info/projects/xlstools
 
 =head1 TODO
 
+- Add tests, and more tests
+
 - Spreadsheet::ParseExcel : 
  Password protected data, Formulas support, HyperLink support, 
  Named Range support
@@ -2601,8 +2624,22 @@ XLSTools: http://perl.jonallen.info/projects/xlstools
 - Spreadsheet::ParseExcel::SaveParser :
  Catch up Spreadsheet::WriteExce feature, Create new Excel fle
 
+See also:
+
+ L<http://www.cpanforum.com/dist/Spreadsheet-ParseExcel>
+
+ and
+
+ http://www.perlmonks.org/index.pl?node_id=490656
+ http://www.perlmonks.org/index.pl?node_id=379743 
+ http://www.perlmonks.org/index.pl?node_id=433192
+ http://www.perlmonks.org/index.pl?node_id=422147
+
+
+
 =head1 COPYRIGHT
 
+Copyright (c) 2006-2007 Gabor Szabo
 Copyright (c) 2000-2006 Kawai Takanori
 All rights reserved.
 

@@ -58,10 +58,18 @@ map:     (which you copied directry)/CP932Excel.map
 
 
 AUTHOR
-    Kawai Takanori (kwitknr@cpan.org)
+    Current maintainer: Gabor Szabo (szabgab@cpan.org)
 
-    Maintainer: Gabor Szabo (szabgab@cpan.org)
+    Original author: Kawai Takanori (kwitknr@cpan.org)
+
 
 SUPPORT
-    Please use RT for bug reports and CPAN::Forum for general quesions
+    Please use RT for bug reports and CPAN::Forum for general questions
     and discussion.
+
+    In case you want to show an example Excel file with a problem, either
+    attach it to your RT report or contact the maintainer by e-mail.
+
+    Test cases are always welcome.
+
+
