@@ -11,7 +11,8 @@ my %deps = (
 );
 
 if (exists $Config{useperlio} && $Config{useperlio} eq "define") {
-    delete $deps{'IO::Scalar'};
+    print "\$Config{useperlio} is defined, removing requirement of IO::Scalar\n";
+#    delete $deps{'IO::Scalar'};
 }
 
 

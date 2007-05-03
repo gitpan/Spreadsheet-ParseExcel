@@ -8,18 +8,18 @@ README_Japan.htm
 META.yml
 
 t/basic.t
-t/sample.t
+#t/sample.t
 t/parse.t
 t/memory_leak.t
 t/pod.t
-t/examples/sample_j.t
-t/examples/sample.t
-t/examples/sampleOEM.t
-t/examples/chkFmt.t
-t/examples/chkInfo.t
-t/examples/dmpExR.t
-t/examples/warning.t
-t/examples/iftest.t
+#t/examples/sample_j.t
+#t/examples/sample.t
+#t/examples/sampleOEM.t
+#t/examples/chkFmt.t
+#t/examples/chkInfo.t
+#t/examples/dmpExR.t
+#t/examples/warning.t
+#t/examples/iftest.t
 t/lib/Test/Example.pm
 
 lib/Spreadsheet/ParseExcel.pm
