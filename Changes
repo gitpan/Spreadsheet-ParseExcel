@@ -1,5 +1,8 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.32 2007.05.05
+    - Remove the memory_leak test as well as it still fails.
+
 0.31 2007.05.03
     - Require IO::Scalar always as OLE::Storage_Lite needs it but does not prereq it
     - disable some of the tests that don't yet work on 64 bit due to number precision

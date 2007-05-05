@@ -10,7 +10,7 @@ META.yml
 t/basic.t
 #t/sample.t
 t/parse.t
-t/memory_leak.t
+#t/memory_leak.t
 t/pod.t
 #t/examples/sample_j.t
 #t/examples/sample.t

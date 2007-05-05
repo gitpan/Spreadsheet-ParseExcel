@@ -1,6 +1,6 @@
 ---
 name: Spreadsheet-ParseExcel
-version: 0.31
+version: 0.32
 author:
   - Kawai Takanori
 abstract: Get information from Excel file
@@ -17,7 +17,7 @@ build_requires:
 provides:
   Spreadsheet::ParseExcel:
     file: lib/Spreadsheet/ParseExcel.pm
-    version: 0.31
+    version: 0.32
   Spreadsheet::ParseExcel::Cell:
     file: lib/Spreadsheet/ParseExcel.pm
   Spreadsheet::ParseExcel::Dump:

@@ -197,7 +197,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 my @aColor =
 (
