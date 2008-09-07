@@ -5,191 +5,6 @@
 #//////////////////////////////////////////////////////////////////////////////
 # Spreadsheet::ParseExcel Objects
 #//////////////////////////////////////////////////////////////////////////////
-use Spreadsheet::ParseExcel::FmtDefault;
-#==============================================================================
-# Spreadsheet::ParseExcel::Workbook
-#==============================================================================
-package Spreadsheet::ParseExcel::Workbook;
-use strict;
-use warnings;
-
-sub new {
-    my ($class) = @_;
-    my $self = {};
-    bless $self, $class;
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Workbook->ParseAbort
-#------------------------------------------------------------------------------
-sub ParseAbort {
-    my($self, $val) =@_;
-    $self->{_ParseAbort} = $val;
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Workbook->Parse
-#------------------------------------------------------------------------------
-sub Parse {
-    my($class, $source, $oFmt) =@_;
-    my $excel = Spreadsheet::ParseExcel->new;
-    my $workbook = $excel->Parse($source, $oFmt);
-    $workbook->{_Excel} = $excel;
-    return $workbook;
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Workbook Worksheet
-#------------------------------------------------------------------------------
-sub Worksheet {
-    my($oBook, $sName) =@_;
-    my $oWkS;
-    foreach $oWkS (@{$oBook->{Worksheet}}) {
-        return $oWkS if($oWkS->{Name} eq $sName);
-    }
-    if($sName =~ /^\d+$/) {
-        return $oBook->{Worksheet}->[$sName];
-    }
-    return undef;
-}
-
-#DESTROY {
-#    my ($self) = @_;
-#    warn "DESTROY $self called\n"
-#}
-#==============================================================================
-# Spreadsheet::ParseExcel::Worksheet
-#==============================================================================
-package Spreadsheet::ParseExcel::Worksheet;
-use strict;
-use warnings;
-use overload 
-    '0+'        => \&sheetNo,
-    'fallback'  => 1,
-;
-use Scalar::Util qw(weaken);
-
-sub new {
-    my ($class, %rhIni) = @_;
-    my $self = \%rhIni;
-    weaken $self->{_Book};
-
-    $self->{Cells}=undef;
-    $self->{DefColWidth}=8.38;
-    bless $self, $class;
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Worksheet->sheetNo
-#------------------------------------------------------------------------------
-sub sheetNo {
-    my($oSelf) = @_;
-    return $oSelf->{_SheetNo};
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Worksheet->Cell
-#------------------------------------------------------------------------------
-sub Cell {
-    my($oSelf, $iR, $iC) = @_;
-
-    # return undef if no arguments are given or if no cells are defined
-    return  if ((!defined($iR)) || (!defined($iC)) ||
-                (!defined($oSelf->{MaxRow})) || (!defined($oSelf->{MaxCol})));
-    
-    # return undef if outside defined rectangle
-    return  if (($iR < $oSelf->{MinRow}) || ($iR > $oSelf->{MaxRow}) ||
-                ($iC < $oSelf->{MinCol}) || ($iC > $oSelf->{MaxCol}));
-    
-    # return the Cell object
-    return $oSelf->{Cells}[$iR][$iC];
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Worksheet->RowRange
-#------------------------------------------------------------------------------
-sub RowRange {
-    my($oSelf) = @_;
-    my $iMin = $oSelf->{MinRow} || 0;
-    my $iMax = defined($oSelf->{MaxRow}) ? $oSelf->{MaxRow} : ($iMin-1);
-
-    # return the range
-    return($iMin, $iMax);
-}
-#------------------------------------------------------------------------------
-# Spreadsheet::ParseExcel::Worksheet->ColRange
-#------------------------------------------------------------------------------
-sub ColRange {
-    my($oSelf) = @_;
-    my $iMin = $oSelf->{MinCol} || 0;
-    my $iMax = defined($oSelf->{MaxCol}) ? $oSelf->{MaxCol} : ($iMin-1);
-
-    # return the range
-    return($iMin, $iMax);
-}
-
-#DESTROY {
-#    my ($self) = @_;
-#    warn "DESTROY $self called\n"
-#}
-#==============================================================================
-# Spreadsheet::ParseExcel::Font
-#==============================================================================
-package Spreadsheet::ParseExcel::Font;
-use strict;
-use warnings;
-
-sub new {
-    my($class, %rhIni) = @_;
-    my $self = \%rhIni;
-
-    bless $self, $class;
-}
-#DESTROY {
-#    my ($self) = @_;
-#    warn "DESTROY $self called\n"
-#}
-
-#==============================================================================
-# Spreadsheet::ParseExcel::Format
-#==============================================================================
-package Spreadsheet::ParseExcel::Format;
-use strict;
-use warnings;
-
-sub new {
-    my($class, %rhIni) = @_;
-    my $self = \%rhIni;
-
-    bless $self, $class;
-}
-
-#DESTROY {
-#    my ($self) = @_;
-#    warn "DESTROY $self called\n"
-#}
-
-#==============================================================================
-# Spreadsheet::ParseExcel::Cell
-#==============================================================================
-package Spreadsheet::ParseExcel::Cell;
-use strict;
-use warnings;
-
-sub new {
-    my($sPkg, %rhKey)=@_;
-    my($sWk, $iLen);
-    my $self = \%rhKey;
-
-    bless $self, $sPkg;
-}
-
-sub Value {
-    my($self)=@_;
-    return $self->{_Value};
-}
-#DESTROY {
-#    my ($self) = @_;
-#    warn "DESTROY $self called\n"
-#}
-
-#==============================================================================
-# Spreadsheet::ParseExcel
-#==============================================================================
 package Spreadsheet::ParseExcel;
 use strict;
 use warnings;
@@ -197,7 +12,15 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.32';
+our $VERSION = '0.33';
+
+use Spreadsheet::ParseExcel::Workbook;
+use Spreadsheet::ParseExcel::Worksheet;
+use Spreadsheet::ParseExcel::Font;
+use Spreadsheet::ParseExcel::Format;
+use Spreadsheet::ParseExcel::Cell;
+use Spreadsheet::ParseExcel::FmtDefault;
+
 
 my @aColor =
 (
@@ -232,13 +55,13 @@ my %ProcTbl =(
     0x14    => \&_subHeader,            # Header
     0x15    => \&_subFooter,            # Footer
     0x18    => \&_subName,              # NAME(?)
-    0x1A    => \&_subVPageBreak,        # Veritical Page Break
+    0x1A    => \&_subVPageBreak,        # Vertical Page Break
     0x1B    => \&_subHPageBreak,        # Horizontal Page Break
     0x22    => \&_subFlg1904,           # 1904 Flag
-    0x26    => \&_subMergin,            # Left Mergin
-    0x27    => \&_subMergin,            # Right Mergin
-    0x28    => \&_subMergin,            # Top Mergin
-    0x29    => \&_subMergin,            # Bottom Mergin
+    0x26    => \&_subMergin,            # Left Margin
+    0x27    => \&_subMergin,            # Right Margin
+    0x28    => \&_subMergin,            # Top Margin
+    0x29    => \&_subMergin,            # Bottom Margin
     0x2A    => \&_subPrintHeaders,      # Print Headers
     0x2B    => \&_subPrintGridlines,    # Print Gridlines
     0x3C    => \&_subContinue,          # Continue
@@ -386,7 +209,7 @@ sub Parse {
             $sWk = substr($sBIFF, $lPos, $bLen);
             $lPos += $bLen;
         }
-        #printf STDERR "%4X:%s\n", $bOp, 'UNDEFIND---:' . unpack("H*", $sWk) unless($NameTbl{$bOp});
+        #printf STDERR "%4X:%s\n", $bOp, 'UNDEFINED---:' . unpack("H*", $sWk) unless($NameTbl{$bOp});
         #Check EF, EOF
         if($bOp == 0xEF) {    #EF
             $iEfFlg = $bOp;
@@ -425,7 +248,7 @@ sub Parse {
 }
 
 # $source is either filename or open filehandle or array of string or scalar
-# referernce
+# reference
 # $oBook is passed to be updated
 sub _get_content {
     my ($self, $source, $oBook) = @_;
@@ -1771,11 +1594,11 @@ sub _UnpackRKRec {
         # http://rt.cpan.org/Ticket/Display.html?id=18063
         my $u31 = unpack("c",substr($sWk, 3, 1)) & 0xFC;
         $u31 |= 0xFFFFFF00 if ($u31 & 0x80); # raise neg bits for neg 1-byte value
-        substr($sWk, 3, 1) &= pack('c', $u31);
+        substr($sWk, 3, 1) &= pack('U', $u31);
 
         my $u01 = unpack("c",substr($lWk, 0, 1)) & 0xFC;
         $u01 |= 0xFFFFFF00 if ($u01 & 0x80); # raise neg bits for neg 1-byte value
-        substr($lWk, 0, 1) &= pack('c', $u01);
+        substr($lWk, 0, 1) &= pack('U', $u01);
 
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk)/ 100);
     }
@@ -1902,18 +1725,23 @@ sub _NewCell {
     my($sWk, $iLen);
     return undef unless(defined $oBook->{_CurSheet});
 
+    my $FmtClass = $oBook->{FmtClass};
+    $rhKey{Type} = $FmtClass->ChkType ($rhKey{Numeric}, $rhKey{Format}{FmtIdx});
+    my $FmtStr = $oBook->{FormatStr}{$rhKey{Format}{FmtIdx}};
+    defined $FmtStr && $rhKey{Type} eq "Numeric" && $rhKey{Kind} eq "MulRK" &&
+	$FmtStr =~ m{^[dmy][-\\/dmy]*$} and
+	    $rhKey{Type} = "Date";
+
     my $oCell = 
         Spreadsheet::ParseExcel::Cell->new(
             Val     => $rhKey{Val},
             FormatNo=> $rhKey{FormatNo},
             Format  => $rhKey{Format},
             Code    => $rhKey{Code},
-            Type    => $oBook->{FmtClass}->ChkType(
-                            $rhKey{Numeric}, 
-                            $rhKey{Format}->{FmtIdx}),
+            Type    => $rhKey{Type},
         );
     $oCell->{_Kind}  = $rhKey{Kind};
-    $oCell->{_Value} = $oBook->{FmtClass}->ValFmt($oCell, $oBook);
+    $oCell->{_Value} = $FmtClass->ValFmt($oCell, $oBook);
     if($rhKey{Rich}) {
         my @aRich = ();
         my $sRich = $rhKey{Rich};
@@ -2063,7 +1891,7 @@ name of the file to parse
 
 From 0.12 (with OLE::Storage_Lite v.0.06), 
 scalar reference of file contents (ex. \$sBuff) or 
-IO::Handle object (inclucdng IO::File etc.) are also available.
+IO::Handle object (including IO::File etc.) are also available.
 
 =item I<$oFmt>
 
@@ -2076,7 +1904,7 @@ L<"Formatter Class"> to format the value of cells.
 I<$sRGB> = $oParse->ColorIdxToRGB(I<$iColorIdx>);
 
 I<ColorIdxToRGB> returns RGB string corresponding to specified color index.
-RGB string has 6 charcters, representing RGB hex value. (ex. red = 'FF0000')
+RGB string has 6 characters, representing RGB hex value. (ex. red = 'FF0000')
 
 =back
 
@@ -2160,7 +1988,7 @@ Worksheet class has these methods:
 
 =item Cell ( ROW, COL )
 
-Return the Cell iobject at row ROW and column COL if
+Return the Cell object at row ROW and column COL if
 it is defined. Otherwise return undef.
 
 =item RowRange ()
@@ -2203,7 +2031,7 @@ Array of column width (undef means DefColWidth)
 
 =item Cells[Row][Col]
 
-Array of L<"Cell">s infomation in the worksheet
+Array of L<"Cell">s information in the worksheet
 
 =item Landscape
 
@@ -2227,7 +2055,7 @@ Print with fit (or not).
 
 =item PaperSize
 
-Papar size. The value is like below:
+Paper size. The value is like below:
 
   Letter               1, LetterSmall          2, Tabloid              3 ,
   Ledger               4, Legal                5, Statement            6 ,
@@ -2254,7 +2082,7 @@ Use own start page number (or not).
 
 =item LeftMergin, RightMergin, TopMergin, BottomMergin, HeaderMergin, FooterMergin
 
-Mergins for left, right, top, bottom, header and footer.
+Margins for left, right, top, bottom, header and footer.
 
 =item HCenter
 
@@ -2333,6 +2161,9 @@ Original Value of that cell
 =item Type
 
 Kind of that cell ('Text', 'Numeric', 'Date')
+
+If the Type was detected as Numeric, and the field format is defined and
+matches m{^[dmy][-\\/dmy]*$}, it will be set to Date.
 
 =item Code
 
@@ -2414,15 +2245,15 @@ Direction for read.
 
 =item BdrStyle
 
-Array ref of boder styles : [I<Left>, I<Right>, I<Top>, I<Bottom>]
+Array ref of border styles : [I<Left>, I<Right>, I<Top>, I<Bottom>]
 
 =item BdrColor
 
-Array ref of boder color indexes : [I<Left>, I<Right>, I<Top>, I<Bottom>]
+Array ref of border color indexes : [I<Left>, I<Right>, I<Top>, I<Bottom>]
 
 =item BdrDiag
 
-Array ref of diag boder kind, style and color index : [I<Kind>, I<Style>, I<Color>]
+Array ref of diag border kind, style and color index : [I<Kind>, I<Style>, I<Color>]
   Kind : 0: None, 1: Right-Down, 2:Right-Up, 3:Both
 
 =item Fill
@@ -2435,7 +2266,7 @@ Locked (or not).
 
 =item Hidden
 
-Hiddedn (or not).
+Hidden (or not).
 
 =item Style
 
@@ -2584,15 +2415,36 @@ WorkBook object contains that cell
 
 =back
 
-=head1 KNOWN PROBLEM
+=head1 KNOWN PROBLEMS
 
-This module can not get the values of fomulas in 
-Excel files made with Spreadsheet::WriteExcel.
-Normaly (ie. By Excel application), formula has the result with it.
-But Spreadsheet::WriteExcel writes formula with no result.
-If you set your Excel application "Auto Calculation" off.
-(maybe [Tool]-[Option]-[Calculation] or something)
-You will see the same result.
+=over 4
+
+=item *
+
+This module can not get the values of formulas in Excel files made with
+Spreadsheet::WriteExcel.
+Normaly (ie. By Excel application), formula has the result with it, but
+Spreadsheet::WriteExcel writes formula with no result.
+If you set your Excel application "Auto Calculation" off, (maybe
+[Tool]-[Option]-[Calculation] or something) You will see the same result.
+
+=item *
+
+If Excel has date fields where the specified format is equal to what
+happens to be the system-default for the short-date locale setting for
+the current user, Excel does not store the format, but uses the internal
+format number 14, which defaults to "m-d-yy" on every other system.
+
+If Date fields have a format specified, and the date-separation character
+is the same as what happens to be the current date separation character
+for the user's regional setting, that character will change when the user
+changes the character from '/' to '-' or vice-versa. All date formats in
+the sheet will change. This means that if the author of the sheet used
+the date format 'dd-mm-yyyy', and his separation character was '-', the
+fields might be formatted like 'dd/mm/yyyy' on a system where the user
+set his separation character to '/', causing inconsistent date displays.
+
+=back
 
 =head1 AUTHOR
 
@@ -2635,11 +2487,9 @@ See also:
  http://www.perlmonks.org/index.pl?node_id=433192
  http://www.perlmonks.org/index.pl?node_id=422147
 
-
-
 =head1 COPYRIGHT
 
-Copyright (c) 2006-2007 Gabor Szabo
+Copyright (c) 2006-2008 Gabor Szabo
 Copyright (c) 2000-2006 Kawai Takanori
 All rights reserved.
 
@@ -2648,12 +2498,12 @@ License or the Artistic License, as specified in the Perl README file.
 
 =head1 ACKNOWLEDGEMENTS
 
-First of all, I would like to acknowledge valuable program and modules :
+First of all, I would like to acknowledge valuable program and modules:
 XHTML, OLE::Storage and Spreadsheet::WriteExcel.
 
 In no particular order: Yamaji Haruna, Simamoto Takesi, Noguchi Harumi, 
 Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards, 
-Kim Namusk, Slaven Rezić, Grant Stevens, 
+Kim Namusk, Slaven Rezić, Grant Stevens, H.Merijn Brand
 and many many people + Kawai Mikako.
 
 =cut

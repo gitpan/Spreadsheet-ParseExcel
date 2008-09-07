@@ -8,7 +8,7 @@ use warnings;
 
 use Jcode;
 use base 'Spreadsheet::ParseExcel::FmtDefault';
-our $VERSION = '0.05';
+our $VERSION = '0.33';
 
 my %hFmtJapan = (
     0x00 => '@',

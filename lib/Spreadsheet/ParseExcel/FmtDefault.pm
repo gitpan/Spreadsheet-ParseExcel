@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use Spreadsheet::ParseExcel::Utility qw(ExcelFmt);
-our $VERSION = '0.05'; # 
+our $VERSION = '0.33';
 
 my %hFmtDefault = (
     0x00 => '@',
@@ -24,7 +24,7 @@ my %hFmtDefault = (
     0x0B => '0.00E+00',
     0x0C => '# ?/?',
     0x0D => '# ??/??',
-    0x0E => 'm-d-yy',
+    0x0E => 'yyyy-mm-dd', # Was 'm-d-yy', which is bad as system default
     0x0F => 'd-mmm-yy',
     0x10 => 'd-mmm',
     0x11 => 'mmm-yy',
@@ -102,7 +102,7 @@ sub FmtString {
                 $sFmtStr = 'h:mm:ss';
             }
             else {
-                $sFmtStr = 'm-d-yy';
+                $sFmtStr = 'yyyy-mm-dd';
             }
         }
         else {

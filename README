@@ -1,4 +1,3 @@
-
 NAME
     Spreadsheet::ParseExcel - Get information from Excel file
 
@@ -14,9 +13,9 @@ DESCRIPTION
 REQUIREMENT
     This module requires these modules:
         OLE::Storage_Lite
-        Jcode.pm    (if you are using FmtJapan, or FmtJapan2)
-        Unicode::Map    (if you are using FmtJapan2 or FmtUnicode)
-        IO::Scalar if PERLIO is not available
+        Jcode.pm      (if you are using FmtJapan, or FmtJapan2)
+        Unicode::Map  (if you are using FmtJapan2 or FmtUnicode)
+        IO::Scalar    (if PERLIO is not available)
         Spreadsheet::WriteExcel (to use Spreadsheet::ParseExcel::SaveParser)
 
 INSTALLATION
@@ -27,7 +26,7 @@ INSTALLATION
         ./Build test
         ./Bbuild install
 
-        or
+      or
 
         perl Makefile.PL
         make
@@ -35,7 +34,9 @@ INSTALLATION
         make install    # You may need to be root
         make clean      # or make realclean
 
-        or using CPAN.pm or CPANPLUS.pm
+      or using CPAN.pm or CPANPLUS.pm
+
+        cpan Spreadsheet::ParseExcel
 
     Windows users without a working "make" can get nmake from:
         ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
@@ -64,6 +65,9 @@ AUTHOR
 
 
 SUPPORT
+    Before you report problems, please check the "KNOWN PROBLEMS" section
+    in the manual page for Spreadsheet::ParseExcel.
+
     Please use RT for bug reports and CPAN::Forum for general questions
     and discussion.
 
@@ -71,5 +75,3 @@ SUPPORT
     attach it to your RT report or contact the maintainer by e-mail.
 
     Test cases are always welcome.
-
-

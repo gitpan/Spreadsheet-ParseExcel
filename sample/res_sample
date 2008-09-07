@@ -6,7 +6,7 @@ AUTHOR:kawait
 ( 0 , 0 ) =>KABA:ASC
 ( 0 , 1 ) =>This Data is 'ASC Only'
 ( 1 , 0 ) =>Date
-( 1 , 1 ) =>3-23-64
+( 1 , 1 ) =>1964-03-23
 ( 2 , 0 ) =>INTEGER
 ( 2 , 1 ) =>12345
 ( 3 , 0 ) =>Float
@@ -29,7 +29,7 @@ AUTHOR:kawait
 ( 0 , 0 ) =>ASC
 ( 0 , 1 ) =>This Data is 'ASC Only'
 ( 1 , 0 ) =>Date
-( 1 , 1 ) =>3-23-64
+( 1 , 1 ) =>1964-03-23
 ( 2 , 0 ) =>INTEGER
 ( 2 , 1 ) =>12345
 ( 3 , 0 ) =>Float
@@ -46,7 +46,7 @@ AUTHOR:kawait
 ( 0 , 0 ) =>ASC
 ( 0 , 1 ) =>This Data is 'ASC Only'
 ( 1 , 0 ) =>Date
-( 1 , 1 ) =>3-23-64
+( 1 , 1 ) =>1964-03-23
 ( 2 , 0 ) =>INTEGER
 ( 2 , 1 ) =>12345
 ( 3 , 0 ) =>Float
@@ -63,7 +63,7 @@ AUTHOR:kawait
 ( 0 , 0 ) =>ASC
 ( 0 , 1 ) =>This Data is 'ASC Only'
 ( 1 , 0 ) =>Date
-( 1 , 1 ) =>3-23-64
+( 1 , 1 ) =>1964-03-23
 ( 2 , 0 ) =>INTEGER
 ( 2 , 1 ) =>12345
 ( 3 , 0 ) =>Float
@@ -80,7 +80,7 @@ AUTHOR:kawait
 ( 0 , 0 ) =>ASC
 ( 0 , 1 ) =>This Data is 'ASC Only'
 ( 1 , 0 ) =>Date
-( 1 , 1 ) =>3-23-64
+( 1 , 1 ) =>1964-03-23
 ( 2 , 0 ) =>INTEGER
 ( 2 , 1 ) =>12345
 ( 3 , 0 ) =>Float

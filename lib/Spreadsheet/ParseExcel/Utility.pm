@@ -13,7 +13,7 @@ use vars qw(@ISA @EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime 
                 col2int int2col sheetRef xls2csv);
-our $VERSION = '0.06';
+our $VERSION = '0.33';
 
 #my $sNUMEXP = '^[+-]?\d+(\.\d+)?$';
 #my $sNUMEXP = '(^[+-]?\d+(\.\d+)?$)|(^[+-]?\d\.*(\d+)[eE][+-](\d+))$';
@@ -282,7 +282,8 @@ sub ExcelFmt {
                 push @aRep, [substr($sFmtObj, $i, 4), length($sFmtRes), 4];
                 $i+=4;
             }
-            elsif((substr($sFmtObj, $i, 3) eq 'mmm')  ||
+            elsif((substr($sFmtObj, $i, 3) eq 'ddd')  ||
+		  (substr($sFmtObj, $i, 3) eq 'mmm')  ||
                   (substr($sFmtObj, $i, 3) eq 'yyy')) {
                 push @aRep, [substr($sFmtObj, $i, 3), length($sFmtRes), 3];
                 $i+=3;

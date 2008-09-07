@@ -8,7 +8,7 @@ package Spreadsheet::ParseExcel::Dump;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.33;
 
 my %NameTbl = (
 #P291

@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.33 2008.09.07
+    - Default format for formatted dates changed from 'm-d-yy' to 'yyyy-mm-dd'
+    - Numeric fields with date-formats now promote to Date
+    - Added docs about date type 14 problem
+    - skip another test when prereq is missing
+    - split Spreadsheet::ParseExcel::SaveParser into packages
+    - split Spreadsheet::ParseExcel into packages
+
 0.32 2007.05.05
     - Remove the memory_leak test as well as it still fails.
 

@@ -92,6 +92,11 @@ my $workbook_1;
     BEGIN { $tests += 26; }
 }
 
+eval "require IO::Scalar";
+if ($@) {
+    ok (1, "Skipped - no IO::Scalar") for 1..6;
+    }
+else {
 {
     open my $fh, '<','sample/Excel/Test95.xls'; 
     my $workbook = Spreadsheet::ParseExcel::Workbook->Parse($fh);
@@ -123,6 +128,7 @@ my $workbook_1;
     $workbook_1->{File} = undef;
     is_deeply($workbook, $workbook_1);
     BEGIN { $tests += 2; }
+}
 }
 
 
