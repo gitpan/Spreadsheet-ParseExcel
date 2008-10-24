@@ -1,10 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
-0.40 2008.10.24
-    - Changed maintainership to John McNamara.
-    - Fixed bug when parsing RK numbers (generally ints or small floats).
+0.41 24 October 2008
+
+    + Changed maintainership to John McNamara.
+
+    ! Fixed bug when parsing RK numbers (generally ints or small floats).
       http://rt.cpan.org/Public/Bug/Display.html?id=39892
-    - Changed margin units to inches to (cleanly) avoid undef warning in
+
+    ! Changed margin units to inches to (cleanly) avoid undef warning in
       SaveParser.
 
 

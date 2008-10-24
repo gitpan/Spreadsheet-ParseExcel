@@ -12,7 +12,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -216,12 +216,12 @@ sub Parse {
         } elsif($bOp == 0x0A) { #EOF
             undef $iEfFlg;
         }
-        #1. Formula String with No String 
+        #1. Formula String with No String
         if (not $iEfFlg) {
             if($oBook->{_PrevPos} && (defined $self->{FuncTbl}->{$bOp}) && ($bOp != 0x207)) {
                 my $iPos = $oBook->{_PrevPos};
                 $oBook->{_PrevPos} = undef;
-                my ($iR, $iC, $iF) = @$iPos; 
+                my ($iR, $iC, $iF) = @$iPos;
                 _NewCell (
                     $oBook, $iR, $iC,
                     Kind    => 'Formula String',
@@ -231,12 +231,12 @@ sub Parse {
                     Numeric => 0,
                     Code    => undef,
                     Book    => $oBook,
-                );                         
+                );
             }
             if(defined $self->{FuncTbl}->{$bOp}) {
                 $self->{FuncTbl}->{$bOp}->($oBook, $bOp, $bLen, $sWk);
             }
-            $PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue 
+            $PREFUNC = $bOp if ($bOp != 0x3C); #Not Continue
         }
         if (($lPos+4) <= $iLen) {
             $sWk = substr($sBIFF, $lPos, 4);
@@ -270,7 +270,7 @@ sub _get_content {
         my $sBuff='';
         while(read($source, $sWk, 4096)) {
             $sBuff .= $sWk;
-        }                
+        }
         my ($sBIFF, $iLen) = $self->{GetContent}->(\$sBuff);
         return $sBIFF ? ($sBIFF, $iLen) : (undef);
      } elsif(ref($source) eq 'ARRAY') {
@@ -294,17 +294,17 @@ sub _get_content {
 #------------------------------------------------------------------------------
 sub _subGetContent {
     my ($sFile) = @_;
-    
+
     my $oOl = OLE::Storage_Lite->new($sFile);
     return (undef, undef) unless($oOl);
     my @aRes = $oOl->getPpsSearch(
-            [OLE::Storage_Lite::Asc2Ucs('Book'), 
+            [OLE::Storage_Lite::Asc2Ucs('Book'),
              OLE::Storage_Lite::Asc2Ucs('Workbook')], 1, 1);
     return (undef, undef) if($#aRes < 0);
 #Hack from Herbert
     if ($aRes[0]->{Data}) {
         return ($aRes[0]->{Data}, length($aRes[0]->{Data}));
-    } 
+    }
 
     #Same as OLE::Storage_Lite
     my $oIo;
@@ -349,19 +349,19 @@ sub _subBOF {
     #Workbook Global
     if($iDt==0x0005) {
         $oBook->{Version} = unpack("v", $sWk);
-        $oBook->{BIFFVersion} = 
+        $oBook->{BIFFVersion} =
                 ($oBook->{Version}==verExcel95)? verBIFF5:verBIFF8;
         $oBook->{_CurSheet} = undef;
-        $oBook->{_CurSheet_} = -1; 
+        $oBook->{_CurSheet_} = -1;
     }
     #Worksheeet or Dialogsheet
-    elsif($iDt != 0x0020) {  #if($iDt == 0x0010) 
+    elsif($iDt != 0x0020) {  #if($iDt == 0x0010)
         if(defined $oBook->{_CurSheet_}) {
             $oBook->{_CurSheet} = $oBook->{_CurSheet_} + 1;
-            $oBook->{_CurSheet_}++; 
+            $oBook->{_CurSheet_}++;
 
             ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetVersion},
-             $oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetType},) 
+             $oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetType},)
                     = unpack("v2", $sWk) if(length($sWk) > 4);
         }
         else {
@@ -384,7 +384,7 @@ sub _subBOF {
     }
     else {
         ($oBook->{_CurSheet_}, $oBook->{_CurSheet}) =
-            (((defined $oBook->{_CurSheet})? $oBook->{_CurSheet}: -1), 
+            (((defined $oBook->{_CurSheet})? $oBook->{_CurSheet}: -1),
                 undef);
     }
 }
@@ -415,7 +415,7 @@ sub _subInteger {
     my($iR, $iC, $iF, $sTxt, $sDum);
 
     ($iR, $iC, $iF, $sDum, $sTxt) = unpack("v3cv", $sWk);
-    _NewCell (  
+    _NewCell (
             $oBook, $iR, $iC,
                 Kind    => 'INTEGER',
                 Val     => $sTxt,
@@ -454,7 +454,7 @@ sub _subNumber {
 #------------------------------------------------------------------------------
 sub _convDval {
     my($sWk)=@_;
-    return  unpack("d", ($BIGENDIAN)? 
+    return  unpack("d", ($BIGENDIAN)?
                     pack("c8", reverse(unpack("c8", $sWk))) : $sWk);
 }
 #------------------------------------------------------------------------------
@@ -544,7 +544,7 @@ sub _subRK {
 sub _subArray {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     my ($iBR, $iER, $iBC, $iEC) = unpack("v2c2", $sWk);
-    
+
 }
 #------------------------------------------------------------------------------
 # _subFormula (for Spreadsheet::ParseExcel) DK:P336
@@ -641,7 +641,7 @@ sub _subLabel {
     my ($sLbl, $sCode);
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
-        my ( $raBuff, $iLen, $iStPos, $iLenS) = 
+        my ( $raBuff, $iLen, $iStPos, $iLenS) =
                 _convBIFF8String($oBook, substr($sWk,6), 1);
         $sLbl  = $raBuff->[0];
         $sCode = ($raBuff->[1])? 'ucs2': undef;
@@ -651,7 +651,7 @@ sub _subLabel {
         $sLbl  = substr($sWk,8);
         $sCode = '_native_';
     }
-    _NewCell ( 
+    _NewCell (
             $oBook, $iR, $iC,
             Kind    => 'Label',
             Val     => $sLbl,
@@ -777,12 +777,12 @@ sub _SetDimension {
 
 #2.MaxRow, MaxCol, MinRow, MinCol
 #2.1 MinRow
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinRow} = $iR 
-        unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinRow}) and 
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinRow} = $iR
+        unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinRow}) and
                ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinRow} <= $iR);
 
 #2.2 MaxRow
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow} = $iR 
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow} = $iR
         unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow}) and
                ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxRow} > $iR);
 #2.3 MinCol
@@ -790,7 +790,7 @@ sub _SetDimension {
             unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinCol}) and
                ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{MinCol} <= $iSc);
 #2.4 MaxCol
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxCol} = $iEc 
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxCol} = $iEc
             unless (defined $oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxCol}) and
                ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{MaxCol} > $iEc);
 
@@ -840,7 +840,7 @@ sub _subColInfo {
     return undef unless(defined $oBook->{_CurSheet});
     my($iSc, $iEc, $iW, $iXF, $iGr) = unpack("v5", $sWk);
     for(my $i= $iSc; $i<=$iEc; $i++) {
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] = 
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColWidth}[$i] =
                         ($iGr & 0x01)? 0: _adjustColWidth($oBook, $iW);
                     #0x01 means HIDDEN
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{ColFmtNo}[$i] = $iXF;
@@ -922,17 +922,17 @@ sub _convBIFF8String {
         $sStr = $oBook->{FmtClass}->TextFmt($sStr, undef) unless($iCnvFlg);
     }
 
-#4. return 
+#4. return
     if(wantarray) {
         #4.1 Get Rich and Ext
         if(length($sWk) < $iStPos + $iLen+ $iRichCnt*4+$iExtCnt) {
-            return ([undef, $iHigh, undef, undef], 
+            return ([undef, $iHigh, undef, undef],
                 $iStPos + $iLen+ $iRichCnt*4+$iExtCnt, $iStPos, $iLen);
         }
         else {
             return ([$sStr, $iHigh,
                     substr($sWk, $iStPos + $iLen, $iRichCnt*4),
-                    substr($sWk, $iStPos + $iLen+ $iRichCnt*4, $iExtCnt)], 
+                    substr($sWk, $iStPos + $iLen+ $iRichCnt*4, $iExtCnt)],
                 $iStPos + $iLen+ $iRichCnt*4+$iExtCnt,  $iStPos, $iLen);
         }
     }
@@ -1026,10 +1026,10 @@ sub _subXF {
         $iBdrCR = (($iBdr2 & 0x3F80) / 0x80) & 0x7F;
     }
 
-   push @{$oBook->{Format}} , 
+   push @{$oBook->{Format}} ,
          Spreadsheet::ParseExcel::Format->new (
             FontNo   => $iFnt,
-            Font     => $oBook->{Font}[$iFnt], 
+            Font     => $oBook->{Font}[$iFnt],
             FmtIdx   => $iIdx,
 
             Lock     => $iLock,
@@ -1090,7 +1090,7 @@ sub _subFont {
     my($bBold, $bItalic, $bUnderline, $bStrikeout);
 
     if($oBook->{BIFFVersion} == verBIFF8) {
-        ($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline) = 
+        ($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline) =
             unpack("v5c", $sWk);
         my($iSize, $iHigh) = unpack('cc', substr($sWk, 14, 2));
         if($iHigh) {
@@ -1108,10 +1108,10 @@ sub _subFont {
         $bUnderline  = ($iUnderline)? 1: 0;
     }
     elsif($oBook->{BIFFVersion} == verBIFF5) {
-        ($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline) = 
+        ($iHeight, $iAttr, $iCIdx, $iBold, $iSuper, $iUnderline) =
             unpack("v5c", $sWk);
         $sFntName = $oBook->{FmtClass}->TextFmt(
-                    substr($sWk, 15, unpack("c", substr($sWk, 14, 1))), 
+                    substr($sWk, 15, unpack("c", substr($sWk, 14, 1))),
                     '_native_');
         $bBold       = ($iBold >= 0x2BC)? 1: 0;
         $bItalic     = ($iAttr & 0x02)? 1: 0;
@@ -1130,7 +1130,7 @@ sub _subFont {
 
         $sFntName = substr($sWk, 5, unpack("c", substr($sWk, 4, 1)));
     }
-    push @{$oBook->{Font}}, 
+    push @{$oBook->{Font}},
         Spreadsheet::ParseExcel::Font->new(
             Height          => $iHeight / 20.0,
             Attr            => $iAttr,
@@ -1164,7 +1164,7 @@ sub _subBoundSheet {
             _SwapForUnicode(\$sWsName);
             $sWsName = $oBook->{FmtClass}->TextFmt($sWsName, 'ucs2');
         }
-        $oBook->{Worksheet}[$oBook->{SheetCount}] = 
+        $oBook->{Worksheet}[$oBook->{SheetCount}] =
             Spreadsheet::ParseExcel::Worksheet->new(
                     Name => $sWsName,
                     Kind => $iKind,
@@ -1174,7 +1174,7 @@ sub _subBoundSheet {
                 );
     }
     else {
-        $oBook->{Worksheet}[$oBook->{SheetCount}] = 
+        $oBook->{Worksheet}[$oBook->{SheetCount}] =
             Spreadsheet::ParseExcel::Worksheet->new(
                     Name => $oBook->{FmtClass}->TextFmt(substr($sWk, 7), '_native_'),
                     Kind => $iKind,
@@ -1195,7 +1195,7 @@ sub _subHeader {
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
     $sW = _convBIFF8String($oBook, $sWk);
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} = 
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Header} =
         ($sW eq "\x00")? undef : $sW;
     }
     #Before BIFF8
@@ -1216,14 +1216,14 @@ sub _subFooter {
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
     $sW = _convBIFF8String($oBook, $sWk);
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} =
         ($sW eq "\x00")? undef : $sW;
     }
     #Before BIFF8
     else {
         my($iLen) = unpack("c", $sWk);
     $sW = $oBook->{FmtClass}->TextFmt(substr($sWk, 1, $iLen), '_native_');
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} = 
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Footer} =
         ($sW eq "\x00\x00\x00")? undef : $sW;
     }
 }
@@ -1239,7 +1239,7 @@ sub _subHPageBreak {
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         for(my $i=0;$i<$iCnt;$i++) {
-            my($iRow, $iColB, $iColE) = 
+            my($iRow, $iColB, $iColE) =
                     unpack('v3', substr($sWk, 2 + $i*6, 6));
 #            push @aBreak, [$iRow, $iColB, $iColE];
             push @aBreak, $iRow;
@@ -1248,7 +1248,7 @@ sub _subHPageBreak {
     #Before BIFF8
     else {
         for(my $i=0;$i<$iCnt;$i++) {
-            my($iRow) = 
+            my($iRow) =
                     unpack('v', substr($sWk, 2 + $i*2, 2));
             push @aBreak, $iRow;
 #            push @aBreak, [$iRow, 0, 255];
@@ -1269,7 +1269,7 @@ sub _subVPageBreak {
     #BIFF8
     if($oBook->{BIFFVersion} >= verBIFF8) {
         for(my $i=0;$i<$iCnt;$i++) {
-            my($iCol, $iRowB, $iRowE) = 
+            my($iCol, $iRowB, $iRowE) =
                     unpack('v3', substr($sWk, 2 + $i*6, 6));
             push @aBreak, $iCol;
 #            push @aBreak, [$iCol, $iRowB, $iRowE];
@@ -1278,7 +1278,7 @@ sub _subVPageBreak {
     #Before BIFF8
     else {
         for(my $i=0;$i<$iCnt;$i++) {
-            my($iCol) = 
+            my($iCol) =
                     unpack('v', substr($sWk, 2 + $i*2, 2));
             push @aBreak, $iCol;
 #            push @aBreak, [$iCol, 0, 65535];
@@ -1386,8 +1386,8 @@ sub _subSETUP {
 #------------------------------------------------------------------------------
 sub _subName {
     my($oBook, $bOp, $bLen, $sWk) = @_;
-    my($iGrBit, 
-        $cKey, $cCh, 
+    my($iGrBit,
+        $cKey, $cCh,
         $iCce, $ixAls, $iTab,
         $cchCust, $cchDsc, $cchHep, $cchStatus) = unpack('vc2v3c4', $sWk);
 #Builtin Name + Length == 1
@@ -1448,7 +1448,7 @@ sub _ParseNameArea {
     $iOp = unpack('C', $sObj);
     my $iSheet;
     if($iOp == 0x3b) {
-        my($iWkS, $iRs, $iRe, $iCs, $iCe) = 
+        my($iWkS, $iRs, $iRe, $iCs, $iCe) =
             unpack('v5', substr($sObj, 1));
         $iSheet = $iWkS;
         push @aRes, [$iRs, $iCs, $iRe, $iCe];
@@ -1457,7 +1457,7 @@ sub _ParseNameArea {
         my $iLen = unpack('v', substr($sObj, 1, 2));
         my $iSt = 0;
         while($iSt < $iLen) {
-            my($iOpW, $iWkS, $iRs, $iRe, $iCs, $iCe) = 
+            my($iOpW, $iWkS, $iRs, $iRe, $iCs, $iCe) =
                 unpack('cv5', substr($sObj, $iSt+3, 11));
 
             if($iOpW == 0x3b) {
@@ -1486,7 +1486,7 @@ sub _ParseNameArea95 {
     my $iSheet;
     if($iOp == 0x3b) {
         $iSheet = unpack('v', substr($sObj, 11, 2));
-        my($iRs, $iRe, $iCs, $iCe) = 
+        my($iRs, $iRe, $iCs, $iCe) =
                 unpack('v2C2', substr($sObj, 15, 6));
         push @aRes, [$iRs, $iCs, $iRe, $iCe];
     }
@@ -1496,7 +1496,7 @@ sub _ParseNameArea95 {
         while($iSt < $iLen) {
             my $iOpW = unpack('c', substr($sObj, $iSt+3, 6));
             $iSheet = unpack('v', substr($sObj, $iSt+14, 2));
-            my($iRs, $iRe, $iCs, $iCe) = 
+            my($iRs, $iRe, $iCs, $iCe) =
                 unpack('v2C2', substr($sObj, $iSt+18, 6));
             push @aRes, [$iRs, $iCs, $iRe, $iCe] if($iOpW == 0x3b);
 
@@ -1517,7 +1517,7 @@ sub _subWSBOOL {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     return undef unless(defined $oBook->{_CurSheet});
 
-    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{PageFit} = 
+    $oBook->{Worksheet}[$oBook->{_CurSheet}]->{PageFit} =
                                 ((unpack('v', $sWk) & 0x100)? 1: 0);
 }
 #------------------------------------------------------------------------------
@@ -1534,7 +1534,7 @@ sub _subMergeArea {
         my($iRs, $iRe, $iCs, $iCe) = unpack('v4', substr($sWk, $i*8 + 2, 8));
         for(my $iR=$iRs;$iR<=$iRe;$iR++) {
             for(my $iC=$iCs;$iC<=$iCe;$iC++) {
-                $oWkS->{Cells}[$iR][$iC] ->{Merged} = 1 
+                $oWkS->{Cells}[$iR][$iC] ->{Merged} = 1
                         if(defined $oWkS->{Cells}[$iR][$iC] );
             }
         }
@@ -1631,7 +1631,7 @@ sub _subStrWk {
 #print "DATA:", unpack('H30', $oBook->{StrBuff}), " PRE:$oBook->{_PrevCond}\n";
             $oBook->{StrBuff} .= $sWk;
         }
-        #1.1 No PrevCond 
+        #1.1 No PrevCond
         elsif(!(defined($oBook->{_PrevCond}))) {
 #print "NO PREVCOND\n";
                 $oBook->{StrBuff} .= substr($sWk, 1);
@@ -1663,7 +1663,7 @@ sub _subStrWk {
                   substr($oBook->{StrBuff}, 2, 1) = pack('c', $iGr | 0x01);
 #print "AFT:", unpack("H6", $oBook->{StrBuff}), "\n";
                     for(my $i = ($iLenB-$iStP); $i >=1; $i--) {
-                        substr($oBook->{StrBuff}, $iStP+$i, 0) =  "\x00"; 
+                        substr($oBook->{StrBuff}, $iStP+$i, 0) =  "\x00";
                     }
                 }
                 else {
@@ -1689,7 +1689,7 @@ sub _subStrWk {
         my ( $raBuff, $iLen, $iStPos, $iLenS) = _convBIFF8String($oBook, $oBook->{StrBuff}, 1);
                                                     #No Code Convert
         if(defined($raBuff->[0])) {
-            push @{$oBook->{PkgStr}}, 
+            push @{$oBook->{PkgStr}},
                 {
                     Text    => $raBuff->[0],
                     Unicode => $raBuff->[1],
@@ -1732,7 +1732,7 @@ sub _NewCell {
 	$FmtStr =~ m{^[dmy][-\\/dmy]*$} and
 	    $rhKey{Type} = "Date";
 
-    my $oCell = 
+    my $oCell =
         Spreadsheet::ParseExcel::Cell->new(
             Val     => $rhKey{Val},
             FormatNo=> $rhKey{FormatNo},
@@ -1755,7 +1755,7 @@ sub _NewCell {
     if(defined $_CellHandler) {
         if(defined $_Object){
             no strict;
-            ref($_CellHandler) eq "CODE" ? 
+            ref($_CellHandler) eq "CODE" ?
                     $_CellHandler->($_Object, $oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell) :
                     $_CellHandler->callback($_Object, $oBook, $oBook->{_CurSheet}, $iR, $iC, $oCell);
         }
@@ -1764,7 +1764,7 @@ sub _NewCell {
         }
     }
     unless($_NotSetCell) {
-        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC] 
+        $oBook->{Worksheet}[$oBook->{_CurSheet}]->{Cells}[$iR][$iC]
             = $oCell;
     }
     return $oCell;
@@ -1791,7 +1791,7 @@ Spreadsheet::ParseExcel - Get information from Excel file
 
 =head1 SYNOPSIS
 
-    
+
 I<new interface>
 
     use strict;
@@ -1827,7 +1827,7 @@ I<old interface>
     for(my $iSheet=0; $iSheet < $oBook->{SheetCount} ; $iSheet++) {
         $oWkS = $oBook->{Worksheet}[$iSheet];
         print "--------- SHEET:", $oWkS->{Name}, "\n";
-        for(my $iR = $oWkS->{MinRow} ; 
+        for(my $iR = $oWkS->{MinRow} ;
                 defined $oWkS->{MaxRow} && $iR <= $oWkS->{MaxRow} ; $iR++) {
             for(my $iC = $oWkS->{MinCol} ;
                             defined $oWkS->{MaxCol} && $iC <= $oWkS->{MaxCol} ; $iC++) {
@@ -1849,7 +1849,7 @@ Spreadsheet::ParseExcel makes you to get information from Excel95, Excel97, Exce
 =item new
 
 I<$oExcel> = Spreadsheet::ParseExcel->new(
-                    [ I<CellHandler> => \&subCellHandler, 
+                    [ I<CellHandler> => \&subCellHandler,
                       I<NotSetCell> => undef | 1,
                     ]);
 
@@ -1889,8 +1889,8 @@ if error occurs, returns undef.
 
 name of the file to parse
 
-From 0.12 (with OLE::Storage_Lite v.0.06), 
-scalar reference of file contents (ex. \$sBuff) or 
+From 0.12 (with OLE::Storage_Lite v.0.06),
+scalar reference of file contents (ex. \$sBuff) or
 IO::Handle object (including IO::File etc.) are also available.
 
 =item I<$oFmt>
@@ -1972,8 +1972,8 @@ Each PrintArea is : [ I<StartRow>, I<StartColumn>, I<EndRow>, I<EndColumn>]
 
 Array of PrintTitle hash refs.
 
-Each PrintTitle is : 
-        { Row => [I<StartRow>, I<EndRow>], 
+Each PrintTitle is :
+        { Row => [I<StartRow>, I<EndRow>],
           Column => [I<StartColumn>, I<EndColumn>]}
 
 =back
@@ -2043,7 +2043,7 @@ Print scale.
 
 =item FitWidth
 
-Number of pages with fit in width. 
+Number of pages with fit in width.
 
 =item FitHeight
 
@@ -2205,8 +2205,8 @@ L<"Font"> object for that Format.
 
 Horizontal Alignment.
 
-  0: (standard), 1: left,       2: center,     3: right,      
-  4: fill ,      5: justify,    7:equal_space  
+  0: (standard), 1: left,       2: center,     3: right,
+  4: fill ,      5: justify,    7:equal_space
 
 B<Notice:> 6 may be I<merge> but it seems not to work.
 
@@ -2231,7 +2231,7 @@ Display in shrinking (or not)
 =item Rotate
 
 In Excel97, 2000      : degrees of string rotation.
-In Excel95 or earlier : 0: No rotation, 1: Top down, 2: 90 degrees anti-clockwise, 
+In Excel95 or earlier : 0: No rotation, 1: Top down, 2: 90 degrees anti-clockwise,
                         3: 90 clockwise
 
 =item JustLast
@@ -2326,7 +2326,7 @@ I<Spreadsheet::ParseExcel::Fmt*>
 
 Formatter class will convert cell data.
 
-Spreadsheet::ParseExcel includes 2 formatter classes: FmtDefault and FmtJapanese. 
+Spreadsheet::ParseExcel includes 2 formatter classes: FmtDefault and FmtJapanese.
 You can create your own FmtClass as you like.
 
 Formatter class(Spreadsheet::ParseExcel::Fmt*) should provide these functions:
@@ -2373,7 +2373,7 @@ Character code of Original text
 
 =back
 
-=item ValFmt($oSelf, $oCell, $oBook) 
+=item ValFmt($oSelf, $oCell, $oBook)
 
 converts original value into applicatable for Value.
 
@@ -2471,8 +2471,8 @@ XLSTools: http://perl.jonallen.info/projects/xlstools
 
 - Add tests, and more tests
 
-- Spreadsheet::ParseExcel : 
- Password protected data, Formulas support, HyperLink support, 
+- Spreadsheet::ParseExcel :
+ Password protected data, Formulas support, HyperLink support,
  Named Range support
 
 - Spreadsheet::ParseExcel::SaveParser :
@@ -2485,7 +2485,7 @@ See also:
  and
 
  http://www.perlmonks.org/index.pl?node_id=490656
- http://www.perlmonks.org/index.pl?node_id=379743 
+ http://www.perlmonks.org/index.pl?node_id=379743
  http://www.perlmonks.org/index.pl?node_id=433192
  http://www.perlmonks.org/index.pl?node_id=422147
 
@@ -2503,8 +2503,8 @@ License or the Artistic License, as specified in the Perl README file.
 First of all, I would like to acknowledge valuable program and modules:
 XHTML, OLE::Storage and Spreadsheet::WriteExcel.
 
-In no particular order: Yamaji Haruna, Simamoto Takesi, Noguchi Harumi, 
-Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards, 
+In no particular order: Yamaji Haruna, Simamoto Takesi, Noguchi Harumi,
+Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards,
 Kim Namusk, Slaven Rezić, Grant Stevens, H.Merijn Brand
 and many many people + Kawai Mikako.
 
