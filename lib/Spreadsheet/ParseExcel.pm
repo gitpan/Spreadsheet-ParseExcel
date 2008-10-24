@@ -12,7 +12,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.33';
+our $VERSION = '0.40';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -26,7 +26,7 @@ my @aColor =
 (
     '000000',   # 0x00
     'FFFFFF', 'FFFFFF', 'FFFFFF', 'FFFFFF',
-    'FFFFFF', 'FFFFFF', 'FFFFFF', 'FFFFFF', #0x08 - This one's Black, too ???
+    'FFFFFF', 'FFFFFF', 'FFFFFF', 'FFFFFF', # 0x08
     'FFFFFF', 'FF0000', '00FF00', '0000FF',
     'FFFF00', 'FF00FF', '00FFFF', '800000', # 0x10
     '008000', '000080', '808000', '800080',
@@ -1294,7 +1294,7 @@ sub _subMergin {
     my($oBook, $bOp, $bLen, $sWk) = @_;
     return undef unless(defined $oBook->{_CurSheet});
 
-    my $dWk = _convDval(substr($sWk, 0, 8)) * 127 / 50;
+    my $dWk = _convDval(substr($sWk, 0, 8));
     if($bOp == 0x26) {
         $oBook->{Worksheet}[$oBook->{_CurSheet}]->{LeftMergin} = $dWk;
     }
@@ -1369,8 +1369,8 @@ sub _subSETUP {
      $oWkS->{Res},
      $oWkS->{VRes},) = unpack('v8', $sWk);
 
-    $oWkS->{HeaderMergin} = _convDval(substr($sWk, 16, 8)) * 127 / 50;
-    $oWkS->{FooterMergin} = _convDval(substr($sWk, 24, 8)) * 127 / 50;
+    $oWkS->{HeaderMergin} = _convDval(substr($sWk, 16, 8));
+    $oWkS->{FooterMergin} = _convDval(substr($sWk, 24, 8));
     $oWkS->{Copis}= unpack('v2', substr($sWk, 32, 2));
     $oWkS->{LeftToRight}= (($iGrBit & 0x01)? 1: 0);
     $oWkS->{Landscape}  = (($iGrBit & 0x02)? 1: 0);
@@ -1594,11 +1594,11 @@ sub _UnpackRKRec {
         # http://rt.cpan.org/Ticket/Display.html?id=18063
         my $u31 = unpack("c",substr($sWk, 3, 1)) & 0xFC;
         $u31 |= 0xFFFFFF00 if ($u31 & 0x80); # raise neg bits for neg 1-byte value
-        substr($sWk, 3, 1) &= pack('U', $u31);
+        substr($sWk, 3, 1) &= pack('c', $u31);
 
         my $u01 = unpack("c",substr($lWk, 0, 1)) & 0xFC;
         $u01 |= 0xFFFFFF00 if ($u01 & 0x80); # raise neg bits for neg 1-byte value
-        substr($lWk, 0, 1) &= pack('U', $u01);
+        substr($lWk, 0, 1) &= pack('c', $u01);
 
         return ($iF, unpack("d", ($BIGENDIAN)? $sWk . "\0\0\0\0": "\0\0\0\0". $lWk)/ 100);
     }
@@ -2448,7 +2448,9 @@ set his separation character to '/', causing inconsistent date displays.
 
 =head1 AUTHOR
 
-Current maintainer: Gabor Szabo szabgab@cpan.org
+Current maintainer: John McNamara jmcnamara@cpan.org
+
+Maintainer 0.27-0.33: Gabor Szabo szabgab@cpan.org
 
     http://www.szabgab.com/
 

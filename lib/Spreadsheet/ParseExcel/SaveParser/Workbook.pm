@@ -141,17 +141,17 @@ sub SaveAs {
         # Paper Size
         $oWrS->set_paper($oWkS->{PaperSize});
         # Margin
-        $oWrS->set_margin_left($oWkS->{LeftMergin}     / 2.55);
-        $oWrS->set_margin_right($oWkS->{RightMergin}   / 2.55);
-        $oWrS->set_margin_top($oWkS->{TopMergin}       / 2.55);
-        $oWrS->set_margin_bottom($oWkS->{BottomMergin} / 2.55);
+        $oWrS->set_margin_left  ($oWkS->{LeftMergin});
+        $oWrS->set_margin_right ($oWkS->{RightMergin});
+        $oWrS->set_margin_top   ($oWkS->{TopMergin});
+        $oWrS->set_margin_bottom($oWkS->{BottomMergin});
         # HCenter
         $oWrS->center_horizontally() if($oWkS->{HCenter});
         # VCenter
         $oWrS->center_vertically() if($oWkS->{VCenter});
         # Header, Footer
-        $oWrS->set_header($oWkS->{Header}, $oWkS->{HeaderMergin}/2.55);
-        $oWrS->set_footer($oWkS->{Footer}, $oWkS->{FooterMergin}/2.55);
+        $oWrS->set_header($oWkS->{Header}, $oWkS->{HeaderMergin});
+        $oWrS->set_footer($oWkS->{Footer}, $oWkS->{FooterMergin});
         # Print Area
         if(ref($oBook->{PrintArea}[$iSheet]) eq 'ARRAY') {
             my $raP;

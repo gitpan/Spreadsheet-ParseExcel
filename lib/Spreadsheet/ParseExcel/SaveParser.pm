@@ -13,9 +13,12 @@ package Spreadsheet::ParseExcel::SaveParser;
 use strict;
 use warnings;
 
+use Spreadsheet::ParseExcel;
+use Spreadsheet::ParseExcel::SaveParser::Workbook;
+use Spreadsheet::ParseExcel::SaveParser::Worksheet;
 use Spreadsheet::WriteExcel;
 use base 'Spreadsheet::ParseExcel';
-our $VERSION = '0.33';
+our $VERSION = '0.40';
 
 use constant MagicCol => 1.14;
 #------------------------------------------------------------------------------
@@ -75,7 +78,7 @@ Spreadsheet::ParseExcel::SaveParser - Expand of Spreadsheet::ParseExcel with Spr
     my $oBook = $oExcel->Parse('temp.xls');
     #1.1.Update and Insert Cells
     my $iFmt = $oBook->{Worksheet}[0]->{Cells}[0][0]->{FormatNo};
-    $oBook->AddCell(0, 0, 0, 'No(UPD)', 
+    $oBook->AddCell(0, 0, 0, 'No(UPD)',
         $oBook->{Worksheet}[0]->{Cells}[0][0]->{FormatNo});
     $oBook->AddCell(0, 1, 0, '304', $oBook->{Worksheet}[0]->{Cells}[0][0]);
     $oBook->AddCell(0, 1, 1, 'Kawai,Takanori', $iFmt);
@@ -126,7 +129,7 @@ I<new interface...>
 
     use strict;
     use Spreadsheet::ParseExcel::SaveParser;
-    $oBook = 
+    $oBook =
         Spreadsheet::ParseExcel::SaveParser::Workbook->Parse('Excel/Test97.xls');
     my $oWs = $oBook->AddWorksheet('TEST1');
     $oWs->AddCell(10, 1, 'New Cell');
@@ -159,8 +162,8 @@ if error occurs, returns undef.
 
 name of the file to parse (Same as Spreadsheet::ParseExcel)
 
-From 0.12 (with OLE::Storage_Lite v.0.06), 
-scalar reference of file contents (ex. \$sBuff) or 
+From 0.12 (with OLE::Storage_Lite v.0.06),
+scalar reference of file contents (ex. \$sBuff) or
 IO::Handle object (inclucdng IO::File etc.) are also available.
 
 =item I<$oFmt>
@@ -300,7 +303,7 @@ ex.
 
   $oCell=$oWorksheet->{Cells}[0][0]; #Just a sample
   $oBook->AddCell(0, 1, 0, 'New One', $oCell->{FormatNo});
-    #or 
+    #or
   $oBook->AddCell(0, 1, 0, 'New One', $oCell);
 
 =back
@@ -357,7 +360,7 @@ ex.
 
   $oCell=$oWorksheet->{Cells}[0][0]; #Just a sample
   $oWorksheet->AddCell(1, 0, 'New One', $oCell->{FormatNo});
-    #or 
+    #or
   $oWorksheet->AddCell(1, 0, 'New One', $oCell);
 
 =back
@@ -408,8 +411,8 @@ License or the Artistic License, as specified in the Perl README file.
 First of all, I would like to acknowledge valuable program and modules :
 XHTML, OLE::Storage and Spreadsheet::WriteExcel.
 
-In no particular order: Yamaji Haruna, Simamoto Takesi, Noguchi Harumi, 
-Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards, Kim Namusk 
+In no particular order: Yamaji Haruna, Simamoto Takesi, Noguchi Harumi,
+Ikezawa Kazuhiro, Suwazono Shugo, Hirofumi Morisada, Michael Edwards, Kim Namusk
 and many many people + Kawai Mikako.
 
 =cut

@@ -1,5 +1,13 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.40 2008.10.24
+    - Changed maintainership to John McNamara.
+    - Fixed bug when parsing RK numbers (generally ints or small floats).
+      http://rt.cpan.org/Public/Bug/Display.html?id=39892
+    - Changed margin units to inches to (cleanly) avoid undef warning in
+      SaveParser.
+
+
 0.33 2008.09.07
     - Default format for formatted dates changed from 'm-d-yy' to 'yyyy-mm-dd'
     - Numeric fields with date-formats now promote to Date
@@ -35,7 +43,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
     - fix some syntax errors in the sub-modules
 
 0.27 Wed Jan  3, 2007
-    - See changes in the 0.27_XX versions 
+    - See changes in the 0.27_XX versions
 
 0.27_03 Thu Nov 2, 2006
     - Officially receive maintainership (Gabor Szabo)
@@ -176,7 +184,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
                        (Thank you, Dmitriy Litovchin)
 
 0.22.2 Thu May 16  8:00:00 2001
-    - Mod ParseExcel : Fix Hidden RowHeight, ColWidht 
+    - Mod ParseExcel : Fix Hidden RowHeight, ColWidht
                        (Thank you, Maxim Ovchinnikov)
 
 0.22.1 Wed May 14 20:35:00 2001
@@ -184,7 +192,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
                        (Thank you, Steve Sapovits)
                      : Fix ignore Graph sheet
                        (Thank you, Joel Defarge )
-    - Mod Utility : Fix eval at Conditiona-Format 
+    - Mod Utility : Fix eval at Conditiona-Format
                        (Thank you, Alok K. Dhir)
 
 0.22 Sat May 5 19:00:00 2001
@@ -215,7 +223,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
                        (Thank you, Fukusima, Tuneyosi)
 
 0.20  Mon Mar 30  20:00:00 2001
-    - Fix ParseExcel.pm : RK int minus 
+    - Fix ParseExcel.pm : RK int minus
                        (Thank you, Morten Sickel)
     - Mod ParseExcel.pm : Fix Font number but not complete
                        (Thank you, Vladimir Igrevsky)
@@ -225,7 +233,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
                        (Thank you, Venkataramana Mokkapati)
 
 0.19  Mon Mar 26  12:00:00 2001
-    - Fix Utility.pm :Month short name 
+    - Fix Utility.pm :Month short name
                        (Thank you, Morten Sickel)
     - Fix Utility.pm :Formatting Error
                        (Thank you, yusuf_najuddin)
@@ -240,7 +248,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 0.17  Wed Mar 12  9:00:00 2001
     - Fix Utility.pm for Number format
     - Fix FmtJapan2.pm to use FmtJapan
-            (Thank you, Kawasaki) 
+            (Thank you, Kawasaki)
     - Fix Utility.pm for Number format (not Numeric)
             (Thank you, John Dawson)
     - Fix Format string with Chinese Character (in Excel95)
@@ -248,7 +256,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 0.16  Wed Mar 7  22:00:00 2001
     - Fix Format String
     - Avoding warnings
-            (Thank you Jimmy Sieben and Daniel Berger) 
+            (Thank you Jimmy Sieben and Daniel Berger)
 
 0.15  Wed Mar 6  10:00:00 2001
     - Fix RK number
