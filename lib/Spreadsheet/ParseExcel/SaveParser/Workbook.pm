@@ -45,6 +45,7 @@ sub SaveAs {
     my ($oBook, $sName)=@_;
     # Create a new Excel workbook
     my $oWrEx = Spreadsheet::WriteExcel->new($sName);
+    $oWrEx->compatibility_mode();
     my %hFmt;
 
     my $iNo = 0;
@@ -72,15 +73,9 @@ sub SaveAs {
 
             $oFmt->set_align($aAlH[$pFmt->{AlignH}]);
             $oFmt->set_align($aAlV[$pFmt->{AlignV}]);
-            if($pFmt->{Rotate}==0) {
-                $oFmt->set_rotation(0);
-            }
-            elsif($pFmt->{Rotate}> 0) {  # Mainly ==90
-                $oFmt->set_rotation(3);
-            }
-            elsif($pFmt->{Rotate} < 0) {  # Mainly == -90
-                $oFmt->set_rotation(2);
-            }
+
+            $oFmt->set_rotation($pFmt->{Rotate});
+
             $oFmt->set_num_format($oBook->{FmtClass}->FmtStringDef($pFmt->{FmtIdx}, $oBook));
 
             $oFmt->set_text_wrap($pFmt->{Wrap});
@@ -141,17 +136,17 @@ sub SaveAs {
         # Paper Size
         $oWrS->set_paper($oWkS->{PaperSize});
         # Margin
-        $oWrS->set_margin_left  ($oWkS->{LeftMergin});
-        $oWrS->set_margin_right ($oWkS->{RightMergin});
-        $oWrS->set_margin_top   ($oWkS->{TopMergin});
-        $oWrS->set_margin_bottom($oWkS->{BottomMergin});
+        $oWrS->set_margin_left  ($oWkS->{LeftMargin});
+        $oWrS->set_margin_right ($oWkS->{RightMargin});
+        $oWrS->set_margin_top   ($oWkS->{TopMargin});
+        $oWrS->set_margin_bottom($oWkS->{BottomMargin});
         # HCenter
         $oWrS->center_horizontally() if($oWkS->{HCenter});
         # VCenter
         $oWrS->center_vertically() if($oWkS->{VCenter});
         # Header, Footer
-        $oWrS->set_header($oWkS->{Header}, $oWkS->{HeaderMergin});
-        $oWrS->set_footer($oWkS->{Footer}, $oWkS->{FooterMergin});
+        $oWrS->set_header($oWkS->{Header}, $oWkS->{HeaderMargin});
+        $oWrS->set_footer($oWkS->{Footer}, $oWkS->{FooterMargin});
         # Print Area
         if(ref($oBook->{PrintArea}[$iSheet]) eq 'ARRAY') {
             my $raP;
@@ -235,12 +230,12 @@ sub AddWorksheet {
     my($oBook, $sName, %hAttr) = @_;
     $oBook->AddFormat if($#{$oBook->{Format}}<0);
     $hAttr{Name} ||= $sName;
-    $hAttr{LeftMergin} ||= 0;
-    $hAttr{RightMergin} ||= 0;
-    $hAttr{TopMergin} ||= 0;
-    $hAttr{BottomMergin} ||= 0;
-    $hAttr{HeaderMergin} ||= 0;
-    $hAttr{FooterMergin} ||= 0;
+    $hAttr{LeftMargin} ||= 0;
+    $hAttr{RightMargin} ||= 0;
+    $hAttr{TopMargin} ||= 0;
+    $hAttr{BottomMargin} ||= 0;
+    $hAttr{HeaderMargin} ||= 0;
+    $hAttr{FooterMargin} ||= 0;
     $hAttr{FitWidth} ||= 0;
     $hAttr{FitHeight} ||= 0;
     $hAttr{PrintGrid} ||= 0;
