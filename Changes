@@ -1,8 +1,17 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.44 8 January 2009
+
+    ! Fix for OpenOffice.org GENERAL format.
+      http://rt.cpan.org/Public/Bug/Display.html?id=7206
+      Thanks to Niko Tyni and the Debian Perl team
+
+    + Perltidyed source and added standard headers and Pod sections
+      to all modules.
+
 0.43 7 January 2009
 
-    + Restructed and rewrote the main documentation. This is the start of
+    + Restructured and rewrote the main documentation. This is the start of
       a general refactoring. If you would like to keep up to date with it
       keep an eye on the Spreadsheet::ParseExcel Google Group.
       http://groups.google.com/group/spreadsheet-parseexcel

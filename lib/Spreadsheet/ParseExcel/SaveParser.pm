@@ -1,15 +1,20 @@
-# Spreadsheet::ParseExcel::SaveParser
-#  by Kawai, Takanori (Hippo2000) 2001.5.1
-# This Program is ALPHA version.
-#//////////////////////////////////////////////////////////////////////////////
-# Spreadsheet::ParseExcel:.SaveParser Objects
-#//////////////////////////////////////////////////////////////////////////////
-
-
-#==============================================================================
-# Spreadsheet::ParseExcel::SaveParser
-#==============================================================================
 package Spreadsheet::ParseExcel::SaveParser;
+
+###############################################################################
+#
+# Spreadsheet::ParseExcel::SaveParser - Rewrite an existing Excel file.
+#
+# Used in conjunction with Spreadsheet::ParseExcel.
+#
+# Copyright (c) 2009      John McNamara
+# Copyright (c) 2006-2008 Gabor Szabo
+# Copyright (c) 2000-2006 Kawai Takanori
+#
+# perltidy with standard settings.
+#
+# Documentation after __END__
+#
+
 use strict;
 use warnings;
 
@@ -18,25 +23,30 @@ use Spreadsheet::ParseExcel::SaveParser::Workbook;
 use Spreadsheet::ParseExcel::SaveParser::Worksheet;
 use Spreadsheet::WriteExcel;
 use base 'Spreadsheet::ParseExcel';
-our $VERSION = '0.42';
+
+our $VERSION = '0.44';
 
 use constant MagicCol => 1.14;
+
 #------------------------------------------------------------------------------
 # new (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
 sub new {
-    my($sPkg, %hKey) = @_;
+    my ( $sPkg, %hKey ) = @_;
     $sPkg->SUPER::new(%hKey);
 }
+
 #------------------------------------------------------------------------------
 # Create
 #------------------------------------------------------------------------------
 sub Create {
-    my($oThis, $oWkFmt)=@_;
-#0. New $oBook
+    my ( $oThis, $oWkFmt ) = @_;
+
+    #0. New $oBook
     my $oBook = Spreadsheet::ParseExcel::Workbook->new;
     $oBook->{SheetCount} = 0;
-#2. Ready for format
+
+    #2. Ready for format
     if ($oWkFmt) {
         $oBook->{FmtClass} = $oWkFmt;
     }
@@ -45,20 +55,22 @@ sub Create {
     }
     return Spreadsheet::ParseExcel::SaveParser::Workbook->new($oBook);
 }
+
 #------------------------------------------------------------------------------
 # Parse (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
 sub Parse {
-    my($oThis, $sFile, $oWkFmt)=@_;
-    my $oBook = $oThis->SUPER::Parse($sFile, $oWkFmt);
-    return undef unless(defined $oBook);
+    my ( $oThis, $sFile, $oWkFmt ) = @_;
+    my $oBook = $oThis->SUPER::Parse( $sFile, $oWkFmt );
+    return undef unless ( defined $oBook );
     return Spreadsheet::ParseExcel::SaveParser::Workbook->new($oBook);
 }
+
 #------------------------------------------------------------------------------
 # SaveAs (for Spreadsheet::ParseExcel::SaveParser)
 #------------------------------------------------------------------------------
 sub SaveAs {
-    my ($oThis, $oBook, $sName)=@_;
+    my ( $oThis, $oBook, $sName ) = @_;
     $oBook->SaveAs($sName);
 }
 1;
@@ -67,7 +79,7 @@ __END__
 
 =head1 NAME
 
-Spreadsheet::ParseExcel::SaveParser - Expand of Spreadsheet::ParseExcel with Spreadsheet::WriteExcel
+Spreadsheet::ParseExcel::SaveParser - Rewrite an existing Excel file.
 
 =head1 SYNOPSIS
 
@@ -400,11 +412,15 @@ This module is based on herbert within OLE::Storage and XLHTML.
 
 =head1 COPYRIGHT
 
+Copyright (c) 2009 John McNamara
+
+Copyright (c) 2006-2008 Gabor Szabo
+
 Copyright (c) 2000-2002 Kawai Takanori and Nippon-RAD Co. OP Division
+
 All rights reserved.
 
-You may distribute under the terms of either the GNU General Public
-License or the Artistic License, as specified in the Perl README file.
+You may distribute under the terms of either the GNU General Public License or the Artistic License, as specified in the Perl README file.
 
 =head1 ACKNOWLEDGEMENTS
 
