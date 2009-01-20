@@ -8,20 +8,13 @@ README_Japan.htm
 META.yml
 
 t/basic.t
-#t/sample.t
 t/parse.t
 t/parse-dates.t
-#t/memory_leak.t
 t/pod.t
-#t/examples/sample_j.t
-#t/examples/sample.t
-#t/examples/sampleOEM.t
-#t/examples/chkFmt.t
-#t/examples/chkInfo.t
-#t/examples/dmpExR.t
-#t/examples/warning.t
-#t/examples/iftest.t
-t/lib/Test/Example.pm
+t/20_number_format_default.t
+t/21_number_format_user.t
+t/22_number_format_datetime.t
+t/23_number_format_time.t
 
 lib/Spreadsheet/ParseExcel.pm
 lib/Spreadsheet/ParseExcel/Cell.pm
