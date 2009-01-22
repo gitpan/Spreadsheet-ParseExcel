@@ -1,5 +1,12 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.47 22 January 2009
+
+    ! Fixed bug where multiple embedded charts on a worksheet caused worksheet
+      order to be lost and data to get overwritten.
+      Reported by Steven Martin and others.
+      http://rt.cpan.org/Public/Bug/Display.html?id=13365
+
 0.46 18 January 2009
 
     ! Heavily refactored the ExcelFmt() function for maintainability and
