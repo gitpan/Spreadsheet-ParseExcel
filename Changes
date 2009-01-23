@@ -1,9 +1,22 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+0.48 23 January 2009
+
+    ! Fixed bug where numbers with uppercase formats such as MM/DD/YY
+      weren't formatted. Applies to files created by OpenOffice.org
+      and some international versions of Excel. Added tests for above.
+      http://rt.cpan.org/Public/Bug/Display.html?id=20526
+      http://rt.cpan.org/Public/Bug/Display.html?id=31206
+      http://rt.cpan.org/Public/Bug/Display.html?id=40307
+ 
+    ! Removed undocumented and counter-intuitive use of overload on SheetNo in
+      Worksheet.pm.
+      http://rt.cpan.org/Public/Bug/Display.html?id=14278
+
 0.47 22 January 2009
 
-    ! Fixed bug where multiple embedded charts on a worksheet caused worksheet
-      order to be lost and data to get overwritten.
+    ! Fixed bug where multiple embedded charts on a worksheet caused the
+      worksheet order to be lost and data to get overwritten.
       Reported by Steven Martin and others.
       http://rt.cpan.org/Public/Bug/Display.html?id=13365
 
@@ -11,14 +24,14 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 
     ! Heavily refactored the ExcelFmt() function for maintainability and
       fixed several bugs, in particular for 12 hour clock times.
-      Added test cases for above. 
+      Added test cases for above.
 
     ! Removed use of $& match variables from ExcelFmt.
-      Reported by Wigs.
+      Reported by Aaron Wigley.
       http://rt.cpan.org/Public/Bug/Display.html?id=42425
 
-    ! Replaced lvalue substr() with 4-arg substr() for efficiency.
-      Reported by Goro Fuji.
+    ! Replaced lvalue substr() in ExcelFmt () with 4-arg substr()
+      for efficiency. Reported by Goro Fuji.
       http://rt.cpan.org/Public/Bug/Display.html?id=42518
 
     ! Removed spurious t/examples dir from Makefile.PL and removed
@@ -65,10 +78,8 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
     ! Fixed minor SaveParser bug with font rotation.
       http://rt.cpan.org/Public/Bug/Display.html?id=41626
 
-
 0.42 1 January 2009
     + Fix for world writeable files in distro to allow PAUSE indexing.
-
 
 0.41 24 October 2008
     + Changed maintainership to John McNamara.
@@ -78,7 +89,6 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 
     ! Changed margin units to inches to (cleanly) avoid undef warning in
       SaveParser.
-
 
 0.33 2008.09.07
     - Default format for formatted dates changed from 'm-d-yy' to 'yyyy-mm-dd'
