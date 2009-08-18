@@ -1,6 +1,18 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
-0.48 24 January 2009
+0.50 18 August 2009
+
+    + Refactored Worksheet interface and documentation.
+      Added 04_regression.t and 05_regression.t to test above changes.
+
+    ! Fixed column units conversion.
+      Added 24_row_col_sizes.t for above change.
+
+    ! Fixed RK number conversion. The existing code was the source of several
+      RT bugs and portability issues. Added 25_decode_rk_numbers.t testcase.
+
+
+0.49 24 January 2009
 
     ! Added Text::CSV_XS to xls2csv() function to handle embedded commas
       in csv data. Reported by Fredrik Linde.

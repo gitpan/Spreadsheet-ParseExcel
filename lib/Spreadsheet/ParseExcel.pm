@@ -1,4 +1,4 @@
-###############################################################################
+##############################################################################
 #
 # Spreadsheet::ParseExcel - Extract information from an Excel file.
 #
@@ -15,7 +15,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -49,7 +49,7 @@ use constant verBIFF2   => 0x00;
 use constant verBIFF3   => 0x02;
 use constant verBIFF4   => 0x04;
 use constant verBIFF5   => 0x08;
-use constant verBIFF8   => 0x18;               #Added (Not in BOOK)
+use constant verBIFF8   => 0x18;
 
 my %ProcTbl = (
 
@@ -104,7 +104,7 @@ my %ProcTbl = (
     0x205 => \&_subBoolErr,                    # BoolErr
     0x207 => \&_subString,                     # STRING
     0x208 => \&_subRow,                        # RowData
-    0x221 => \&_subArray,                      #Array (Consider)
+    0x221 => \&_subArray,                      # Array (Consider)
     0x225 => \&_subDefaultRowHeight,           # Consider
 
     0x31  => \&_subFont,                       # Font
@@ -571,28 +571,35 @@ sub _subBoolErr {
     _SetDimension( $oBook, $iR, $iC, $iC );
 }
 
-#------------------------------------------------------------------------------
-# _subRK (for Spreadsheet::ParseExcel)  DK:P401
-#------------------------------------------------------------------------------
+###############################################################################
+#
+# _subRK()
+#
+# Decode the RK BIFF record.
+#
 sub _subRK {
-    my ( $oBook, $bOp, $bLen, $sWk ) = @_;
-    my ( $iR, $iC ) = unpack( "v3", $sWk );
 
-    my ( $iF, $sTxt ) = _UnpackRKRec( substr( $sWk, 4, 6 ) );
+    my ( $workbook, $biff_number, $length, $data ) = @_;
+
+    my ( $row, $col, $format_index, $rk_number ) = unpack( 'vvvV', $data );
+
+    my $number = _decode_rk_number($rk_number);
+
     _NewCell(
-        $oBook, $iR, $iC,
+        $workbook, $row, $col,
         Kind     => 'RK',
-        Val      => $sTxt,
-        FormatNo => $iF,
-        Format   => $oBook->{Format}[$iF],
+        Val      => $number,
+        FormatNo => $format_index,
+        Format   => $workbook->{Format}->[$format_index],
         Numeric  => 1,
         Code     => undef,
-        Book     => $oBook,
+        Book     => $workbook,
     );
 
-    #2.MaxRow, MaxCol, MinRow, MinCol
-    _SetDimension( $oBook, $iR, $iC, $iC );
+    # Store the max and min row/col values.
+    _SetDimension( $workbook, $row, $col, $col );
 }
+
 
 #------------------------------------------------------------------------------
 # _subArray (for Spreadsheet::ParseExcel)   DK:P297
@@ -733,35 +740,48 @@ sub _subLabel {
     _SetDimension( $oBook, $iR, $iC, $iC );
 }
 
-#------------------------------------------------------------------------------
-# _subMulRK (for Spreadsheet::ParseExcel)   DK:P349
-#------------------------------------------------------------------------------
+
+###############################################################################
+#
+# _subMulRK()
+#
+# Decode the Multiple RK BIFF record.
+#
 sub _subMulRK {
-    my ( $oBook, $bOp, $bLen, $sWk ) = @_;
-    return if ( $oBook->{SheetCount} <= 0 );
 
-    my ( $iR, $iSc ) = unpack( "v2", $sWk );
-    my $iEc = unpack( "v", substr( $sWk, length($sWk) - 2, 2 ) );
+    my ( $workbook, $biff_number, $length, $data ) = @_;
 
-    my $iPos = 4;
-    for ( my $iC = $iSc ; $iC <= $iEc ; $iC++ ) {
-        my ( $iF, $lVal ) = _UnpackRKRec( substr( $sWk, $iPos, 6 ), $iR, $iC );
+    # JMN: I don't know why this is here.
+    return if $workbook->{SheetCount} <= 0;
+
+    my ( $row, $first_col ) = unpack( "v2", $data );
+    my $last_col = unpack( "v", substr( $data, length($data) - 2, 2 ) );
+
+    # Iterate over the RK array and decode the data.
+    my $pos = 4;
+    for my $col ( $first_col .. $last_col ) {
+
+        my $data = substr( $data, $pos, 6 );
+        my ( $format_index, $rk_number ) = unpack 'vV', $data;
+        my $number = _decode_rk_number($rk_number);
+
         _NewCell(
-            $oBook, $iR, $iC,
+            $workbook, $row, $col,
             Kind     => 'MulRK',
-            Val      => $lVal,
-            FormatNo => $iF,
-            Format   => $oBook->{Format}[$iF],
+            Val      => $number,
+            FormatNo => $format_index,
+            Format   => $workbook->{Format}->[$format_index],
             Numeric  => 1,
             Code     => undef,
-            Book     => $oBook,
+            Book     => $workbook,
         );
-        $iPos += 6;
+        $pos += 6;
     }
 
-    #2.MaxRow, MaxCol, MinRow, MinCol
-    _SetDimension( $oBook, $iR, $iSc, $iEc );
+    # Store the max and min row/col values.
+    _SetDimension( $workbook, $row, $first_col, $last_col );
 }
+
 
 #------------------------------------------------------------------------------
 # _subMulBlank (for Spreadsheet::ParseExcel) DK:P349
@@ -895,30 +915,61 @@ sub _subDefaultRowHeight {
 sub _subStandardWidth {
     my ( $oBook, $bOp, $bLen, $sWk ) = @_;
     my $iW = unpack( "v", $sWk );
-    $oBook->{StandardWidth} = _adjustColWidth( $oBook, $iW );
+    $oBook->{StandardWidth} = _convert_col_width( $oBook, $iW );
 }
 
-#------------------------------------------------------------------------------
-# _subDefColWidth(for Spreadsheet::ParseExcel)      DK:P319
-#------------------------------------------------------------------------------
+###############################################################################
+#
+# _subDefColWidth()
+#
+# Read the DEFCOLWIDTH Biff record. This gives the width in terms of chars
+# and is different from the width in the COLINFO record.
+#
 sub _subDefColWidth {
-    my ( $oBook, $bOp, $bLen, $sWk ) = @_;
-    return undef unless ( defined $oBook->{_CurSheet} );
-    my $iW = unpack( "v", $sWk );
-    $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{DefColWidth} =
-      _adjustColWidth( $oBook, $iW );
+
+    my ( $self, $record, $length, $data ) = @_;
+
+    my $width = unpack 'v', $data;
+
+    # Adjustment for default Arial 10 width.
+    $width = 8.43 if $width == 8;
+
+    $self->{Worksheet}->[ $self->{_CurSheet} ]->{DefColWidth} = $width;
 }
 
-#------------------------------------------------------------------------------
-# _adjustColWidth (for Spreadsheet::ParseExcel)
-#------------------------------------------------------------------------------
-sub _adjustColWidth {
-    my ( $oBook, $iW ) = @_;
-    return ( ( $iW - 0xA0 ) / 256 );
+###############################################################################
+#
+# _convert_col_width()
+#
+# Converts from the internal Excel column width units to user units seen in the
+# interface. It is first necessary to convert the internal width to pixels and
+# then to user units. The conversion is specific to a default font of Arial 10.
+# TODO, the conversion should be extended to other fonts and sizes.
+#
+sub _convert_col_width {
 
-  #    ($oBook->{Worksheet}[$oBook->{_CurSheet}]->{SheetVersion} == verExcel97)?
-  #        (($iW -0xA0)/256) : $iW;
+    my $self        = shift;
+    my $excel_width = shift;
+
+    # Convert from Excel units to pixels (rounded up).
+    my $pixels = int( 0.5 + $excel_width * 7 / 256 );
+
+    # Convert from pixels to user units.
+    # The conversion is different for columns <= 1 user unit (12 pixels).
+    my $user_width;
+    if ( $pixels <= 12 ) {
+        $user_width = $pixels / 12;
+    }
+    else {
+        $user_width = ( $pixels - 5 ) / 7;
+    }
+
+    # Round up to 2 decimal places.
+    $user_width = int( $user_width * 100 + 0.5 ) / 100;
+
+    return $user_width;
 }
+
 
 #------------------------------------------------------------------------------
 # _subColInfo (for Spreadsheet::ParseExcel) DK:P309
@@ -929,7 +980,7 @@ sub _subColInfo {
     my ( $iSc, $iEc, $iW, $iXF, $iGr ) = unpack( "v5", $sWk );
     for ( my $i = $iSc ; $i <= $iEc ; $i++ ) {
         $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{ColWidth}[$i] =
-          ( $iGr & 0x01 ) ? 0 : _adjustColWidth( $oBook, $iW );
+          ( $iGr & 0x01 ) ? 0 : _convert_col_width( $oBook, $iW );
 
         #0x01 means HIDDEN
         $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{ColFmtNo}[$i] = $iXF;
@@ -1525,6 +1576,12 @@ sub _subSETUP {
     $oWkS->{NoOrient}    = ( ( $iGrBit & 0x40 ) ? 1 : 0 );
     $oWkS->{UsePage}     = ( ( $iGrBit & 0x80 ) ? 1 : 0 );
 
+    # The NoPls flag indicates that the values have not been taken from an
+    # actual printer and thus may not be accurate.
+
+    # Set default scale if NoPls otherwise it may be an invalid value of 0XFF.
+    $oWkS->{Scale} = 100 if $oWkS->{NoPls};
+
     # Workaround for a backward compatible typo.
     $oWkS->{HeaderMergin} = $oWkS->{HeaderMargin};
     $oWkS->{FooterMergin} = $oWkS->{FooterMargin};
@@ -1739,60 +1796,51 @@ sub DecodeBoolErr {
     }
 }
 
-#------------------------------------------------------------------------------
-# _UnpackRKRec (for Spreadsheet::ParseExcel)    DK:P 401
-#------------------------------------------------------------------------------
-sub _UnpackRKRec {
-    my ($sArg) = @_;
 
-    my $iF = unpack( 'v', substr( $sArg, 0, 2 ) );
+###############################################################################
+#
+# _decode_rk_number()
+#
+# Convert an encoded RK number into a real number. The RK encoding is
+# explained in some detail in the MS docs. It is a way of storing applicable
+# ints and doubles in 32bits (30 data + 2 info bits) in order to save space.
+#
+sub _decode_rk_number {
 
-    my $lWk = substr( $sArg, 2, 4 );
-    my $sWk = pack( "c4", reverse( unpack( "c4", $lWk ) ) );
-    my $iPtn = unpack( "c", substr( $sWk, 3, 1 ) ) & 0x03;
-    if ( $iPtn == 0 ) {
-        return ( $iF,
-            unpack( "d", ($BIGENDIAN) ? $sWk . "\0\0\0\0" : "\0\0\0\0" . $lWk )
-        );
-    }
-    elsif ( $iPtn == 1 ) {
+    my $rk_number = shift;
+    my $number;
 
-        # http://rt.cpan.org/Ticket/Display.html?id=18063
-        my $u31 = unpack( "c", substr( $sWk, 3, 1 ) ) & 0xFC;
-        $u31 |= 0xFFFFFF00
-          if ( $u31 & 0x80 );    # raise neg bits for neg 1-byte value
-        substr( $sWk, 3, 1 ) &= pack( 'c', $u31 );
+    # Check the main RK type.
+    if($rk_number & 0x02)  {
+        # RK Type 2 and 4, a packed integer.
 
-        my $u01 = unpack( "c", substr( $lWk, 0, 1 ) ) & 0xFC;
-        $u01 |= 0xFFFFFF00
-          if ( $u01 & 0x80 );    # raise neg bits for neg 1-byte value
-        substr( $lWk, 0, 1 ) &= pack( 'c', $u01 );
+        # Shift off the info bits.
+        $number = $rk_number >> 2;
 
-        return ( $iF,
-            unpack( "d", ($BIGENDIAN) ? $sWk . "\0\0\0\0" : "\0\0\0\0" . $lWk )
-              / 100 );
-    }
-    elsif ( $iPtn == 2 ) {
-        my $sUB = unpack( "B32", $sWk );
-        my $sWkLB =
-          pack( "B32", ( substr( $sUB, 0, 1 ) x 2 ) . substr( $sUB, 0, 30 ) );
-        my $sWkL =
-          ($BIGENDIAN)
-          ? $sWkLB
-          : pack( "c4", reverse( unpack( "c4", $sWkLB ) ) );
-        return ( $iF, unpack( "i", $sWkL ) );
+        # Convert from unsigned to signed if required.
+        $number -= 0x40000000 if $number & 0x20000000;
     }
     else {
-        my $sUB = unpack( "B32", $sWk );
-        my $sWkLB =
-          pack( "B32", ( substr( $sUB, 0, 1 ) x 2 ) . substr( $sUB, 0, 30 ) );
-        my $sWkL =
-          ($BIGENDIAN)
-          ? $sWkLB
-          : pack( "c4", reverse( unpack( "c4", $sWkLB ) ) );
-        return ( $iF, unpack( "i", $sWkL ) / 100 );
+        # RK Type 1 and 3, a truncated IEEE Double.
+
+        # Pack the RK number into the high 30 bits of an IEEE double.
+        $number = pack "VV", 0x0000, $rk_number & 0xFFFFFFFC;
+
+        # Reverse the packed IEEE double on big-endian machines.
+        $number = reverse $number if $BIGENDIAN;
+
+        # Unpack the number.
+        $number = unpack "d", $number;
     }
+
+
+    # RK Types 3 and 4 were multiplied by 100 prior to encoding.
+    $number /= 100 if $rk_number & 0x01;
+
+    return $number;
 }
+
+
 
 ###############################################################################
 #
@@ -2038,7 +2086,7 @@ __END__
 
 =head1 NAME
 
-Spreadsheet::ParseExcel - Extract information from an Excel file.
+Spreadsheet::ParseExcel - Read information from an Excel file.
 
 =head1 SYNOPSIS
 
@@ -2072,7 +2120,9 @@ Spreadsheet::ParseExcel - Extract information from an Excel file.
 
 =head1 DESCRIPTION
 
-The Spreadsheet::ParseExcel module can be used to read information from an Excel 95-2003 file.
+The Spreadsheet::ParseExcel module can be used to read information from Excel 95-2003 binary files.
+
+The module cannot read files in the Excel 2007 Open XML XLSX format. See the Spreadsheet::XLSX module instead.
 
 =head1 Parser
 
@@ -2082,10 +2132,11 @@ The C<new()> method is used to create a new C<Spreadsheet::ParseExcel> parser ob
 
     my $parser = Spreadsheet::ParseExcel->new();
 
-As an B<advanced> feature it is also possible to pass a call-back handler to the parser to control the parsing of the spreadsheet.
+As an advanced feature it is also possible to pass a call-back handler to the parser to control the parsing of the spreadsheet.
 
     $parser = Spreadsheet::ParseExcel->new(
-                        [ CellHandler => \&cell_handler,
+                        [
+                          CellHandler => \&cell_handler,
                           NotSetCell  => 1,
                         ]);
 
@@ -2105,6 +2156,8 @@ If an error occurs C<Parse()> returns C<undef>.
 The C<$filename> parameter is generally the file to be parsed. However, it can also be a filehandle or a scalar reference.
 
 The optional C<$formatter> array ref can be an reference to a L<"Formatter Class"> to format the value of cells.
+
+Note: Versions of Spreadsheet::ParseExcel prior to 0.50 also documented a Workbook C<Parse()> method as a syntactic shortcut for the above C<new()> and C<Parse()> combination. This is now deprecated since it breaks error handling.
 
 
 =head2 ColorIdxToRGB()
@@ -2127,17 +2180,6 @@ The Workbook class has methods and properties that are outlined in the following
 
 =head1 Workbook Methods
 
-=head2 Parse()
-
-As a syntactic shorthand you can create a Parser and Workbook object in one go using the Workbook C<Parse()> method. The following examples are equivalent:
-
-    # Method 1
-    my $parser   = Spreadsheet::ParseExcel->new();
-    my $workbook = $parser->Parse('Book1.xls');
-
-    # Method 2
-    my $workbook = Spreadsheet::ParseExcel::Workbook->Parse('Book1.xls');
-
 
 =head2 worksheets()
 
@@ -2147,12 +2189,12 @@ Returns an array of L<"Worksheet"> objects. This was most commonly used to itera
         ...
     }
 
-=head2 Worksheet()
+=head2 worksheet()
 
-The C<Worksheet()> method returns a single C<Worksheet> object using either its name or index:
+The C<worksheet()> method returns a single C<Worksheet> object using either its name or index:
 
-    $worksheet = $workbook->Worksheet('Sheet1');
-    $worksheet = $workbook->Worksheet(0);
+    $worksheet = $workbook->worksheet('Sheet1');
+    $worksheet = $workbook->worksheet(0);
 
 Returns C<undef> if the sheet name or index doesn't exist.
 
@@ -2217,13 +2259,49 @@ Returns an array ref  of print title hash refs. Each print title is as follows:
     }
 
 
-
-
 =head1 Worksheet
 
-The C<Spreadsheet::ParseExcel::Worksheet> class has the following methods and properties.
+The C<Spreadsheet::ParseExcel::Worksheet> class encapsulates the properties of an Excel worksheet. It has the following methods:
 
-=head1 Worksheet methods
+    # Commonly used methods.
+    $worksheet->get_cell()
+    $worksheet->row_range()
+    $worksheet->col_range()
+    $worksheet->get_name()
+
+    # Infrequently used methods.
+    $worksheet->get_h_pagebreaks()
+    $worksheet->get_v_pagebreaks()
+    $worksheet->get_merged_areas()
+    $worksheet->get_row_heights()
+    $worksheet->get_col_widths()
+    $worksheet->get_default_row_height()
+    $worksheet->get_default_col_width()
+    $worksheet->get_header()
+    $worksheet->get_footer()
+    $worksheet->get_margin_left()
+    $worksheet->get_margin_right()
+    $worksheet->get_margin_top()
+    $worksheet->get_margin_bottom()
+    $worksheet->get_margin_header()
+    $worksheet->get_margin_footer()
+    $worksheet->get_paper()
+    $worksheet->get_start_page()
+    $worksheet->get_print_order()
+    $worksheet->get_print_scale()
+    $worksheet->get_fit_to_pages()
+    $worksheet->is_portrait()
+    $worksheet->is_centered_horizontally()
+    $worksheet->is_centered_vertically()
+    $worksheet->is_print_gridlines()
+    $worksheet->is_print_row_col_headers()
+    $worksheet->is_print_black_and_white()
+    $worksheet->is_print_draft()
+    $worksheet->is_print_comments()
+
+The Spreadsheet::ParseExcel::Worksheet class exposes a lot of methods but in general very few are required unless you are writing an advanced filter.
+
+The most commonly used methods are shown below. The others are documented in L<Spreadsheet::ParseExcel::Worksheet>.
 
 =head2 get_cell($row, $col)
 
@@ -2231,227 +2309,30 @@ Return the L<"Cell"> object at row C<$row> and column C<$col> if it is defined. 
 
     my $cell = $worksheet->get_cell($row, $col);
 
+
 =head2 row_range()
 
-Return a two-element list C<($min, $max)> containing the minimum and maximum defined rows in the worksheet. If there is no row defined C<$max> is smaller than C<$min>.
+Returns a two-element list C<($min, $max)> containing the minimum and maximum defined rows in the worksheet. If there is no row defined C<$max> is smaller than C<$min>.
 
     my ( $row_min, $row_max ) = $worksheet->row_range();
 
+
 =head2 col_range()
 
-Return a two-element list C<($min, $max)> containing the minimum and maximum of defined columns in the worksheet. If there is no column defined C<$max> is smaller than C<$min>.
+Returns a two-element list C<($min, $max)> containing the minimum and maximum of defined columns in the worksheet. If there is no column defined C<$max> is smaller than C<$min>.
 
     my ( $col_min, $col_max ) = $worksheet->col_range();
 
-=head1 Worksheet Properties
 
-A worksheet object exposes a number of properties as shown below:
+=head2 get_name()
 
-    $worksheet->{Name}
-    $worksheet->{DefRowHeight}
-    $worksheet->{DefColWidth}
-    $worksheet->{RowHeight}->[$row]
-    $worksheet->{ColWidth}->[$col]
-    $worksheet->{Cells}->[$row]->[$col]
-    $worksheet->{Landscape}
-    $worksheet->{Scale}
-    $worksheet->{PageFit}
-    $worksheet->{FitWidth}
-    $worksheet->{FitHeight}
-    $worksheet->{PaperSize}
-    $worksheet->{PageStart}
-    $worksheet->{UsePage}
-    $worksheet->{$margin}
-    $worksheet->{HCenter}
-    $worksheet->{VCenter}
-    $worksheet->{Header}
-    $worksheet->{Footer}
-    $worksheet->{PrintGrid}
-    $worksheet->{PrintHeaders}
-    $worksheet->{NoColor}
-    $worksheet->{Draft}
-    $worksheet->{Notes}
-    $worksheet->{LeftToRight}
-    $worksheet->{HPageBreak}
-    $worksheet->{VPageBreak}
-    $worksheet->{MergedArea}
+The C<get_name()> method returns the name of the worksheet, such as 'Sheet1'.
 
-These properties are generally only of interest to advanced users. Casual users can skip this section.
+    my $name = $worksheet->get_name();
 
-=head2 $worksheet->{Name}
+=head2 Other Worksheet methods
 
-Returns the name of the worksheet such as 'Sheet1'.
-
-=head2 $worksheet->{DefRowHeight}
-
-Returns default height of the rows in the worksheet.
-
-=head2 $worksheet->{DefColWidth}
-
-Returns default width of columns in the worksheet.
-
-=head2 $worksheet->{RowHeight}->[$row]
-
-Returns an array of row heights.
-
-=head2 $worksheet->{ColWidth}->[$col]
-
-Returns array of column widths. A value of C<undef> means the column has the C<DefColWidth>.
-
-=head2 $worksheet->{Cells}->[$row]->[$col]
-
-Returns array of L<"Cell"> objects in the worksheet.
-
-    my $cell = $worksheet->{Cells}->[$row]->[$col];
-
-=head2 $worksheet->{Landscape}
-
-Returns 0 for horizontal or 1 for vertical.
-
-=head2 $worksheet->{Scale}
-
-Returns the worksheet print scale.
-
-=head2 $worksheet->{PageFit}
-
-Returns true if the "fit to" print option is set.
-
-=head2 $worksheet->{FitWidth}
-
-Return the number of pages in the "fit to width" option.
-
-=head2 $worksheet->{FitHeight}
-
-Return the number of pages in the "fit to height" option.
-
-=head2 $worksheet->{PaperSize}
-
-Returns the printer paper size. The value corresponds to the formats shown below:
-
-
-    Index   Paper format            Paper size
-    =====   ============            ==========
-      0     Printer default         -
-      1     Letter                  8 1/2 x 11 in
-      2     Letter Small            8 1/2 x 11 in
-      3     Tabloid                 11 x 17 in
-      4     Ledger                  17 x 11 in
-      5     Legal                   8 1/2 x 14 in
-      6     Statement               5 1/2 x 8 1/2 in
-      7     Executive               7 1/4 x 10 1/2 in
-      8     A3                      297 x 420 mm
-      9     A4                      210 x 297 mm
-     10     A4 Small                210 x 297 mm
-     11     A5                      148 x 210 mm
-     12     B4                      250 x 354 mm
-     13     B5                      182 x 257 mm
-     14     Folio                   8 1/2 x 13 in
-     15     Quarto                  215 x 275 mm
-     16     -                       10x14 in
-     17     -                       11x17 in
-     18     Note                    8 1/2 x 11 in
-     19     Envelope  9             3 7/8 x 8 7/8
-     20     Envelope 10             4 1/8 x 9 1/2
-     21     Envelope 11             4 1/2 x 10 3/8
-     22     Envelope 12             4 3/4 x 11
-     23     Envelope 14             5 x 11 1/2
-     24     C size sheet            -
-     25     D size sheet            -
-     26     E size sheet            -
-     27     Envelope DL             110 x 220 mm
-     28     Envelope C3             324 x 458 mm
-     29     Envelope C4             229 x 324 mm
-     30     Envelope C5             162 x 229 mm
-     31     Envelope C6             114 x 162 mm
-     32     Envelope C65            114 x 229 mm
-     33     Envelope B4             250 x 353 mm
-     34     Envelope B5             176 x 250 mm
-     35     Envelope B6             176 x 125 mm
-     36     Envelope                110 x 230 mm
-     37     Monarch                 3.875 x 7.5 in
-     38     Envelope                3 5/8 x 6 1/2 in
-     39     Fanfold                 14 7/8 x 11 in
-     40     German Std Fanfold      8 1/2 x 12 in
-     41     German Legal Fanfold    8 1/2 x 13 in
-     256    User defined
-
-The two most common paper sizes are C<1 = "US Letter"> and C<9 = A4>.
-
-=head2 $worksheet->{PageStart}
-
-Returns the page number where printing starts.
-
-=head2 $worksheet->{UsePage}
-
-Returns whether a user defined start page is in use.
-
-=head2 $worksheet->{$margin}
-
-Returns the worksheet margin for left, right, top, bottom, header and footer where C<$margin> has one of the following values:
-
-    LeftMargin
-    RightMargin
-    TopMargin
-    BottomMargin
-    HeaderMargin
-    FooterMargin
-
-=head2 $worksheet->{HCenter}
-
-Returns true if the "Center horizontally when Printing" option is set.
-
-=head2 $worksheet->{VCenter}
-
-Returns true if the "Center vertically when Printing" option is set.
-
-=head2 $worksheet->{Header}
-
-Returns the print header string. This can contain control codes for alignment and font properties. Refer to the Excel on-line help on headers and footers or to the Spreadsheet::WriteExcel documentation for C<set_header()>.
-
-=head2 $worksheet->{Footer}
-
-Returns the print footer string. This can contain control codes for alignment and font properties. Refer to the Excel on-line help on headers and footers or to the Spreadsheet::WriteExcel documentation for C<set_header()>.
-
-=head2 $worksheet->{PrintGrid}
-
-Returns true if Print with gridlines is set.
-
-=head2 $worksheet->{PrintHeaders}
-
-Returns true if Print with headings is set.
-
-=head2 $worksheet->{NoColor}
-
-Returns true if Print in black and white is set.
-
-=head2 $worksheet->{Draft}
-
-Returns true if the "draft mode" print option is set.
-
-=head2 $worksheet->{Notes}
-
-Returns true if print with notes option is set.
-
-=head2 $worksheet->{LeftToRight}
-
-Returns the print order for the worksheet. Returns 0 for "left to right" printing and 1 for "top down" printing.
-
-=head2 $worksheet->{HPageBreak}
-
-Return an array ref of horizontal page breaks.
-
-=head2 $worksheet->{VPageBreak}
-
-Return an array ref of vertical page breaks.
-
-=head2 $worksheet->{MergedArea}
-
-Return an array ref of merged areas. Each merged area is:
-
-    [ $start_row, $start_col, $end_row, $end_col]
-
-
-
+For other, less commonly used, Worksheet methods see L<Spreadsheet::ParseExcel::Worksheet>.
 
 =head1 Cell
 
@@ -2720,7 +2601,7 @@ The formatter class C<Spreadsheet::ParseExcel::Fmt*> should provide the followin
 
 =head2 ChkType($self, $is_numeric, $format_index)
 
-Method to check the the type of data in the cell. Should return C<Date>, C<Numeric> or C<Text>. It is passed the following parameters:
+Method to check the type of data in the cell. Should return C<Date>, C<Numeric> or C<Text>. It is passed the following parameters:
 
 =over
 
