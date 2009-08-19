@@ -1,5 +1,27 @@
 Revision history for Perl extension Spreadsheet::ParseExcel.
 
+
+0.51 19 August 2009
+
+    ! Added fix for incorrectly skipped charts. Thanks Guntram Blohm.
+      https://rt.cpan.org/Ticket/Display.html?id=44009
+
+    ! Added fix for locale [$-ddd] strings in number formats.
+      Reported by Jeff Mitchell.
+      https://rt.cpan.org/Ticket/Display.html?id=43638
+
+    ! Added fix for multiple dots in number formats.
+      Thanks to Father Chrysostomos.
+      http://rt.cpan.org/Public/Bug/Display.html?id=45502
+
+    ! Added fix to make half way rounding behave like Excel.
+      Thanks to Joshua Megerman.
+      http://rt.cpan.org/Public/Bug/Display.html?id=45626
+
+    ! Added checks for valid dates in Utility::ExcelFmt.
+      Reported by Alan James.
+      http://rt.cpan.org/Public/Bug/Display.html?id=48831
+
 0.50 18 August 2009
 
     + Refactored Worksheet interface and documentation.
@@ -16,7 +38,7 @@ Revision history for Perl extension Spreadsheet::ParseExcel.
 
     ! Added Text::CSV_XS to xls2csv() function to handle embedded commas
       in csv data. Reported by Fredrik Linde.
-      https://rt.cpan.org/Ticket/Display.html?id=41337
+      http://rt.cpan.org/Public/Bug/Display.html?id=41337
 
     + Rewrote Utility.pm documentation.
 

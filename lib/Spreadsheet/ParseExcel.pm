@@ -15,7 +15,7 @@ use warnings;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -245,9 +245,9 @@ sub Parse {
             );
         }
 
-        # If the low byte of the BIFF record is 0x09 then it is a BOF record.
+        # If the BIFF record matches 0x0*09 then it is a BOF record.
         # We reset the _skip_chart flag to ensure we check the sheet type.
-        if ( ( $bOp & 0xFF ) == 0x09 ) {
+        if ( ( $bOp & 0xF0FF ) == 0x09 ) {
             $oBook->{_skip_chart} = 0;
         }
 
