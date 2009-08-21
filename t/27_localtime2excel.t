@@ -4,15 +4,19 @@
 #
 # A test for Spreadsheet::ParseExcel.
 #
-# Tests for date and time number format handling using FmtExcel().
+# Tests for Utility::ExcelLocaltime().
 #
-# reverse('ï¿½'), January 2009, John McNamara, jmcnamara@cpan.org
+# reverse('©'), August 2009, John McNamara, jmcnamara@cpan.org
 #
 
 use strict;
 
-use Spreadsheet::ParseExcel::Utility 'ExcelFmt';
-use Test::More tests => 102;
+use Spreadsheet::ParseExcel::Utility 'ExcelLocaltime';
+use Test::More tests => 98;
+
+my $date_time;
+my $number;
+my $result;
 
 ##############################################################################
 #
@@ -20,22 +24,44 @@ use Test::More tests => 102;
 #
 while (<DATA>) {
 
-    last if /^# stop/; # For debugging
-    next unless /\S/;  # Ignore blank lines
-    next if /^#/;      # Ignore comments
+    last if /^# stop/;    # For debugging
+    next unless /\S/;     # Ignore blank lines
+    next if /^#/;         # Ignore comments
 
     if (/"DateTime">([^<]+)/) {
         my $date_time = $1;
         my $line      = <DATA>;
 
-        if ($line =~ /"Number">([^<]+)/) {
+        if ( $line =~ /"Number">([^<]+)/ ) {
             my $number = 0 + $1;
-            my $result = ExcelFmt('yyyy-mm-ddThh:mm:ss.000', $number);
-            is($result, $date_time, " \tDate/Time: $date_time");
+            my $result = convert_excel_datetime( ExcelLocaltime($number) );
+
+            is( $date_time, $result,
+                " \tTesting ExcelLocaltime(): $date_time $number" );
         }
     }
 }
 
+##############################################################################
+#
+# convert_excel_datetime()
+#
+# Helper function for testing.
+#
+# This function takes a date and time in Excel format and converts it to the
+# ISO8601 "yyyy-mm-ddThh:mm:ss.ss" format.
+#
+sub convert_excel_datetime {
+
+    #    0     1     2      3     4       5      6      7
+    my ( $sec, $min, $hour, $day, $month, $year, $wday, $msec ) = @_;
+
+    $month++;
+    $year += 1900;
+
+    return sprintf "%4d-%02d-%02dT%02d:%02d:%02d.%03d", $year, $month, $day,
+      $hour, $min, $sec, $msec;
+}
 
 __DATA__
 
@@ -46,22 +72,6 @@ __DATA__
    <Row>
     <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-01-00T00:00:00.000</Data></Cell>
     <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">0</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-01-01T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">1</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-02-28T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">59</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-02-29T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">60</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-03-01T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">61</Data></Cell>
    </Row>
    <Row>
     <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1982-08-25T00:15:20.213</Data></Cell>

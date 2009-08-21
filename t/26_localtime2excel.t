@@ -4,15 +4,45 @@
 #
 # A test for Spreadsheet::ParseExcel.
 #
-# Tests for date and time number format handling using FmtExcel().
+# Tests for Utility::LocaltimeExcel().
 #
-# reverse('ï¿½'), January 2009, John McNamara, jmcnamara@cpan.org
+# reverse('©'), August 2009, John McNamara, jmcnamara@cpan.org
 #
 
 use strict;
 
-use Spreadsheet::ParseExcel::Utility 'ExcelFmt';
-use Test::More tests => 102;
+use Spreadsheet::ParseExcel::Utility 'LocaltimeExcel';
+use Test::More tests => 100;
+
+my $date_time;
+my $number;
+my $result;
+
+# Set float difference limit to half of an Excel millisecond
+my $flt_delta = 0.5 / ( 24 * 60 * 60 * 1000 );
+
+##############################################################################
+#
+# Test the flt_cmp() function used in the other tests.
+#
+
+$date_time = '1900-01-00T00:00:00.0004';
+$number    = 0;
+$result    = LocaltimeExcel( convert_date_time($date_time) );
+$result    = -1 unless defined $result;
+
+# Test 1. This should pass. It is less than the float diff limit.
+ok( flt_cmp( $number, $result ),
+    " \tTesting LocaltimeExcel(): $date_time $number" );
+
+$date_time = '1900-01-00T00:00:00.0005';
+$number    = 0;
+$result    = LocaltimeExcel( convert_date_time($date_time) );
+$result    = -1 unless defined $result;
+
+# Test 2. This should fail. It is equal to the float diff limit.
+my $diff = !flt_cmp( $number, $result );
+ok( $diff, " \tTesting LocaltimeExcel(): $date_time $number" );
 
 ##############################################################################
 #
@@ -20,22 +50,78 @@ use Test::More tests => 102;
 #
 while (<DATA>) {
 
-    last if /^# stop/; # For debugging
-    next unless /\S/;  # Ignore blank lines
-    next if /^#/;      # Ignore comments
+    last if /^# stop/;    # For debugging
+    next unless /\S/;     # Ignore blank lines
+    next if /^#/;         # Ignore comments
 
     if (/"DateTime">([^<]+)/) {
         my $date_time = $1;
         my $line      = <DATA>;
 
-        if ($line =~ /"Number">([^<]+)/) {
+        if ( $line =~ /"Number">([^<]+)/ ) {
             my $number = 0 + $1;
-            my $result = ExcelFmt('yyyy-mm-ddThh:mm:ss.000', $number);
-            is($result, $date_time, " \tDate/Time: $date_time");
+            my $result = LocaltimeExcel( convert_date_time($date_time) );
+            $result = -1 unless defined $result;
+
+            ok( flt_cmp( $number, $result ),
+                " \tTesting LocaltimeExcel(): $date_time $number" )
+              or diag( "difference between $number and $result\n" . "= "
+                  . abs( $number - $result ) . "\n"
+                  . "> $flt_delta" );
         }
     }
 }
 
+##############################################################################
+#
+# flt_cmp()
+#
+# Helper function for testing. Float comparison function.
+#
+sub flt_cmp {
+    return abs( $_[0] - $_[1] ) < $flt_delta;
+}
+
+##############################################################################
+#
+# convert_date_time()
+#
+# Helper function for testing. Based on the function of the same name in
+# Spreadsheet::WriteExcel::Worksheet.
+#
+# This function takes a date and time in ISO8601 "yyyy-mm-ddThh:mm:ss.ss"
+# format and converts it to the array format required by LocaltimeExcel().
+#
+sub convert_date_time {
+
+    my $date_time = shift;
+
+    my ( $year, $month, $day );
+    my ( $hour, $min,   $sec );
+
+    # Strip leading and trailing whitespace.
+    $date_time =~ s/^\s+//;
+    $date_time =~ s/\s+$//;
+
+    # Split into date and time.
+    my ( $date, $time ) = split /T/, $date_time;
+
+    # Match hh:mm:ss.sss+ where the seconds are optional
+    if ( $time =~ /^(\d\d):(\d\d)(:(\d\d(\.\d+)?))?/ ) {
+        $hour = $1;
+        $min  = $2;
+        $sec  = $4 || 0;
+    }
+
+    # Match date as yyyy-mm-dd.
+    if ( $date =~ /^(\d\d\d\d)-(\d\d)-(\d\d)$/ ) {
+        $year  = $1;
+        $month = $2;
+        $day   = $3;
+    }
+
+    return ( $sec, $min, $hour, $day, $month - 1, $year - 1900 );
+}
 
 __DATA__
 
@@ -46,22 +132,6 @@ __DATA__
    <Row>
     <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-01-00T00:00:00.000</Data></Cell>
     <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">0</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-01-01T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">1</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-02-28T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">59</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-02-29T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">60</Data></Cell>
-   </Row>
-   <Row>
-    <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1900-03-01T00:00:00.000</Data></Cell>
-    <Cell ss:StyleID="s22" ss:Formula="=RC[-1]"><Data ss:Type="Number">61</Data></Cell>
    </Row>
    <Row>
     <Cell ss:StyleID="s21"><Data ss:Type="DateTime">1982-08-25T00:15:20.213</Data></Cell>
