@@ -18,7 +18,7 @@ package Spreadsheet::ParseExcel::Workbook;
 use strict;
 use warnings;
 
-our $VERSION = '0.53';
+our $VERSION = '0.56';
 
 ###############################################################################
 #
@@ -167,6 +167,7 @@ sub Parse {
     no warnings;    # Ignore warnings about variables used only once.
     *Worksheet = *worksheet;
 }
+
 1;
 
 __END__

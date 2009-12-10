@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use Scalar::Util qw(weaken);
 
-our $VERSION = '0.53';
+our $VERSION = '0.56';
 
 ###############################################################################
 #
@@ -610,7 +610,7 @@ The C<Spreadsheet::ParseExcel::Worksheet> class encapsulates the properties of a
 
 =head2 get_cell($row, $col)
 
-Return the L<"Cell"> object at row C<$row> and column C<$col> if it is defined. Otherwise returns undef.
+Return the L</Cell> object at row C<$row> and column C<$col> if it is defined. Otherwise returns undef.
 
     my $cell = $worksheet->get_cell($row, $col);
 
