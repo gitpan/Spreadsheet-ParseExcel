@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 use Spreadsheet::ParseExcel::Utility qw(ExcelFmt);
-our $VERSION = '0.57';
+our $VERSION = '0.58';
 
 my %hFmtDefault = (
     0x00 => '@',
@@ -104,6 +104,12 @@ sub FmtString {
     my $sFmtStr =
       $oThis->FmtStringDef( $oBook->{Format}[ $oCell->{FormatNo} ]->{FmtIdx},
         $oBook );
+
+    # Special case for cells that use Lotus123 style leading
+    # apostrophe to designate text formatting.
+    if ( $oBook->{Format}[ $oCell->{FormatNo} ]->{Key123} ) {
+        $sFmtStr = '@';
+    }
 
     unless ( defined($sFmtStr) ) {
         if ( $oCell->{Type} eq 'Numeric' ) {

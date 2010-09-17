@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use Scalar::Util qw(weaken);
 
-our $VERSION = '0.57';
+our $VERSION = '0.58';
 
 ###############################################################################
 #
@@ -625,15 +625,6 @@ Returns a two-element list C<($min, $max)> containing the minimum and maximum de
 Returns a two-element list C<($min, $max)> containing the minimum and maximum of defined columns in the worksheet. If there is no column defined C<$max> is smaller than C<$min>.
 
     my ( $col_min, $col_max ) = $worksheet->col_range();
-
-
-=head2 col_range()
-
-The C<col_range()> method returns TODO.
-
-    my $col_range = $worksheet->col_range();
-
-Returns 0 if the property isn't set.
 
 
 =head2 get_name()

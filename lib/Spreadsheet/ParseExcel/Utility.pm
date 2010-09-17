@@ -24,7 +24,7 @@ use vars qw(@ISA @EXPORT_OK);
 @EXPORT_OK = qw(ExcelFmt LocaltimeExcel ExcelLocaltime
   col2int int2col sheetRef xls2csv);
 
-our $VERSION = '0.57';
+our $VERSION = '0.58';
 
 my $qrNUMBER = qr/(^[+-]?\d+(\.\d+)?$)|(^[+-]?\d+\.?(\d*)[eE][+-](\d+))$/;
 
@@ -186,9 +186,16 @@ sub ExcelFmt {
 
     # Remove the locale, such as [$-409], from the format string.
     my $locale = '';
-    if ( $format =~ s/^(\[\$-\d+\])// ) {
+    if ( $format =~ s/^(\[\$?-\d+\])// ) {
         $locale = $1;
     }
+
+    # Replace currency locale, such as [$$-409], with $ in the format string.
+    # See the RT#60547 test cases in 21_number_format_user.t.
+    if ( $format =~ s/(\[\$([^-]+)(-\d+)?\])/$2/s ) {
+        $locale = $1;
+    }
+
 
     # Remove leading # from '# ?/?', '# ??/??' fraction formats.
     $format =~ s{# \?}{?}g;

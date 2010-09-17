@@ -18,7 +18,7 @@ use 5.008;
 use OLE::Storage_Lite;
 use IO::File;
 use Config;
-our $VERSION = '0.57';
+our $VERSION = '0.58';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -1621,6 +1621,10 @@ sub _subSETUP {
     my ( $oBook, $bOp, $bLen, $sWk ) = @_;
     return undef unless ( defined $oBook->{_CurSheet} );
 
+    # Workaround for some apps and older Excels that don't write a
+    # complete SETUP record.
+    return undef if $bLen != 34;
+
     my $oWkS = $oBook->{Worksheet}[ $oBook->{_CurSheet} ];
     my $iGrBit;
 
@@ -2261,7 +2265,7 @@ The call-back can be used to ignore certain cells or to reduce memory usage. See
 
 =head2 parse($filename, [$formatter])
 
-The Parser C<parse()> method return a L</Workbook> object.
+The Parser C<parse()> method returns a L</Workbook> object.
 
     my $parser   = Spreadsheet::ParseExcel->new();
     my $workbook = $parser->parse('Book1.xls');
