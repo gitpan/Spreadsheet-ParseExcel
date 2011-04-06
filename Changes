@@ -1,5 +1,14 @@
 Revision history for Perl module Spreadsheet::ParseExcel.
 
+0.59 April 6 2011
+
+    + Patch for decryption of default encrypted workbooks from
+      Alexey Mazurin.
+
+    ! Fix for invalid formatting of text cell that are numeric.
+      http://rt.cpan.org/Public/Bug/Display.html?id=62073
+
+
 0.58 September 17 2010
 
     ! Fix for text cells formatted with a leading apostrophe.
