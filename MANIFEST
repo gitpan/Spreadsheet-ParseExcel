@@ -112,3 +112,4 @@ sample/dmpEx_2xml.pl
 
 sample/parse.pl
 
+META.json                                Module JSON meta-data (added by MakeMaker)

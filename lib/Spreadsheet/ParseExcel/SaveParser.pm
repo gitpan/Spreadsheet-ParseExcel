@@ -24,7 +24,7 @@ use Spreadsheet::ParseExcel::SaveParser::Worksheet;
 use Spreadsheet::WriteExcel;
 use base 'Spreadsheet::ParseExcel';
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
 ###############################################################################
 #
@@ -48,7 +48,7 @@ sub Create {
     my $workbook = Spreadsheet::ParseExcel::Workbook->new();
     $workbook->{SheetCount} = 0;
 
-    # User specified formater class.
+    # User specified formatter class.
     if ($formatter) {
         $workbook->{FmtClass} = $formatter;
     }

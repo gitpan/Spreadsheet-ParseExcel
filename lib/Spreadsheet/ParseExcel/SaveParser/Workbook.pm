@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 use base 'Spreadsheet::ParseExcel::Workbook';
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
 #==============================================================================
 # Spreadsheet::ParseExcel::SaveParser::Workbook
@@ -232,7 +232,7 @@ sub SaveAs {
 
 #        PageStart    => $oWkS->{PageStart},            # Page number for start
 #        UsePage      => $oWkS->{UsePage},              # Use own start page number
-#        NoColor      => $oWkS->{NoColor},               # Print in blcak-white
+#        NoColor      => $oWkS->{NoColor},               # Print in black-white
 #        Draft        => $oWkS->{Draft},                 # Print in draft mode
 #        Notes        => $oWkS->{Notes},                 # Print notes
 #        LeftToRight  => $oWkS->{LeftToRight},           # Left to Right

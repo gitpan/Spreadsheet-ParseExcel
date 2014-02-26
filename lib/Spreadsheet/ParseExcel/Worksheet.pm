@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use Scalar::Util qw(weaken);
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
 ###############################################################################
 #
@@ -844,7 +844,7 @@ The C<get_print_order()> method returns 0 if the worksheet print "page order" is
 
 =head2 get_print_scale()
 
-The C<get_print_scale()> method returns the workbook scale for printing. The print scale fctor can be in the range 10 .. 400.
+The C<get_print_scale()> method returns the workbook scale for printing. The print scale factor can be in the range 10 .. 400.
 
     my $print_scale = $worksheet->get_print_scale();
 
