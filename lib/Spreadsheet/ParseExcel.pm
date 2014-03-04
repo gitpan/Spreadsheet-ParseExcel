@@ -22,7 +22,7 @@ use Config;
 use Crypt::RC4;
 use Digest::Perl::MD5;
 
-our $VERSION = '0.60';
+our $VERSION = '0.61';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -31,10 +31,11 @@ use Spreadsheet::ParseExcel::Format;
 use Spreadsheet::ParseExcel::Cell;
 use Spreadsheet::ParseExcel::FmtDefault;
 
+my $currentbook;
 my @aColor = (
     '000000',    # 0x00
     'FFFFFF', 'FFFFFF', 'FFFFFF', 'FFFFFF',
-    'FFFFFF', 'FFFFFF', 'FFFFFF', 'FFFFFF',    # 0x08
+    'FFFFFF', 'FFFFFF', 'FFFFFF', '000000',    # 0x08
     'FFFFFF', 'FF0000', '00FF00', '0000FF',
     'FFFF00', 'FF00FF', '00FFFF', '800000',    # 0x10
     '008000', '000080', '808000', '800080',
@@ -48,7 +49,7 @@ my @aColor = (
     '33CCCC', '99CC00', 'FFCC00', 'FF9900',
     'FF6600', '666699', '969696', '003366',    # 0x38
     '339966', '003300', '333300', '993300',
-    '993366', '333399', '333333', 'FFFFFF'     # 0x40
+    '993366', '333399', '333333', '000000'     # 0x40
 );
 use constant verExcel95 => 0x500;
 use constant verExcel97 => 0x600;
@@ -97,8 +98,10 @@ our %ProcTbl = (
     0x2A   => \&_subPrintHeaders,      # Print Headers
     0x2B   => \&_subPrintGridlines,    # Print Gridlines
     0x3C   => \&_subContinue,          # Continue
+    0x3D   => \&_subWindow1,           # Window1
     0x43   => \&_subXF,                # XF for Excel < 4.
     0x0443 => \&_subXF,                # XF for Excel = 4.
+    0x862  => \&_subSheetLayout,       # Sheet Layout
 
     #Develpers' Kit P292
     0x55 => \&_subDefColWidth,         # Consider
@@ -512,10 +515,12 @@ sub parse {
     my ( $self, $source, $formatter ) = @_;
 
     my $workbook = Spreadsheet::ParseExcel::Workbook->new();
+    $currentbook = $workbook;
     $workbook->{SheetCount} = 0;
     $workbook->{CellHandler} = $self->{CellHandler};
     $workbook->{NotSetCell}  = $self->{NotSetCell};
     $workbook->{Object}      = $self->{Object};
+    $workbook->{aColor}      = [ @aColor ];
 
     my ( $biff_data, $data_length ) = $self->_get_content( $source, $workbook );
     return undef if not $biff_data;
@@ -1188,8 +1193,10 @@ sub _subRow {
       unpack( "v8", $sWk );
     $iEc--;
 
-    # TODO. we need to handle hidden rows:
-    # $iGr & 0x20
+    if ( $iGr & 0x20 ) {
+        $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{RowHidden}[$iR] = 1;
+    }
+
     $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{RowHeight}[$iR] = $iHght / 20;
 
     #2.MaxRow, MaxCol, MinRow, MinCol
@@ -1318,8 +1325,46 @@ sub _subColInfo {
 
         $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{ColFmtNo}[$i] = $iXF;
 
-        # TODO. we need to handle hidden cols: $iGr & 0x01.
+        if ( $iGr & 0x01 ) {
+            $oBook->{Worksheet}[ $oBook->{_CurSheet} ]->{ColHidden}[$i] = 1;
+        }
     }
+}
+
+#------------------------------------------------------------------------------
+# _subWindow1 Window information P 273
+#------------------------------------------------------------------------------
+sub _subWindow1 {
+    my ( $workbook, $op, $len, $wk ) = @_;
+
+    return if ( $workbook->{BIFFVersion} <= verBIFF4() );
+
+    my (
+        $hpos,     $vpos,        $width,
+        $height,   $options,     $active,
+        $firsttab, $numselected, $tabbarwidth
+    ) = unpack( "v9", $wk );
+
+    $workbook->{ActiveSheet} = $active;
+}
+
+#------------------------------------------------------------------------------
+# _subSheetLayout OpenOffice 5.96 (P207)
+#------------------------------------------------------------------------------
+sub _subSheetLayout {
+    my ( $workbook, $op, $len, $wk ) = @_;
+
+    my @unused;
+    (
+        my $rc,
+        @unused[ 1 .. 10 ],
+        @unused[ 11 .. 14 ],
+        my $color, @unused[ 15, 16 ]
+    ) = unpack( "vC10C4vC2", $wk );
+
+    return unless ( $rc == 0x0862 );
+
+    $workbook->{Worksheet}[ $workbook->{_CurSheet} ]->{TabColor} = $color;
 }
 
 #------------------------------------------------------------------------------
@@ -1592,7 +1637,7 @@ sub _subPalette {
     for ( my $i = 0 ; $i < unpack( 'v', $sWk ) ; $i++ ) {
 
         #        push @aColor, unpack('H6', substr($sWk, $i*4+2));
-        $aColor[ $i + 8 ] = unpack( 'H6', substr( $sWk, $i * 4 + 2 ) );
+        $oBook->{aColor}[ $i + 8 ] = unpack( 'H6', substr( $sWk, $i * 4 + 2 ) );
     }
 }
 
@@ -1683,11 +1728,12 @@ sub _subBoundSheet {
         }
         $oBook->{Worksheet}[ $oBook->{SheetCount} ] =
           Spreadsheet::ParseExcel::Worksheet->new(
-            Name     => $sWsName,
-            Kind     => $iKind,
-            _Pos     => $iPos,
-            _Book    => $oBook,
-            _SheetNo => $oBook->{SheetCount},
+            Name        => $sWsName,
+            Kind        => $iKind,
+            _Pos        => $iPos,
+            _Book       => $oBook,
+            _SheetNo    => $oBook->{SheetCount},
+            SheetHidden => $iGr & 0x03
           );
     }
     else {
@@ -1695,10 +1741,11 @@ sub _subBoundSheet {
           Spreadsheet::ParseExcel::Worksheet->new(
             Name =>
               $oBook->{FmtClass}->TextFmt( substr( $sWk, 7 ), '_native_' ),
-            Kind     => $iKind,
-            _Pos     => $iPos,
-            _Book    => $oBook,
-            _SheetNo => $oBook->{SheetCount},
+            Kind        => $iKind,
+            _Pos        => $iPos,
+            _Book       => $oBook,
+            _SheetNo    => $oBook->{SheetCount},
+            SheetHidden => $iGr & 0x03
           );
     }
     $oBook->{SheetCount}++;
@@ -2435,12 +2482,19 @@ sub _NewCell {
 #------------------------------------------------------------------------------
 # ColorIdxToRGB (for Spreadsheet::ParseExcel)
 #
-# TODO JMN Make this a Workbook method and re-document.
+# Returns for most recently opened book for compatibility, use
+# Workbook::color_idx_to_rgb instead
 #
 #------------------------------------------------------------------------------
 sub ColorIdxToRGB {
     my ( $sPkg, $iIdx ) = @_;
-    return ( ( defined $aColor[$iIdx] ) ? $aColor[$iIdx] : $aColor[0] );
+
+
+    unless( defined $currentbook ) {
+	return ( ( defined $aColor[$iIdx] ) ? $aColor[$iIdx] : $aColor[0] );
+    }
+
+    return $currentbook->color_idx_to_rgb( $iIdx );
 }
 
 
@@ -2952,7 +3006,12 @@ Returns the style of an underlined font where the value has the following meanin
 
 =head2 $font->{Color}
 
-Returns the color index for the font. The index can be converted to a RGB string using the C<ColorIdxToRGB()> Parser method.
+Returns the color index for the font. The mapping to an RGB color is defined by each workbook.
+
+The index can be converted to a RGB string using the C<$workbook->ColorIdxToRGB()> Parser method.
+
+(Older versions of C<Spreadsheet::ParseExcel> provided the C<ColorIdxToRGB> class method, which is deprecated.)
+
 
 =head2 $font->{Strikeout}
 

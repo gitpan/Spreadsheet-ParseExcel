@@ -1,9 +1,32 @@
 Revision history for Perl module Spreadsheet::ParseExcel.
 
+0.61
+
+    ! RT #93500 (Red Cell formats)
+      http://rt.cpan.org/Public/Bug/Display.html?id=93500
+
+    + RT #93379 (tab color)
+      http://rt.cpan.org/Public/Bug/Display.html?id=93379
+
+    + RT #93393 (active worksheet)
+      http://rt.cpan.org/Public/Bug/Display.html?id=93393
+
+    ! Fix RT #93425 (color from workbook leaks)
+      http://rt.cpan.org/Public/Bug/Display.html?id=93425
+
+    + RT #93367 (hidden rows/columns)
+      http://rt.cpan.org/Public/Bug/Display.html?id=93367
+
+    ! Fix RT #93065 (black)
+      http://rt.cpan.org/Public/Bug/Display.html?id=93065
+
+    ! Fix RT #62593 (?)(merge from apla/master).
+      http://rt.cpan.org/Public/Bug/Display.html?id=62593
+
 0.60 February 26 2014
 
     + Fix RT #43250
-      http://rt.cpan.org/Public/Bug/Display.html?id=43250.
+      http://rt.cpan.org/Public/Bug/Display.html?id=43250
 
 0.59 April 6 2011
 
