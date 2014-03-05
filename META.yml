@@ -27,4 +27,4 @@ requires:
 resources:
   MailingList: http://groups.google.com/group/spreadsheet-parseexcel
   repository: http://github.com/jmcnamara/spreadsheet-parseexcel
-version: '0.61'
+version: '0.62'
