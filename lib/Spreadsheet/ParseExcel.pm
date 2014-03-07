@@ -22,7 +22,7 @@ use Config;
 use Crypt::RC4;
 use Digest::Perl::MD5;
 
-our $VERSION = '0.62';
+our $VERSION = '0.63';
 
 use Spreadsheet::ParseExcel::Workbook;
 use Spreadsheet::ParseExcel::Worksheet;
@@ -72,6 +72,9 @@ use constant ErrorNone          => 0;
 use constant ErrorNoFile        => 1;
 use constant ErrorNoExcelData   => 2;
 use constant ErrorFileEncrypted => 3;
+
+# Color index for the 'auto' color
+use constant AutoColor => 64;
 
 our %error_strings = (
     ErrorNone,          '',                               # 0
@@ -605,33 +608,52 @@ sub _get_content {
 
     # Reset the error status in case method is called more than once.
     $self->{_error_status} = ErrorNone;
+ 
+    my $ref = ref($source);
 
-    if ( ref( $source ) eq "SCALAR" ) {
+    if ( $ref ) {
+         if ( $ref eq 'SCALAR' ) {
 
-        # Specified by a scalar buffer.
-        ( $biff_data, $data_length ) = $self->{GetContent}->( $source );
+             # Specified by a scalar buffer.
+             ( $biff_data, $data_length ) = $self->{GetContent}->( $source );
 
-    }
-    elsif ( ( ref( $source ) =~ /GLOB/ ) || ( ref( $source ) eq 'Fh' ) ) {
+         }
+         elsif ( $ref eq 'ARRAY' ) {
 
-        # For CGI.pm (Light FileHandle)
-        binmode( $source );
-        my $sWk;
-        my $sBuff = '';
-
-        while ( read( $source, $sWk, 4096 ) ) {
-            $sBuff .= $sWk;
+             # Specified by file content
+             $workbook->{File} = undef;
+             my $sData = join( '', @$source );
+             ( $biff_data, $data_length ) = $self->{GetContent}->( \$sData );
         }
+        else {
 
-        ( $biff_data, $data_length ) = $self->{GetContent}->( \$sBuff );
+             # Assume filehandle
 
-    }
-    elsif ( ref( $source ) eq 'ARRAY' ) {
+             # For CGI.pm (Light FileHandle)
+             my $sBuff = '';
+             if ( eval { binmode( $source ) } ) {
+                 my $sWk;
 
-        # Specified by file content
-        $workbook->{File} = undef;
-        my $sData = join( '', @$source );
-        ( $biff_data, $data_length ) = $self->{GetContent}->( \$sData );
+                 while ( read( $source, $sWk, 4096 ) ) {
+                     $sBuff .= $sWk;
+                 }
+             }
+             else {
+
+                 # Assume IO::Wrap or some other filehandle-like OO-only object
+                 my $sWk;
+
+                 # IO::Wrap does not implement binmode
+                 eval { $source->binmode() };
+
+                 while ( $source->read( $sWk, 4096 ) ) {
+                     $sBuff .= $sWk;
+                 }
+             }
+
+             ( $biff_data, $data_length ) = $self->{GetContent}->( \$sBuff );
+
+         }
     }
     else {
 
