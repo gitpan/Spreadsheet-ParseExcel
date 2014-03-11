@@ -1,7 +1,7 @@
 ---
 abstract: 'Read information from an Excel file.'
 author:
-  - 'John McNamara (jmcnamara@cpan.org)'
+  - 'Douglas Wilson (dougw@cpan.org)'
 build_requires:
   ExtUtils::MakeMaker: '0'
 configure_requires:
@@ -26,5 +26,7 @@ requires:
   Scalar::Util: '0'
 resources:
   MailingList: http://groups.google.com/group/spreadsheet-parseexcel
-  repository: http://github.com/jmcnamara/spreadsheet-parseexcel
-version: '0.63'
+  bugtracker: http://github.com/runrig/spreadsheet-parseexcel/issues
+  homepage: http://github.com/runrig/spreadsheet-parseexcel/
+  repository: http://github.com/runrig/spreadsheet-parseexcel
+version: '0.64'
